@@ -83,4 +83,30 @@ Milestones: set yourself, and evaluated. in project plan. idk if we can modify m
 * simple collision detection (alarm if stuck)
 * integration with web-app
 
-Can give report advice
+* Can give report advice
+
+### Meeting 22.01 - organisation 
+
+* buy Pi
+* EV3/arduino as hardware controller? EV3
+
+Tasks:
+* Build a basic robot
+* Control of robot, basic workspace sketch
+* Web-app brainstorm
+* Writing report
+
+* on-the-way delivery: optional feature
+* agile development: people focus on tasks that they have time/skill for, rather than micro-managing tasks.
+* pair-programming, working around people
+* battery situation
+* **Python. SSH-ing into Pi.**
+* Voice feedback (greet you at desk), lets you know there's a collision
+* Arduino: tag detection capabilities. some stronger sensors are not lego-capable.
+
+Milestones:
+**7th Feb: first milestone**
+* do a small sprint weekend before
+* basic line-following
+* mockup environment, diagram
+* logic of robot draft
