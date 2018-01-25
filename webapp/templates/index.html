@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<head>
+	 <title>OfficePal</title>
+	 <!-- Latest compiled and minified CSS -->
+	 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+	 <!-- Latest compiled and minified JavaScript -->
+	 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+	 <script defer src="/static/fontawesome-all.js"></script>
+	 <link rel="stylesheet" href='/static/style.css'/>
+	 <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400" rel="stylesheet">
+</head>
+
+<body>
+	<div class="container">
+		 <div class="header">
+			 <img src="/static/logo.png"/>
+			 <h1>OfficePal</h1>
+		 </div>
+		 <h2>Where should OfficePal go?</h2>
+
+		 <!-- Main location selector -->
+		 {% for desk in desks %}
+			 <a href="/{{desk}}/call" class="btn btn-block btn-lg btn-default" role="button">Call to {{ desks[desk].name }} <i class="fas fa-desktop"></i> </a>
+		 {% endfor %}
+
+		 <!--Notifications-->
+		 {% if message and not error_msg %}
+			 <p class="notification fade distance"><i class="fas fa-check-square"></i>{{ message }}</p>
+		 {% elif message and error_msg %}
+			 <p class="notification fade distance error_color"><i class="fas fa-times"></i>{{ message }}</p>
+		 {% else %}
+			 <p class="note notification distance">Notifications will appear here.</p>
+		 {% endif %}
+	 </div>
+</body>
+</html>
