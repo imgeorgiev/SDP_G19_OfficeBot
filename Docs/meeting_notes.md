@@ -110,3 +110,10 @@ Milestones:
 * basic line-following
 * mockup environment, diagram
 * logic of robot draft
+
+### Meeting notes 29.01
+
+* Basic robot by end of week
+* Camera for detecting edges of object for collision avoidance
+* Remote-controlled robot (bluetooth in Pi for PS4 controller: Callum), as well as basic line following for first client demo
+* IVR from two years ago had line following/detection
