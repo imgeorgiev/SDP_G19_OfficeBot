@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-__author__ = "bythew3i"
 
 import evdev
 import ev3dev.auto as ev3
@@ -34,13 +33,14 @@ class MotorThread(threading.Thread):
         self.motor.stop()
 
 
-
-### general functions
-def scale(val, src, dst):
-    return (float(val - src[0]) / (src[1] - src[0])) * (dst[1] - dst[0]) + dst[0]
-
+# transform joystick inputs to motor outputs
 def scale_stick(value):
     return scale(value, (0,255), (-100, 100))
+
+# Generic scale function
+# Scale src range to dst range
+def scale(val, src, dst):
+    return (float(val - src[0]) / (src[1] - src[0])) * (dst[1] - dst[0]) + dst[0]
 
 
 def main():
@@ -48,32 +48,36 @@ def main():
     print("Controller Set Up ...")
     devices = [evdev.InputDevice(fn) for fn in evdev.list_devices()]
     gamepad = evdev.InputDevice(devices[0].fn)
+    if devices[0] is None:
+        print("Failed to connect to control device")
+    else
+        print("connected to ", devices[0].fn, devices[0].name, devices[0].phys)
 
-    ### left motor
+    ### left motor initilisation
     l_motor_thread = MotorThread("LEFT", "A")
     l_motor_thread.setDaemon(True)
     l_motor_thread.start()
 
-    ### right motor
+    ### right motor initilisation
     r_motor_thread = MotorThread("RIGHT", "D")
     r_motor_thread.setDaemon(True)
     r_motor_thread.start()
 
-
     ### controller listener
-    sqr_cnt = 0
-    cir_cnt = 0
-    gopro_pow = False
+    sqr_cnt = 0     # number of times SQR has been pressed
+    cir_cnt = 0     # number of times CIRcle has been pressed
     sound_config = '-a 300 -s 110'
     for event in gamepad.read_loop():
-        if event.type == 3: # analog
-            if event.code == 5: # right stick Y
-                print("Right stick Y movement")
+        if event.type == 3: # analog input
+            if event.code == 5: # right stick Y; fowrwards/backword movements
+                print("DEBUG: Right stick Y movement")
                 l_motor_thread.speed = -scale_stick(event.value)
                 r_motor_thread.speed = -scale_stick(event.value)
 
             if event.code == 0: # left stick X
-                print("Left stick X movement")
+                # simple direction steering for the robot
+                # TOOD: Optimize
+                print("DEBUG: Left stick X movement")
                 if event.value > 133:
                     r_motor_thread.pause = True
                 elif event.value < 122:
@@ -84,46 +88,37 @@ def main():
 
         if event.type == 1: # key pressed
             if event.value == 1:
-                if event.code == 304: # SQR btn -> gopro photo mode
-                    print("SQR button pressed")
-                    option = sqr_cnt % 2
-                    if option == 0:
-                        cmd = "go pro photo mode"
-                    elif option == 1:
-                        cmd = "go pro take a photo"
-                    brickman.Sound.speak(cmd, sound_config)
-                    sqr_cnt += 1
+                if event.code == 304: # SQR button
+                    print("DEBUG: SQR button pressed")
+                    # option = sqr_cnt % 2  # switch support
+                    # sqr_cnt += 1
+                    cmd = "Square pressed"
 
                 elif event.code == 305: # X btn -> turn off go pro
-                    print("X button pressed")
-                    brickman.Sound.speak("Go pro turn off", sound_config)
+                    print("DEBUG: X button pressed")
+                    cmd = "Cross pressed"
 
                 elif event.code == 306: # O btn -> go pro video mode
-                    print("O buitton pressed")
-                    option = cir_cnt % 3
-                    if option == 0:
-                        cmd = "go pro video mode"
-                    elif option == 1:
-                        cmd = "go pro start recording"
-                    else:
-                        cmd = "go pro stop recording"
-                    brickman.Sound.speak(cmd, sound_config)
-                    cir_cnt += 1
+                    print("DEBUG: Circle button pressed")
+                    # option = cir_cnt % 3  # switch support
+                    # cir_cnt += 1
+                    cmd = "Circle pressed"
 
-                elif event.code == 307 and gopro_pow == False: # TRI btn -> turn on go
-                    print("TRI button pressed")
-                    gopro_pow = True
-                    pass
-                elif event.code == 316: # PS btn -> quit the program
-                    print("Quiting ...")
+                elif event.code == 307: # TRIangle button
+                    print("DEBUG: Triangle button pressed")
+                    cmd = "Triangle pressed"
+
+                elif event.code == 316: # PS button
+                    print("DEBUG: Shutdown")
                     l_motor_thread.work = False
                     r_motor_thread.work = False
-                    break
-            if event.value == -1:
+
+            elif event.value == -1:
                 if event.code == 16: # left btn
-                    print("left button pressed")
-                    pass
+                    print("DEBUG: left button pressed")
+
                 elif event.code == 17: # up btn
-                    print("up button pressed")
-                    pass
+                    print("DEBUG: up button pressed")
+
+            brickman.Sound.speak(cmd, sound_config)
 main()
