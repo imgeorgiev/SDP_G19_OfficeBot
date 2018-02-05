@@ -117,4 +117,8 @@ img {
   h2 {
     font-size: 28px;
   }
+
+  .container {
+    margin-top: 0px;
+  }
 }
