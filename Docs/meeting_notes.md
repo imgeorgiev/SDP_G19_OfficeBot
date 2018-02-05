@@ -1,6 +1,6 @@
 ### Meeting notes 15.01 - first idea
 
-Idea: Office bot: a robot that can be called/scheduled through a web-app, that can deliver mail/packages/documents/stationery/fruit/water/rubbish 
+Idea: Office bot: a robot that can be called/scheduled through a web-app, that can deliver mail/packages/documents/stationery/fruit/water/rubbish
 * Controlled through web-app?
 * Follows pre-determined pathway on ground?
 
@@ -43,7 +43,7 @@ Idea: Office bot: a robot that can be called/scheduled through a web-app, that c
 
 ### Meeting notes 19.01 - pitch feedback
 
-To include in project plan: 
+To include in project plan:
 * staged development
 * milestones
 * constraint/assumptions for prototype
@@ -85,7 +85,7 @@ Milestones: set yourself, and evaluated. in project plan. idk if we can modify m
 
 * Can give report advice
 
-### Meeting 22.01 - organisation 
+### Meeting 22.01 - organisation
 
 * buy Pi
 * EV3/arduino as hardware controller? EV3
@@ -117,3 +117,15 @@ Milestones:
 * Camera for detecting edges of object for collision avoidance
 * Remote-controlled robot (bluetooth in Pi for PS4 controller: Callum), as well as basic line following for first client demo
 * IVR from two years ago had line following/detection
+
+### Meeting notes 05.02
+
+##### Demo:
+* web-app on pi & console output
+* show video of camera
+* one (possibly) sensor for line-following
+* ** Any changes to a group’s milestones should be written up and sent to the client by the end of
+the day for official approval.**
+
+arduino forwarding of sensors to pi
+ev3 has a mini-usb port, so can power it.
