@@ -1,6 +1,5 @@
 body {
   background-image: url("pattern2.png");
-  font-family: 'Open Sans', sans-serif;
   font-weight: 300;
 }
 
@@ -117,5 +116,9 @@ img {
 
   h2 {
     font-size: 28px;
+  }
+
+  .container {
+    margin-top: 0px;
   }
 }
