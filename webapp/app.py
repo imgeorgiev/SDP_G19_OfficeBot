@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from flask import Flask, render_template
 
 app = Flask(__name__)
@@ -15,6 +17,9 @@ job_queue = []
 
 error_msg = False
 
+sched_alg = "none"
+
+current_job = 0
 
 @app.route("/")
 def index():
@@ -43,8 +48,10 @@ def action(desk, action):
             message = " OfficeBot has been called to " + deskName + "."
             error_msg = False
 
+            current_job = desk
             # add desk to front of job_queue
             job_queue.insert(0, desk)
+            reorder_jobs()
             print("\nDEBUG:\ncall " + str(desk) + "\njob_queue is: " + str(job_queue) + "\n")
 
         # multiple calls to the same location are ignored
@@ -63,6 +70,30 @@ def action(desk, action):
 
     return render_template('index.html', **templateData)
 
+def reorder_jobs():
+    # Reorders job_queue based on the sched_alg and current job
+    # TO-DO implement basic scheduling alg
+
+    # Idea: the desk numbers reflect their absolute order
+    # Eg:
+    #         |- 4
+    #  3 -----|
+    #         |--- 2
+    #         |
+    #    1 ---|
+    #
+    pass
+
+def send_job():
+    # Gets called by logic processor
+
+    # If there are no jobs in the queue
+    if (len(job_queue) == 0):
+        return -1
+
+    current_job = job_queue.pop()
+    reorder_jobs()
+    return current_job
 
 # redirect unknown URLs to homepage
 @app.errorhandler(404)
