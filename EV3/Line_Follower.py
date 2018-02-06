@@ -31,7 +31,7 @@ class MotorThread(threading.Thread):
                 self.speed = -motorSpeed
             if self.pause:
                 self.speed = 0
-            self.motor.run_direct(duty_cycle_sp=self.speed)
+            self.motor.run_direct(duty_cycle_sp=-self.speed)  # speed negative because forward direction is negative
 
         self.motor.stop()
 
@@ -63,6 +63,7 @@ colorSensorRight = ColorSensor('in4'); assert colorSensorRight.connected
 
 # define conversion between number and color
 COLORS = {0: 'None', 1: 'Black', 2: 'Blue', 3: 'Green', 4: 'Yellow', 5: 'Red', 6: 'White', 7: 'Brown'}
+colorToFollow = 1
 
 button = Button()
 
@@ -82,42 +83,61 @@ led_thread.setDaemon(True)
 led_thread.start()
 
 print("Starting motors: ")
-motorSpeed = -30
+motorSpeed = 30
 
-# follow line until any button is pressed
-while not button.any():
+# follow line until enter or backspace are pressed
+while not button.enter or button.backspace:
     # if something is close to the sensor, stop motors until it's gone
     if ultrasonicSensor.value() < 90:  #90mm
         l_motor_thread.pause = True
         r_motor_thread.pause = True
         led_thread.flashing = True
+
+        Sound.set_volume(100)
         Sound.speak("I am in danger!")
 
         while ultrasonicSensor.value() < 90:
-            pass
+            # ensures program can exit while sensor is covered
+            if button.enter or button.backspace:
+                break
 
         # while broken indicates obstacle is gone
         led_thread.flashing = False
         l_motor_thread.pause = False
         r_motor_thread.pause = False
 
-    # reverse the left wheel if the left colour sensor is black
-    if COLORS[colorSensorLeft.color] == 'Black':
+    # reverse the left wheel if the left colour sensor is colorToFollow
+    if COLORS[colorSensorLeft.color] == COLORS[colorToFollow]:
         l_motor_thread.reverse = True
     else:
         l_motor_thread.speed = motorSpeed
         l_motor_thread.reverse = False
 
-    # reverse the right wheel if the right colour sensor is black
-    if COLORS[colorSensorRight.color] == 'Black':
+    # reverse the right wheel if the right colour sensor is colorToFollow
+    if COLORS[colorSensorRight.color] == COLORS[colorToFollow]:
         r_motor_thread.reverse = True
     else:
         r_motor_thread.speed = motorSpeed
         r_motor_thread.reverse = False
     sleep(0.01)
 
+    # increase speed with UP button, decrease with Down
+    if button.up:
+        motorSpeed += 1
+        print("\n" + str(motorSpeed))
+    if button.down:
+        motorSpeed -= 1
+        print("\n" + str(motorSpeed))
+
+    # change line color to follow with left/right
+    if button.left:
+        colorToFollow = (colorToFollow - 1) % len(COLORS)
+        print("\nLine color: " + COLORS[colorToFollow])
+    if button.right:
+        colorToFollow = (colorToFollow + 1) % len(COLORS)
+        print("\nLine color: " + COLORS[colorToFollow])
+
 print("Button was pressed - Stopping motors.")
 l_motor_thread.motor.stop()
 r_motor_thread.motor.stop()
 sleep(5)
-
