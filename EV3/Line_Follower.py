@@ -7,12 +7,14 @@ import threading
 ### general classes
 class MotorThread(threading.Thread):
     def __init__(self, side, out):
-        self.pause = False
-        self.speed = 0
         self.work = True
-        self.side = side
-        self.motor = LargeMotor(OUTPUT_A)
+        self.pause = False
         self.reverse = False
+        self.speed = 0
+
+        self.side = side
+
+        self.motor = LargeMotor(OUTPUT_A)
         if out.upper() == "B":
             self.motor = LargeMotor(OUTPUT_B)
         elif out.upper() == "C":
@@ -40,6 +42,10 @@ class FlashLEDs(threading.Thread):
 
     def run(self):
         while True:
+            # reset LED colors to green
+            Leds.set_color(Leds.LEFT, Leds.GREEN)
+            Leds.set_color(Leds.RIGHT, Leds.GREEN)
+
             while self.flashing:
                 Leds.set_color(Leds.LEFT, Leds.GREEN)
                 Leds.set_color(Leds.RIGHT, Leds.GREEN)
@@ -47,8 +53,7 @@ class FlashLEDs(threading.Thread):
                 Leds.set_color(Leds.LEFT, Leds.RED)
                 Leds.set_color(Leds.RIGHT, Leds.RED)
                 sleep(0.300)  #300ms
-            Leds.set_color(Leds.LEFT, Leds.GREEN)
-            Leds.set_color(Leds.RIGHT, Leds.GREEN)
+
 
 # Connect color and ultrasonic sensors and check that they
 # are connected.
@@ -63,7 +68,7 @@ button = Button()
 
 ### left motor initilisation
 l_motor_thread = MotorThread("LEFT", "A")
-l_motor_thread.setDaemon(True)
+l_motor_thread.setDaemon(True)  # stop thread when main thread ends
 l_motor_thread.start()
 
 ### right motor initilisation
@@ -76,25 +81,19 @@ led_thread = FlashLEDs()
 led_thread.setDaemon(True)
 led_thread.start()
 
-# Do nothing until a button is pressed
-# print("Waiting for user input.")
-# while not button.any():
-#     pass
-# sleep(0.5)
-# follow line until any button is pressed
 print("Starting motors: ")
-
 motorSpeed = -30
 
+# follow line until any button is pressed
 while not button.any():
     # if something is close to the sensor, stop motors until it's gone
-    if ultrasonicSensor.value() < 70:  #70mm
+    if ultrasonicSensor.value() < 90:  #90mm
         l_motor_thread.pause = True
         r_motor_thread.pause = True
         led_thread.flashing = True
         Sound.speak("I am in danger!")
 
-        while ultrasonicSensor.value() < 70:
+        while ultrasonicSensor.value() < 90:
             pass
 
         # while broken indicates obstacle is gone
