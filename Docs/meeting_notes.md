@@ -129,3 +129,13 @@ the day for official approval.**
 
 arduino forwarding of sensors to pi
 ev3 has a mini-usb port, so can power it.
+
+### Demo feedback 07.02
+* needing to connect through eduroam for app, as needs to be traceable (computing regulations)- solutions/workarounds?
+* quantitative testing needed (graphs, some way of showing why we are choosing some values/how we test)
+* 3d printing: make the right choices, cheap material.
+
+
+### Notes for meeting 12.02
+* go through demo feedback
+* next demo in 2.5 weeks: 28th Feb. what are our milestones?
