@@ -9,6 +9,7 @@ position = 1
 
 def main():
     while (True):
+        # TODO write a draft polling & print every few seconds
         destination = query_app()
         move_path(destination)
 
