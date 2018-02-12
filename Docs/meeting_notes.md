@@ -137,5 +137,4 @@ ev3 has a mini-usb port, so can power it.
 
 
 ### Notes for meeting 12.02
-* go through demo feedback
-* next demo in 2.5 weeks: 28th Feb. what are our milestones?
+* Trello tasks & demo/milestones review
