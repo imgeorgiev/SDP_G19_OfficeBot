@@ -5,12 +5,12 @@ from flask import Flask, render_template
 app = Flask(__name__)
 
 desks = {
-    1 : {'name' : 'Desk 1'},
-    2 : {'name' : 'Desk 2'},
-    3 : {'name' : 'Desk 3'},
-    4 : {'name' : 'Desk 4'},
-    5 : {'name' : 'Desk 5'},
-    6 : {'name' : 'Desk 6'}
+    1 : {'name' : 'Desk 1', 'colour' : 'red'},
+    2 : {'name' : 'Desk 2', 'colour' : 'yellow'},
+    3 : {'name' : 'Desk 3', 'colour' : 'green'},
+    4 : {'name' : 'Desk 4', 'colour' : 'orange'},
+    5 : {'name' : 'Desk 5', 'colour' : 'pink'},
+    6 : {'name' : 'Desk 6', 'colour' : 'purple'}
 }
 
 job_queue = []
