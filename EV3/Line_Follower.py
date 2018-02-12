@@ -31,7 +31,7 @@ class MotorThread(threading.Thread):
                 self.speed = -motorSpeed
             if self.pause:
                 self.speed = 0
-            self.motor.run_direct(duty_cycle_sp=-self.speed)  # speed negative because forward direction is negative
+            self.motor.run_direct(duty_cycle_sp=self.speed)
 
         self.motor.stop()
 
@@ -57,13 +57,15 @@ class FlashLEDs(threading.Thread):
 
 # Connect color and ultrasonic sensors and check that they
 # are connected.
+print("Starting program.")
 ultrasonicSensor = UltrasonicSensor(INPUT_AUTO); assert ultrasonicSensor.connected
 colorSensorLeft = ColorSensor('in1'); assert colorSensorLeft.connected
 colorSensorRight = ColorSensor('in4'); assert colorSensorRight.connected
 
 # define conversion between number and color
 COLORS = {0: 'None', 1: 'Black', 2: 'Blue', 3: 'Green', 4: 'Yellow', 5: 'Red', 6: 'White', 7: 'Brown'}
-colorToFollow = 1
+colorToFollow = 5 #red
+nextColor = 3 #blue
 
 button = Button()
 
@@ -107,19 +109,29 @@ while not button.enter or button.backspace:
         r_motor_thread.pause = False
 
     # reverse the left wheel if the left colour sensor is colorToFollow
-    if COLORS[colorSensorLeft.color] == COLORS[colorToFollow]:
+    if colorSensorLeft.color == colorToFollow:
         l_motor_thread.reverse = True
     else:
         l_motor_thread.speed = motorSpeed
         l_motor_thread.reverse = False
 
     # reverse the right wheel if the right colour sensor is colorToFollow
-    if COLORS[colorSensorRight.color] == COLORS[colorToFollow]:
+    if colorSensorRight.color == colorToFollow:
         r_motor_thread.reverse = True
     else:
         r_motor_thread.speed = motorSpeed
         r_motor_thread.reverse = False
+
+    # ~100hz
     sleep(0.01)
+
+    # detect different line color
+    if colorSensorLeft.color == nextColor or colorSensorRight.color == nextColor:
+        colorToFollow = nextColor
+        
+        #nextColor = getNewNextColor() pseudocode
+        
+        print("\nTurning! New color: " + COLORS[colorToFollow])
 
     # increase speed with UP button, decrease with Down
     if button.up:
@@ -136,6 +148,7 @@ while not button.enter or button.backspace:
     if button.right:
         colorToFollow = (colorToFollow + 1) % len(COLORS)
         print("\nLine color: " + COLORS[colorToFollow])
+
 
 print("Button was pressed - Stopping motors.")
 l_motor_thread.motor.stop()
