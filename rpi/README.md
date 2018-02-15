@@ -63,9 +63,10 @@ Gateway: 169.254.21.1
 Note: We had issues with nested sshing from Windows.
 
 ### 5. Install necessary packages
-`sudo apt-get install python-pip3`
-
-`sudo pip3 install Flask`
+```
+sudo apt-get install python-pip3
+sudo pip3 install Flask pyserial
+```
 
 Install [OpenCV](https://gist.github.com/willprice/c216fcbeba8d14ad1138)
 

@@ -42,9 +42,9 @@ def main():
     while(True):
         print("Serial string" + str(IR.read()))
         print("IR_LR = " + str(IR.IR_LR))
-        print("IR_LR = " + str(IR.IR_RR))
-        print("IR_LR = " + str(IR.IR_LF))
-        print("IR_LR = " + str(IR.IR_RF))
+        print("IR_RR = " + str(IR.IR_RR))
+        print("IR_LF = " + str(IR.IR_LF))
+        print("IR_RF = " + str(IR.IR_RF))
 
 
 if __name__ == '__main__':
