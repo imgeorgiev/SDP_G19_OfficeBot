@@ -21,9 +21,14 @@ error_msg = False
 
 sched_alg = "none"
 
+# Next job to be written to the file
 next_job = None
 
+# Last job that was written to the file
 written_job = None
+
+# Job that is being processed by logic_draft
+currently_processing = None
 
 # Attempts to prevent race conditions between write_job and check_file
 CURRENTLY_WRITING = 0
@@ -133,6 +138,7 @@ def write_job():
                 print("Removed " + str(written_job) + " from job queue.")
                 reorder_jobs()
                 print("job_queue is: " + str(job_queue))
+                currently_processing = written_job
                 written_job = None
                 next_job = job_queue[-1]
 
@@ -170,6 +176,7 @@ def check_file():
         # Initial state will have written_job = None
         if ((len(content) == 0) and written_job is not None):
             job_queue.remove(written_job)
+            currently_processing = written_job
             written_job = None
             reorder_jobs()
             write_job()
