@@ -2,19 +2,19 @@
 
 ## 1. Setup
 
-### 1. Install Raspbian
+#### 1. Install Raspbian
 
 Go to the [Raspbian page](https://www.raspberrypi.org/downloads/raspbian/) and download Raspbian Stretch Lite. Then follow the installation guide and flash it on a SD card.
 
 Note: min SD card size is 8GB.
 
-### 2. Enable SSH
+#### 2. Enable SSH
 
 Once flash is done you need to create an empty file called `ssh` into the boot partition of the SD card. This enables you to SSH into the rpi
 
-### 3. Connect to eduroam
+#### 3. Connect to eduroam
 
-Start editing networking file `/etc/wpa_supplicant/wpa_supplicant.conf` and add
+Start editing networking file `**` and add
 
 ```
 identitty:"unn@ed.ac.uk
@@ -52,7 +52,7 @@ wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
 ```
 
 
-### 4. Set up connection to EV3
+#### 4. Set up connection to EV3
 First you need to set up the networking settings on the EV3. On it, go to `Wireless and Networks/All Network Connections/Wired/IPv4` and set the settings to:
 ```
 IP address: 169.254.21.44
@@ -60,9 +60,9 @@ Mask: 255.255.0.0
 Gateway: 169.254.21.1
 ```
 
-Note: We had issues with nested sshing from Windows.
+Note: We had issues with nested SSHing from Windows.
 
-### 5. Install necessary packages
+#### 5. Install necessary packages
 ```
 sudo apt-get install python-pip3
 sudo pip3 install Flask pyserial
@@ -73,11 +73,13 @@ Install [OpenCV](https://gist.github.com/willprice/c216fcbeba8d14ad1138)
 
 ## 2. Controlling the setup
 
-Connect to it via the Ethernet cable. On Linux you must configure the local network from your machine to 'Shared with other computers'.
+Connect to the RPi via the Ethernet cable. On Linux you must configure the local network from your machine to 'Shared with other computers'. Similar on Windows
 
-Now you should be able to plug an Ethernet cable to the RPi and ssh into it using
-`ssh pi@rspi.local`
-Password: `r0b0tpow3r`
+Now you should be able to SSH into the RPi using:
+
+
+`ssh pi@rspi.local` Password: `r0b0tpow3r`
+
 
 From there you should be able to SSH into the EV3:
 

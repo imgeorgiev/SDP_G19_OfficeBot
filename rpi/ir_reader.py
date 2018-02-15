@@ -23,7 +23,7 @@ class IR_Bus():
         self.ser = serial.Serial(port, baud)
 
     def read(self):
-        serial_str = str(self.ser.readline())[2:-6]
+        serial_str = str(self.ser.readline())[2:-5]
         serial_str = serial_str.split(",")
 
         if(len(serial_str) == 4):
@@ -39,6 +39,7 @@ def main():
     IR = IR_Bus()
     print("Connected to {0} at {1} baudrate".format(IR.ser.port,
         IR.ser.baudrate))
+    # DEBUG output
     while(True):
         print("Serial string" + str(IR.read()))
         print("IR_LR = " + str(IR.IR_LR))
