@@ -6,6 +6,7 @@
 # current position var
 
 import time
+import datetime
 
 position = 1
 
@@ -25,6 +26,7 @@ def main():
             file.close()
             print("Moving to " + str(destination))
             move_path(destination)
+        file.close()
         time.sleep(1)
 
 def move_path(destination):
@@ -38,7 +40,12 @@ def move_path(destination):
     # turn_towards_destination("main exit", position, destination)
     # move_towards(destination)
     # wait_for("move_towards ok")
+    log = open("log.txt","a+")
+    log.write("[" + datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') + "] ")
+    log.write("Received command to move to " + str(destination) + ".\n")
     time.sleep(5)
+    log.write("[" + datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') + "] ")
+    log.write("Successfully moved to " + str(destination) + ".\n")
     print("Moved to " + str(destination) + ".")
 
 if __name__ == '__main__':

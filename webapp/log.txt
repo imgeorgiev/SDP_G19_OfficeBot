@@ -1,0 +1,6 @@
+[2018-02-15 15:44:36]Received command to move to 2.
+[2018-02-15 15:44:41]Successfully moved to 2.
+[2018-02-15 15:44:42]Received command to move to 5.
+[2018-02-15 15:44:47]Successfully moved to 5.
+[2018-02-15 15:44:48]Received command to move to 3.
+[2018-02-15 15:44:53]Successfully moved to 3.
