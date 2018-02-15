@@ -1,10 +1,20 @@
 #!/usr/bin/env python3
 
 import evdev
-import ev3dev.auto as ev3
+from time import sleep
+from ev3dev.auto import *
 import threading
 import ev3dev.ev3 as brickman
 
+
+ultrasonicSensor = UltrasonicSensor(INPUT_AUTO); assert ultrasonicSensor.connected
+colorSensorLeft = ColorSensor('in1'); assert colorSensorLeft.connected
+colorSensorRight = ColorSensor('in4'); assert colorSensorRight.connected
+
+# define conversion between number and color
+COLORS = {0: 'None', 1: 'Black', 2: 'Blue', 3: 'Green', 4: 'Yellow', 5: 'Red', 6: 'White', 7: 'Brown'}
+colorToFollow = 1
+option = 0  
 
 ### general classes
 class MotorThread(threading.Thread):
@@ -13,13 +23,13 @@ class MotorThread(threading.Thread):
         self.speed = 0
         self.work = True
         self.side = side
-        self.motor = ev3.LargeMotor(ev3.OUTPUT_A)
+        self.motor = LargeMotor(OUTPUT_A)
         if out.upper() == "B":
-            self.motor = ev3.LargeMotor(ev3.OUTPUT_B)
+            self.motor = LargeMotor(OUTPUT_B)
         elif out.upper() == "C":
-            self.motor = ev3.LargeMotor(ev3.OUTPUT_C)
+            self.motor = LargeMotor(OUTPUT_C)
         elif out.upper() == "D":
-            self.motor = ev3.LargeMotor(ev3.OUTPUT_D)
+            self.motor = LargeMotor(OUTPUT_D)
 
         threading.Thread.__init__(self)
 
@@ -71,6 +81,9 @@ def main():
     y_speed = 0
     x_speed = 0
     cmd = ""
+    motorSpeed = 30
+
+
     sound_config = '-a 300 -s 110'
     for event in gamepad.read_loop():
         if event.type == 3: # analog input
@@ -118,13 +131,13 @@ def main():
             if event.value == 1:
                 if event.code == 304: # SQR button
                     print("DEBUG: SQR button pressed")
-                    # option = sqr_cnt % 2  # switch support
-                    # sqr_cnt += 1
-                    cmd = "Hello"
+                    option = sqr_cnt % 2  # switch support
+                    sqr_cnt += 1
+                    # cmd = "Hello"
 
                 elif event.code == 305: # X btn -> turn off go pro
                     print("DEBUG: X button pressed")
-                    cmd = "choo choo motherfucker"
+                    cmd = "choo choo"
 
                 elif event.code == 306: # O btn -> go pro video mode
                     print("DEBUG: Circle button pressed")
@@ -149,4 +162,61 @@ def main():
                     print("DEBUG: up button pressed")
 
             brickman.Sound.speak(cmd, sound_config)
+
+if (option > 0):
+    print("Line follower mode")
+    # if something is close to the sensor, stop motors until it's gone
+    if ultrasonicSensor.value() < 90:  #90mm
+        l_motor_thread.pause = True
+        r_motor_thread.pause = True
+        led_thread.flashing = True
+
+        Sound.set_volume(100)
+        Sound.speak("I am in danger!")
+
+        while ultrasonicSensor.value() < 90:
+            # ensures program can exit while sensor is covered
+            if button.enter or button.backspace:
+                break
+
+        # while broken indicates obstacle is gone
+        led_thread.flashing = False
+        l_motor_thread.pause = False
+        r_motor_thread.pause = False
+
+    # reverse the left wheel if the left colour sensor is colorToFollow
+    if COLORS[colorSensorLeft.color] == COLORS[colorToFollow]:
+        l_motor_thread.reverse = True
+    else:
+        l_motor_thread.speed = motorSpeed
+        l_motor_thread.reverse = False
+
+    # reverse the right wheel if the right colour sensor is colorToFollow
+    if COLORS[colorSensorRight.color] == COLORS[colorToFollow]:
+        r_motor_thread.reverse = True
+    else:
+        r_motor_thread.speed = motorSpeed
+        r_motor_thread.reverse = False
+    sleep(0.01)
+
+    # increase speed with UP button, decrease with Down
+    if button.up:
+        motorSpeed += 1
+        print("\n" + str(motorSpeed))
+    if button.down:
+        motorSpeed -= 1
+        print("\n" + str(motorSpeed))
+
+    # change line color to follow with left/right
+    if button.left:
+        colorToFollow = (colorToFollow - 1) % len(COLORS)
+        print("\nLine color: " + COLORS[colorToFollow])
+    if button.right:
+        colorToFollow = (colorToFollow + 1) % len(COLORS)
+        print("\nLine color: " + COLORS[colorToFollow])
+
+    print("Button was pressed - Stopping motors.")
+    l_motor_thread.motor.stop()
+    r_motor_thread.motor.stop()
+    sleep(5)   
 main()

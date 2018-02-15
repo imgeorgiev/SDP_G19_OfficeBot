@@ -31,21 +31,12 @@ void loop() {
   ir_3_val = analogRead(A2);
   ir_4_val = analogRead(A3);
 
-  // Serial.print("IR 1 = ");
   Serial.print(ir_1_val);
   Serial.print(",");
-  // Serial.print("IR 2 = ");
   Serial.print(ir_2_val);
   Serial.print(",");
-  // Serial.print("IR 3 = ");
   Serial.print(ir_3_val);
   Serial.print(",");
-  // Serial.print("IR 4 = ");
   Serial.println(ir_4_val);
   delay(25);
 }
-
-// // Write data to I2C bus whenever requested
-// void requestEvent() {
-//   Wire.write(ir_1_val + ',' + ir_2_val + ',' + ir_3_val + ',' + ir_4_val);
-// }
