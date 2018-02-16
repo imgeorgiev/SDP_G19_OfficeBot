@@ -27,7 +27,7 @@ next_job = None
 # Last job that was written to the file
 written_job = None
 
-# Job that is being processed by logic_draft
+# Job that is being processed by logic
 currently_processing = None
 
 # Attempts to prevent race conditions between write_job and check_file
@@ -44,6 +44,7 @@ def index():
 @app.route("/<int:desk>/<action>")
 def action(desk, action):
     global CURRENTLY_WRITING
+    global currently_processing
 
     # prevent race condition
     while (CURRENTLY_WRITING):
@@ -64,7 +65,7 @@ def action(desk, action):
     deskName = desks[desk]['name']
 
     if action == "call":
-        if desk not in job_queue:
+        if desk not in job_queue and desk != currently_processing:
             message = " OfficeBot has been called to " + deskName + "."
             error_msg = False
 
@@ -110,7 +111,9 @@ def write_job():
     global next_job
     global job_queue
     global written_job
-    # TODO: poll the document every second to add to it if empty.
+    global currently_processing
+
+    print("logic is currently processing " + str(currently_processing) + ".")
 
     # If there are jobs in the queue
     if (len(job_queue) > 0):
@@ -166,6 +169,7 @@ def check_file():
     global written_job
     global job_queue
     global CURRENTLY_WRITING
+    global currently_processing
 
     if (CURRENTLY_WRITING == 0):
 
