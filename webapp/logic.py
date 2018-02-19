@@ -43,18 +43,27 @@ def move_path(destination):
     log = open("log.txt","a+")
     log.write("[" + datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') + "] ")
     log.write("Received command to move to " + str(destination) + ".\n")
+
+    # for testing:
     time.sleep(5)
+
+    # pseudocode
+    follow_line()
+    wait_for_packet()
+
     log.write("[" + datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') + "] ")
     log.write("Successfully moved to " + str(destination) + ".\n")
     print("MOVED TO " + str(destination) + ". BACK TO PINGING FILE.")
 
+    position = destination
+    destination = None
+
 if __name__ == '__main__':
     main()
 
-# def query_app():
-#     # Pulls the most immediate destination from the web-app.
-#     pass
-
+def wait_for_packet():
+    # infinite loop while a TCP packet has not been received
+    pass
 # def move_to_main_line():
 #     # Moves the robot from a desk to the intersection with the main black line
 #     pass

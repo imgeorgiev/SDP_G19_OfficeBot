@@ -91,3 +91,13 @@
 [2018-02-19 12:31:22] Successfully moved to 6.
 [2018-02-19 12:31:23] Received command to move to 4.
 [2018-02-19 12:31:28] Successfully moved to 4.
+[2018-02-19 12:45:15] Received command to move to 3.
+[2018-02-19 12:45:20] Successfully moved to 3.
+[2018-02-19 12:45:38] Received command to move to 1.
+[2018-02-19 12:45:43] Successfully moved to 1.
+[2018-02-19 12:45:44] Received command to move to 2.
+[2018-02-19 12:45:49] Successfully moved to 2.
+[2018-02-19 12:45:50] Received command to move to 3.
+[2018-02-19 12:45:55] Successfully moved to 3.
+[2018-02-19 12:45:56] Received command to move to 4.
+[2018-02-19 12:46:01] Successfully moved to 4.
