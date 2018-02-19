@@ -1,0 +1,11 @@
+# ev3_tcp.py
+
+# while True:
+#   receive packet which contains 'currentColorToFollow and nextLineColor'
+#   call Line_Follower(currentColorToFollow, nextLineColor)
+#   send packet saying line following is done
+
+
+# Boolean Line_Follower(currentColorToFollow, nextLineColor)
+#  return True
+
