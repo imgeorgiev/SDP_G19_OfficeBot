@@ -70,6 +70,9 @@ sudo pip3 install Flask pyserial
 
 Install [OpenCV](https://gist.github.com/willprice/c216fcbeba8d14ad1138)
 
+#### 6. Enable remote connection
+Follow guide on [Dataplicity](https://www.dataplicity.com/)
+
 
 ## 2. Controlling the setup
 
@@ -89,5 +92,16 @@ Password: `maker`
 
 
 You can transfer files between machines using `scp` or simply downloading stuff from Github.
+
+
+Alternatively, you can also connect to it through online.
+
+Go to [Dataplicity](https://www.dataplicity.com/)
+```
+user: ignat.m.georgiev@gmail.com
+pass: r0b0tpow3r
+```
+
+Note: you can't transfer files from there so best use GitHub for any file transfer
 
 ## 3. Python scripts 
