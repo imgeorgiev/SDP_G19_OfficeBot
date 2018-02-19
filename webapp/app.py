@@ -45,15 +45,16 @@ def index():
 def action(desk, action):
     global CURRENTLY_WRITING
     global currently_processing
+    global job_queue
 
     # prevent race condition
     while (CURRENTLY_WRITING):
-        time.sleep(0.5)
+        time.sleep(0.1)
 
     CURRENTLY_WRITING = 1
     # if desk provided in URL does not exist, return error page
     if desk not in desks:
-        print("\nDEBUG:\nCall to invalid desk number: " + str(desk) + "\n")
+        print("\nCall to invalid desk number: " + str(desk) + "\n")
         templateData = {
             'desks' : desks,
             'message' : ' Desk does not exist!',
@@ -71,15 +72,16 @@ def action(desk, action):
 
             # add desk to front of job_queue
             job_queue.insert(0, desk)
-            print("\nDEBUG:\ncall " + str(desk) + "\njob_queue is: " + str(job_queue) + "\n")
+            print("\ncall " + str(desk) + "\njob_queue is: " + str(job_queue) + "\n")
             reorder_jobs()
             write_job()
+            CURRENTLY_WRITING = 0
 
         # multiple calls to the same location are ignored
         else:
             message = " OfficeBot was called to " + deskName + " already!"
             error_msg = True
-            print("\nDEBUG:\ncall VOID" + "\njob_queue is: " + str(job_queue) + "\n")
+            print("\ncall void" + "\njob_queue is: " + str(job_queue) + "\n")
             CURRENTLY_WRITING = 0
     else:
         message = " Unknown action."
@@ -92,12 +94,13 @@ def action(desk, action):
     CURRENTLY_WRITING = 0
     return render_template('index.html', **templateData)
 
+# Reorders job_queue based on the sched_alg and current job
 def reorder_jobs():
     global next_job
-    # Reorders job_queue based on the sched_alg and current job
-    # TO-DO implement basic scheduling alg
+    global currently_processing
+    global job_queue
 
-    # Idea: the desk numbers reflect their absolute order
+    # Assumption: the desk numbers reflect their absolute order
     # Eg:
     #         |- 4
     #  3 -----|
@@ -105,7 +108,15 @@ def reorder_jobs():
     #         |
     #    1 ---|
     #
-    pass
+
+    # Simplest algorithm. Checks closest location to currently_processing
+    # and moves it to the front of the queue.
+    if ((len(job_queue) > 1) and (currently_processing is not None)):
+        differences = [abs(currently_processing - loc) for loc in job_queue]
+        idx_smallest = differences.index(min(differences))
+        print("REORDER_JOBS. Closest to " + str(currently_processing) + " is " + str(job_queue[idx_smallest]) + ".")
+        job_queue.append(job_queue.pop(idx_smallest))
+    print("REORDER_JOBS COMPLETE. job_queue: " + str(job_queue))
 
 def write_job():
     global next_job
@@ -113,18 +124,18 @@ def write_job():
     global written_job
     global currently_processing
 
-    print("logic is currently processing " + str(currently_processing) + ".")
+    print("Logic is processing " + str(currently_processing) + ".")
 
     # If there are jobs in the queue
     if (len(job_queue) > 0):
 
         next_job = job_queue[-1]
-        print("next job is: " + str(next_job))
+        print("next_job: " + str(next_job))
 
         # Check if file is empty (logic has taken a destination to process)
         file = open("dest.txt","r+")
         content = file.read()
-        print("Content of file is: " + content)
+        print("File content: " + content)
 
         # If file contains a destination, overwrite it
         if (len(content) > 0):
@@ -138,9 +149,9 @@ def write_job():
             # because we just initialised the app. skip written_job removal.
             if (written_job is not None):
                 job_queue.remove(written_job)
-                print("Removed " + str(written_job) + " from job queue.")
+                print("REMOVED " + str(written_job) + " from job queue.")
                 reorder_jobs()
-                print("job_queue is: " + str(job_queue))
+                print("job_queue: " + str(job_queue))
                 currently_processing = written_job
                 written_job = None
                 next_job = job_queue[-1]
@@ -148,19 +159,19 @@ def write_job():
             write_to_file(file)
 
     print("\n")
-    CURRENTLY_WRITING = 0
 
 def write_to_file(f):
     global next_job
     global written_job
+    global job_queue
 
     f.seek(0)
     f.truncate()
     f.write(str(next_job))
     f.close()
-    print("Next job is: " + str(next_job))
+    print("next_job: " + str(next_job))
     written_job = next_job
-    print("Overwrote, new destination: " + str(next_job) + ".")
+    print("OVERWROTE, new content: " + str(next_job) + ".")
 
 # Checks text file periodically, and if a job has been removed then it
 # removes it from the job_queue
@@ -176,7 +187,7 @@ def check_file():
         CURRENTLY_WRITING = 1
         file = open("dest.txt","r")
         content = file.read()
-        print("Checking file! Content of file is: " + content)
+        print("File content: " + content)
         # Initial state will have written_job = None
         if ((len(content) == 0) and written_job is not None):
             job_queue.remove(written_job)
@@ -184,7 +195,7 @@ def check_file():
             written_job = None
             reorder_jobs()
             write_job()
-            print("Logic has processed a job. New job_queue is: " + str(job_queue))
+            print("Logic has processed a job. New job_queue: " + str(job_queue))
         file.close()
         CURRENTLY_WRITING = 0
 

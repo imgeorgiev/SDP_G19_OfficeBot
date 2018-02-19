@@ -18,13 +18,13 @@ def main():
         # TODO write a draft polling & print every few seconds
         file = open("dest.txt","r+")
         content = file.read()
-        print("Content of file is: " + content)
+        print("File content: " + content)
         if (len(content) > 0):
             destination = int(content)
             file.seek(0)
             file.truncate()
             file.close()
-            print("Moving to " + str(destination))
+            print("RECEIVED DESTINATION: " + str(destination) + ". MOVING.")
             move_path(destination)
         file.close()
         time.sleep(1)
@@ -46,7 +46,7 @@ def move_path(destination):
     time.sleep(5)
     log.write("[" + datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') + "] ")
     log.write("Successfully moved to " + str(destination) + ".\n")
-    print("Moved to " + str(destination) + ".")
+    print("MOVED TO " + str(destination) + ". BACK TO PINGING FILE.")
 
 if __name__ == '__main__':
     main()
