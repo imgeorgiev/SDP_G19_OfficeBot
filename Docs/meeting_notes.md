@@ -138,3 +138,10 @@ ev3 has a mini-usb port, so can power it.
 
 ### Notes for meeting 12.02
 * Trello tasks & demo/milestones review
+
+### Notes for meeting 19.02 - Sprint week
+* Pi accessible everywhere & interface accessible
+* Install OpenCV on Pi
+* Line-following and multi-colour line following
+* Test camera in demo space, pure functions for camera (efficiency for Pi), how to actually interact with robot. Laplace transforms?
+* Line following: rounded corners? Multi-lines?
