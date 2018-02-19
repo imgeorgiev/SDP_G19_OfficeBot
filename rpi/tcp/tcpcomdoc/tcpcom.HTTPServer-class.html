@@ -1,0 +1,470 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>tcpcom.HTTPServer</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="tcpcom-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="tcpcom-module.html">Module&nbsp;tcpcom</a> ::
+        Class&nbsp;HTTPServer
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="tcpcom.HTTPServer-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class HTTPServer</h1><p class="nomargin-top"><span class="codelink"><a href="tcpcom-pysrc.html#HTTPServer">source&nbsp;code</a></span></p>
+<pre class="base-tree">
+        object --+            
+                 |            
+threading._Verbose --+        
+                     |        
+      threading.Thread --+    
+                         |    
+                 <a href="tcpcom.TCPServer-class.html">TCPServer</a> --+
+                             |
+                            <strong class="uidshort">HTTPServer</strong>
+</pre>
+
+<hr />
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Instance Methods</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="getHeader1"></a><span class="summary-sig-name">getHeader1</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="tcpcom-pysrc.html#HTTPServer.getHeader1">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="getHeader2"></a><span class="summary-sig-name">getHeader2</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="tcpcom-pysrc.html#HTTPServer.getHeader2">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="onStop"></a><span class="summary-sig-name">onStop</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="tcpcom-pysrc.html#HTTPServer.onStop">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="tcpcom.HTTPServer-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">requestHandler</span>,
+        <span class="summary-sig-arg">serverName</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">PYSERVER</code><code class="variable-quote">'</code></span>,
+        <span class="summary-sig-arg">port</span>=<span class="summary-sig-default">80</span>,
+        <span class="summary-sig-arg">isVerbose</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Creates a HTTP server (inherited from TCPServer) that listens for a connecting client on given port (default = 80).</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="tcpcom-pysrc.html#HTTPServer.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="tcpcom.HTTPServer-class.html#getClientIP" class="summary-sig-name">getClientIP</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Returns the dotted IP of a connected client.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="tcpcom-pysrc.html#HTTPServer.getClientIP">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="onStateChanged"></a><span class="summary-sig-name">onStateChanged</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">state</span>,
+        <span class="summary-sig-arg">msg</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="tcpcom-pysrc.html#HTTPServer.onStateChanged">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="tcpcom.HTTPServer-class.html#debug" class="summary-sig-name">debug</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">msg</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="tcpcom-pysrc.html#HTTPServer.debug">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="tcpcom.TCPServer-class.html">TCPServer</a></code></b>:
+      <code><a href="tcpcom.TCPServer-class.html#disconnect">disconnect</a></code>,
+      <code><a href="tcpcom.TCPServer-class.html#isConnected">isConnected</a></code>,
+      <code><a href="tcpcom.TCPServer-class.html#isTerminated">isTerminated</a></code>,
+      <code><a href="tcpcom.TCPServer-class.html#loopForever">loopForever</a></code>,
+      <code><a href="tcpcom.TCPServer-class.html#run">run</a></code>,
+      <code><a href="tcpcom.TCPServer-class.html#sendMessage">sendMessage</a></code>,
+      <code><a href="tcpcom.TCPServer-class.html#setTimeout">setTimeout</a></code>,
+      <code><a href="tcpcom.TCPServer-class.html#terminate">terminate</a></code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>threading.Thread</code></b>:
+      <code>__repr__</code>,
+      <code>getName</code>,
+      <code>isAlive</code>,
+      <code>isDaemon</code>,
+      <code>is_alive</code>,
+      <code>join</code>,
+      <code>setDaemon</code>,
+      <code>setName</code>,
+      <code>start</code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__delattr__</code>,
+      <code>__format__</code>,
+      <code>__getattribute__</code>,
+      <code>__hash__</code>,
+      <code>__new__</code>,
+      <code>__reduce__</code>,
+      <code>__reduce_ex__</code>,
+      <code>__setattr__</code>,
+      <code>__sizeof__</code>,
+      <code>__str__</code>,
+      <code>__subclasshook__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== STATIC METHODS ==================== -->
+<a name="section-StaticMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Static Methods</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="getServerIP"></a><span class="summary-sig-name">getServerIP</span>()</span><br />
+      Returns the server's IP address (static method).</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="tcpcom-pysrc.html#HTTPServer.getServerIP">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="tcpcom.TCPServer-class.html">TCPServer</a></code></b>:
+      <code><a href="tcpcom.TCPServer-class.html#getIPAddress">getIPAddress</a></code>,
+      <code><a href="tcpcom.TCPServer-class.html#getVersion">getVersion</a></code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Class Variables</span></td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="tcpcom.TCPServer-class.html">TCPServer</a></code></b>:
+      <code><a href="tcpcom.TCPServer-class.html#CONNECTED">CONNECTED</a></code>,
+      <code><a href="tcpcom.TCPServer-class.html#LISTENING">LISTENING</a></code>,
+      <code><a href="tcpcom.TCPServer-class.html#MESSAGE">MESSAGE</a></code>,
+      <code><a href="tcpcom.TCPServer-class.html#PORT_IN_USE">PORT_IN_USE</a></code>,
+      <code><a href="tcpcom.TCPServer-class.html#TERMINATED">TERMINATED</a></code>,
+      <code><a href="tcpcom.TCPServer-class.html#isVerbose">isVerbose</a></code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== PROPERTIES ==================== -->
+<a name="section-Properties"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Properties</span></td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>threading.Thread</code></b>:
+      <code>daemon</code>,
+      <code>ident</code>,
+      <code>name</code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__class__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Method Details</span></td>
+</tr>
+</table>
+<a name="__init__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">requestHandler</span>,
+        <span class="sig-arg">serverName</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">PYSERVER</code><code class="variable-quote">'</code></span>,
+        <span class="sig-arg">port</span>=<span class="sig-default">80</span>,
+        <span class="sig-arg">isVerbose</span>=<span class="sig-default">False</span>)</span>
+    <br /><em class="fname">(Constructor)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="tcpcom-pysrc.html#HTTPServer.__init__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+
+
+Creates a HTTP server (inherited from TCPServer) that listens for a connecting client on given port (default = 80). 
+Starts a thread that handles and returns HTTP GET requests. The HTTP respoonse header reports the given server name 
+(default: &quot;PYSERVER&quot;)
+
+requestHandler() is a callback function called when a GET request is received.
+Signature:  msg, stateHandler = requestHandler(clientIP, filename, params)
+
+Parameters:                
+    clientIP: the client's IP address in dotted format
+    filename: the requested filename with preceeding '/'
+    params: a tuple with format: ((param_key1, param_value1), (param_key2, param_value2), ...)  (all items are strings)
+
+Return values:
+    msg: the HTTP text response (the header is automatically created) 
+    stateHandler: a callback function that is invoked immediately after the reponse is sent.
+      If stateHandler = None, nothing is done. The function may include longer lasting server 
+      actions or a wait time, if sensors are not immediately ready for a new measurement.
+    
+Call terminate() to stop the server. The connection is closed by the server at the end of each response. If the client connects,
+but does not send a request within 5 seconds, the connection is closed by the server.
+
+</pre>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>port</code></strong> - the IP port where to listen (0..65535)</li>
+        <li><strong class="pname"><code>stateChange</code></strong> - the callback function to register</li>
+        <li><strong class="pname"><code>endOfBlock</code></strong> - character indicating end of a data block (default: ' ')</li>
+        <li><strong class="pname"><code>isVerbose</code></strong> - if true, debug messages are written to System.out, default: False</li>
+    </ul></dd>
+    <dt>Overrides:
+        object.__init__
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="getClientIP"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">getClientIP</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="tcpcom-pysrc.html#HTTPServer.getClientIP">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Returns the dotted IP of a connected client. If no client is 
+  connected, returns empty string.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="debug"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">debug</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">msg</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="tcpcom-pysrc.html#HTTPServer.debug">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="tcpcom.TCPServer-class.html#debug">TCPServer.debug</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="tcpcom-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Wed Jan 17 12:05:13 2018
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>
