@@ -12,10 +12,210 @@ position = 1
 
 destination = None
 
+def wait_for_packet():
+    # infinite loop while a TCP packet has not been received; blocks
+    # the program until EV3 gives okay that it has encountered next_color
+
+    # for testing:
+    time.sleep(1)
+
+    pass
+
+
+def follow_line(current_color, next_color):
+    # will call LineFollower(current_color, next_color), which will follow
+    # current_color until it reaches next_color. it will then send a TCP
+    # packet back to the RPi, allowing the next follow_line to execute
+    pass
+
+def compute_path():
+    global position
+    global destination
+
+    # Debugging
+    log = open("log.txt","a+")
+    log.write("[" + datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') + "] ")
+    log.write("Received command to move to " + str(destination) + ".\n")
+
+    # color to follow to get to the white line,
+    # aka turning left or right using either blue or red
+    color_to_white = None
+
+    # color to follow to destination when on the white line
+    color_to_dest = None
+
+    # How many times should a color be skipped until the right
+    # turn is encountered (eg. from 3 to 5, the *second* red should be used)
+    # a value of 0 means the first encounter of that color should be followed
+    skip_counter = 0
+
+    # Compute color_to_white
+    if (position == 1):
+        color_to_white = "red"
+    elif (position == 6):
+        color_to_white = "blue"
+    elif (position == 2):
+        if (destination == 1):
+            color_to_white = "red"
+        else:
+            color_to_white = "blue"
+    elif (position == 3):
+        if (destination in [1, 2]):
+            color_to_white = "blue"
+        else:
+            color_to_white = "red"
+    elif (position == 4):
+        if (destination in [5, 6]):
+            color_to_white = "blue"
+        else:
+            color_to_white = "red"
+    elif (position == 5):
+        if (destination == 6):
+            color_to_white = "blue"
+        else:
+            color_to_white = "red"
+
+    # Compute color_to_dest and skip_counter
+    if (position == 1):
+        if (destination == 2):
+            color_to_dest = "red"
+            skip_counter = 0
+        elif (destination == 3):
+            color_to_dest = "blue"
+            skip_counter = 1
+        elif (destination ==  4):
+            color_to_dest = "red"
+            skip_counter = 2
+        elif (destination == 5):
+            color_to_dest = "red"
+            skip_counter = 3
+        else: # dest = 6
+            color_to_dest = "blue"
+            skip_counter = 4
+    elif (position == 2):
+        if (destination == 1):
+            color_to_dest = "red"
+            skip_counter = 0
+        elif (destination == 3):
+            color_to_dest = "blue"
+            skip_counter = 0
+        elif (destination ==  4):
+            color_to_dest = "red"
+            skip_counter = 1
+        elif (destination == 5):
+            color_to_dest = "red"
+            skip_counter = 2
+        else: # dest = 6
+            color_to_dest = "blue"
+            skip_counter = 3
+    elif (position == 3):
+        if (destination == 1):
+            color_to_dest = "red"
+            skip_counter = 1
+        elif (destination == 2):
+            color_to_dest = "blue"
+            skip_counter = 0
+        elif (destination ==  4):
+            color_to_dest = "red"
+            skip_counter = 0
+        elif (destination == 5):
+            color_to_dest = "red"
+            skip_counter = 1
+        else: # dest = 6
+            color_to_dest = "blue"
+            skip_counter = 2
+    elif (position == 4):
+        if (destination == 1):
+            color_to_dest = "red"
+            skip_counter = 2
+        elif (destination == 2):
+            color_to_dest = "blue"
+            skip_counter = 1
+        elif (destination ==  3):
+            color_to_dest = "red"
+            skip_counter = 0
+        elif (destination == 5):
+            color_to_dest = "red"
+            skip_counter = 0
+        else: # dest = 6
+            color_to_dest = "blue"
+            skip_counter = 1
+    elif (position == 5):
+        if (destination == 1):
+            color_to_dest = "red"
+            skip_counter = 3
+        elif (destination == 2):
+            color_to_dest = "blue"
+            skip_counter = 2
+        elif (destination ==  3):
+            color_to_dest = "red"
+            skip_counter = 1
+        elif (destination == 4):
+            color_to_dest = "blue"
+            skip_counter = 0
+        else: # dest = 6
+            color_to_dest = "blue"
+            skip_counter = 0
+    else: # pos = 6
+        if (destination == 1):
+            color_to_dest = "red"
+            skip_counter = 4
+        elif (destination == 2):
+            color_to_dest = "blue"
+            skip_counter = 3
+        elif (destination ==  3):
+            color_to_dest = "red"
+            skip_counter = 2
+        elif (destination == 4):
+            color_to_dest = "blue"
+            skip_counter = 1
+        else: # dest = 5
+            color_to_dest = "blue"
+            skip_counter = 0
+
+    # Debugging
+    debug_text = "COMPUTING ROUTE." + " position: " + str(position) + ", destination: " + \
+    str(destination) + ", color_to_white: " + str(color_to_white) + \
+    ", color_to_dest: " + str(color_to_dest) + ", skip_counter: " + str(skip_counter) + \
+    ". MOVING."
+    print(debug_text)
+    log.write("[" + datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') + "] ")
+    log.write(debug_text + "\n")
+
+    # getting to the main white line
+    follow_line(color_to_white,"white")
+    wait_for_packet()
+    print("Got to white line.")
+
+    # getting to the right turn
+    while (skip_counter != -1):
+        follow_line("white", color_to_dest)
+        wait_for_packet()
+        skip_counter -= 1
+        print("Got to color_to_dest. Decrementing skip_counter: " + str(skip_counter))
+        log.write("[" + datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') + "] ")
+        log.write("Got to color_to_dest. Decrementing skip_counter: " + str(skip_counter) + ".\n")
+    print("Got to needed turn.")
+    log.write("[" + datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') + "] ")
+    log.write("Got to needed turn." + "\n")
+
+    # getting to the end of the path to the dest
+    follow_line(color_to_dest, "green")
+    wait_for_packet()
+
+    log.write("[" + datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') + "] ")
+    log.write("Successfully moved to " + str(destination) + ".\n")
+    print("MOVED TO " + str(destination) + ". BACK TO PINGING FILE.")
+
+    # Updates location
+    position = destination
+    destination = None
+
 def main():
+    global destination
+    global position
 
     while (True):
-        # TODO write a draft polling & print every few seconds
         file = open("dest.txt","r+")
         content = file.read()
         print("File content: " + content)
@@ -24,57 +224,13 @@ def main():
             file.seek(0)
             file.truncate()
             file.close()
-            print("RECEIVED DESTINATION: " + str(destination) + ". MOVING.")
-            move_path(destination)
+            print("RECEIVED DESTINATION: " + str(destination) + ".")
+            if (destination != position):
+                compute_path()
+            else:
+                print("Destination is the same as current position. Skipping.")
         file.close()
-        time.sleep(1)
-
-def move_path(destination):
-    # General logic for moving the robot to the destination
-    # move_to_main_line()
-    # wait_for("move_to_main_line ok")
-    # turn_towards_destination("main enter", position, destination)
-    # wait_for("turn_towards_destination ok")
-    # move_towards(destination)
-    # wait_for("move_towards ok")
-    # turn_towards_destination("main exit", position, destination)
-    # move_towards(destination)
-    # wait_for("move_towards ok")
-    log = open("log.txt","a+")
-    log.write("[" + datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') + "] ")
-    log.write("Received command to move to " + str(destination) + ".\n")
-    time.sleep(5)
-    log.write("[" + datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') + "] ")
-    log.write("Successfully moved to " + str(destination) + ".\n")
-    print("MOVED TO " + str(destination) + ". BACK TO PINGING FILE.")
+        time.sleep(1) # pings file every second
 
 if __name__ == '__main__':
     main()
-
-# def query_app():
-#     # Pulls the most immediate destination from the web-app.
-#     pass
-
-# def move_to_main_line():
-#     # Moves the robot from a desk to the intersection with the main black line
-#     pass
-#
-# def wait_for(acknowledgment):
-#     # Blocks until ev3 has sent an acknowledgment of succeeding in the task
-#     # Is this necessary, or should we just continuously send commands to the brick?
-#
-#     # Also updates position variable
-#     pass
-#
-# def turn_towards_destination(state, position, destination):
-#     # Uses current location and destination to decide whether the robot should
-#     # follow the main line to the left or to the right, and what direction
-#     # it should turn towards when it reached the appropriate colour
-#     # Differentiate between the two situations with the state variable
-#     pass
-#
-# def move_towards(destination):
-#     # Simple line-following until the colour of destination is reached
-#     # Possibly might need to differentiate between main line->color stop and
-#     # colour line-> end of line stop, with a "type" variable
-#     pass
