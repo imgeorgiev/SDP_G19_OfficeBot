@@ -68,10 +68,10 @@ class Server:
             speed = 100
         elif(speed < -100):
             speed = -100
-        else:
-            raise Exception("ERROR: Wrong speed param")
+        # else:
+        #     raise Exception("ERROR: Wrong speed param")
 
-        sendMsg = str("CMD:", motor, "'", speed, "'", pause, "'", stop)
+        sendMsg = "CMD:" + motor + str(speed)
         self._server.sendMessage(sendMsg)
 
     def sendLineFollow(self, currentColor, nextColor, side, numJunctionsToIgnote):
@@ -90,7 +90,8 @@ class Server:
 
 
 def main():
-    Server(5005)
+    s = Server(5005)
+    s.sendCommand("L", 50)
 
     try:
         while(1):
