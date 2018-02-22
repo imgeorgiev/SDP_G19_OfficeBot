@@ -7,12 +7,10 @@ import threading
 # noinspection PyPep8Naming
 class Line_Follower:
     # define conversion between number and color
-    COLORS = {0: 'None', 1: 'Black', 2: 'Blue', 3: 'Green', 4: 'Yellow', 5: 'Red', 6: 'White', 7: 'Brown'}
+    NUM_TO_COLOR = {0: 'None', 1: 'Black', 2: 'Blue', 3: 'Green', 4: 'Yellow', 5: 'Red', 6: 'White', 7: 'Brown'}
+    COLOR_TO_NUMBER = {'None': 0, 'Black': 1, 'Blue': 2, 'Green': 3, 'Yellow': 4, 'Red': 5, 'White': 6, 'Brown': 7}
 
-    def __init__(self, speed, lineColorToFollow, nextColor, turnSide):
-        self.lineColorToFollow = lineColorToFollow
-        self.nextColor = nextColor
-        self.turnSide = turnSide
+    def __init__(self, speed=30):
 
         # initialise motors and LEDs
         self.l_motor_thread, self.r_motor_thread = self.initialiseMotors(speed)
@@ -25,6 +23,17 @@ class Line_Follower:
         self.button = Button()
 
     def follow_line(self, colorToFollow, nextLineColor, sideTurnIsOn, junctionsToIgnore):
+
+        # convert the string color back into a number (to help with performance)
+        colorToFollow = self.COLOR_TO_NUMBER[colorToFollow]
+        nextLineColor = self.COLOR_TO_NUMBER[nextLineColor]
+
+        # the wheel rotation at the previous junction that was visited
+        leftWheelRotationAtPreviousJunction = self.l_motor_thread.motor.position
+        rightWheelRotationAtPreviousJunction = self.r_motor_thread.motor.position
+
+        junctionsToIgnore = int(junctionsToIgnore)
+
         # follow line until enter or backspace are pressed
         try:
             while True:
@@ -60,18 +69,27 @@ class Line_Follower:
                 sleep(0.01)
 
                 # detect next line color
-                if sideTurnIsOn == 'LEFT' and self.colorSensorLeft.color == nextLineColor \
-                        or sideTurnIsOn == 'RIGHT' and self.colorSensorRight.color == nextLineColor:
-                    colorToFollow = nextLineColor
-                    print("\nTurning! New color: " + self.COLORS[colorToFollow])
+                if sideTurnIsOn == 'Left' and self.colorSensorLeft.color == nextLineColor \
+                        or sideTurnIsOn == 'Right' and self.colorSensorRight.color == nextLineColor:
+                    if (self.l_motor_thread.motor.position - leftWheelRotationAtPreviousJunction) > 240 \
+                            and (self.r_motor_thread.motor.position - rightWheelRotationAtPreviousJunction) > 240:  # degrees
+                        if junctionsToIgnore > 0:
+                            junctionsToIgnore -= 1
+                            leftWheelRotationAtPreviousJunction = self.l_motor_thread.motor.position
+                            rightWheelRotationAtPreviousJunction = self.r_motor_thread.motor.position
+
+                        else:
+                            colorToFollow = nextLineColor
+                            print("\nTurning! New color: " + self.NUM_TO_COLOR[colorToFollow])
+                            return
 
                 self.checkForSpeedChange()
-
                 colorToFollow = self.checkForColorChange(colorToFollow)
+
         except Exception("Exit button was pressed."):
             print("Button was pressed - Stopping motors.")
-            self.l_motor_thread.motor.stop()
-            self.r_motor_thread.motor.stop()
+            self.l_motor_thread.work = False
+            self.r_motor_thread.work = False
             sleep(0.5)
 
     # accept a list of tuples containing the colors, and turnsides to follow
@@ -80,15 +98,15 @@ class Line_Follower:
             self.follow_line(colorToFollow, nextLineColor, turnSide, junctionsToIgnore)
 
     def initialiseMotors(self, speed):
-        l_motor_thread = self.MotorThread("LEFT", "A")
-        self.l_motor_thread.setDaemon(True)  # stop thread when main thread ends
-        self.l_motor_thread.speed = speed
-        self.l_motor_thread.start()
+        l_motor_thread = self.MotorThread("Left", "A")
+        l_motor_thread.setDaemon(True)  # stop thread when main thread ends
+        l_motor_thread.speed = speed
+        l_motor_thread.start()
 
-        r_motor_thread = self.MotorThread("RIGHT", "D")
-        self.r_motor_thread.setDaemon(True)
-        self.r_motor_thread.speed = speed
-        self.r_motor_thread.start()
+        r_motor_thread = self.MotorThread("Right", "D")
+        r_motor_thread.setDaemon(True)
+        r_motor_thread.speed = speed
+        r_motor_thread.start()
         print("Starting motors: ")
         return l_motor_thread, r_motor_thread
 
@@ -181,11 +199,11 @@ class Line_Follower:
     def checkForColorChange(self, colorToFollow):
         # change line color to follow with left/right
         if self.button.left:
-            colorToFollow = (colorToFollow - 1) % len(self.COLORS)
-            print("\nLine color: " + self.COLORS[colorToFollow])
+            colorToFollow = (colorToFollow - 1) % len(self.NUM_TO_COLOR)
+            print("\nLine color: " + self.NUM_TO_COLOR[colorToFollow])
         if self.button.right:
-            colorToFollow = (colorToFollow + 1) % len(self.COLORS)
-            print("\nLine color: " + self.COLORS[colorToFollow])
+            colorToFollow = (colorToFollow + 1) % len(self.NUM_TO_COLOR)
+            print("\nLine color: " + self.NUM_TO_COLOR[colorToFollow])
         return colorToFollow
 
     if __name__ == '__main__':
