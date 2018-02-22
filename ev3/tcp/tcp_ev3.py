@@ -11,34 +11,30 @@
 # RPI IP: 169.254.21.44
 
 from tcpcom import TCPClient
-from ev3dev.auto import *
+from ev3dev.auto import ev3
 import threading
 # import sys
 
-leftMotor = LargeMotor('outA');  assert leftMotor.connected
-rightMotor = LargeMotor('outD'); assert rightMotor.connected
+server_ip = "169.254.21.39"
+server_port = 5005
 
-ultrasonicSensor = UltrasonicSensor(INPUT_AUTO); assert ultrasonicSensor.connected
-colorSensorLeft = ColorSensor('in1'); assert colorSensorLeft.connected
-colorSensorRight = ColorSensor('in4'); assert colorSensorRight.connected
-
-ip = "169.254.21.39"
-port = 5005
 
 class Client:
     global stateTrans
     isConnected = False
-    reqSensorReceived = False
-    sensorData = None
 
     def __init__(self, ip, port):
         self._Client = TCPClient(ip, port, stateChanged=stateTrans)
-        # self._isConnected = False
-        # self._reqSensorReceived = False
-        # self._sensorData = None
-        self._colorList = ("N", "BK", "BL", "G", "Y", "R", "W", "BW")
+        self._LCmdMsg = None
+        self._RCmdMsg = None
+        self._lfwMsg = None
+        self._ultra = None
+        self._lColour = None
+        self._rColour = None
 
     def stateTrans(state, msg):
+        global isConnected
+
         if state == "LISTENING":
             print("DEBUG: Client:-- Listening...")
         elif state == "CONNECTED":
@@ -52,62 +48,49 @@ class Client:
             if(msg[0:2] == "RQT"):
                 Client.sendSensorData()
             elif(msg[0:2] == "LFW"):
-                Client.receiveLineFollowCommand(msg)
+                Client.setLfwMsg(msg)
             elif(msg[0:2] == "CMD"):
-                Client.receiveMotorCommand(msg)
+                Client.setCmdMsg(msg)
             else:
                 print("ERROR: Message not recognised")
 
+    @staticmethod   # needed to make the message callable from stateTrans
     def sendSensorData(self):
-        sensorMessage = "SNR:" + ultrasonicSensor.value() + "," + \
-        self._colorList[colorSensorRight.color] + "," + self._colorList[colorSensorLeft.color]
+        sensorMessage = "SNR:" + str(self._ultra) + "," + self._lColour + "," + self._rColour
         self._Client.sendMessage(sensorMessage)
 
-    def receiveLineFollowCommand(self,msg):
-        twoCharColors = 0
-        if (msg[5] != ","):
-            twoCharColors = 1
-            lineToFollow = msg[4:5]
-            if (msg[8] != ","):
-                twoCharColors = 2
-                nextLine = msg[7:8]
-            else:
-                nextLine = msg[7]
+    @staticmethod   # needed to make the message callable from stateTrans
+    def setCmdMsg(self, msg):
+        if (msg[4] == "L"):
+            self._LCmdMsg = self.parseMsg(msg)
+        elif (msg[4] == "R"):
+            self._RCmdMsg = self.parseMsg(msg)
 
-            if (twoCharColors == 1):
-                sideToTurn = msg[9]
-                junctionsToSkip = int(msg[11:len(msg)])
-            else:
-                sideToTurn = msg[10]
-                junctionsToSkip = int(msg[12:len(msg)])
+    @staticmethod   # needed to make the message callable from stateTrans
+    def setLfwMsg(self, msg):
+        self._lfwMsg = self.parseMsg(msg)
 
-        else:
-            lineToFollow = msg[4]
-            if (msg[7] != ","):
-                twoCharColors = 1
-                nextLine = msg[6:7]
-            else:
-                nextLine = msg[6]
+    def setUltra(self, val):
+        self._ultra = val
 
-            if (twoCharColors == 0):
-                sideToTurn = msg[8]
-                junctionsToSkip = int(msg[10:len(msg)])
-            else:
-                sideToTurn = msg[9]
-                junctionsToSkip = int(msg[11:len(msg)])
+    def setLColour(self, val):
+        self._rColour = val
 
+    def setRColour(self, val):
+        self._lColour = val
 
+    def getRCmdMsg(self):
+        return self._RCmdMsg
 
-    def receiveMotorCommand(self,msg):
-        if (msg[4] == "R"):
-            motorSide = "R"
-        elif(msg[4] == "L"):
-            motorSide = "L"
-        else:
-            motorSide = None
-            print("ERROR: Motor side not recognised")
+    def getLCmdMsg(self):
+        return self._LCmdMsg
 
-        motorSpeed = int(msg[:len(msg)])
+    def getLfwMsg(self):
+        return self._lfwMsg
+
+    # helper func: Discard message header and split the rest into a list
+    def parseMsg(self, msg):
+        return msg[4:].split(",")
 
 
 class MotorThread(threading.Thread):
@@ -116,16 +99,15 @@ class MotorThread(threading.Thread):
         self.pause = False
         self.reverse = False
         self.speed = 0
-
         self.side = side
 
-        self.motor = LargeMotor(OUTPUT_A)
+        self.motor = ev3.LargeMotor(OUTPUT_A)
         if out.upper() == "B":
-            self.motor = LargeMotor(OUTPUT_B)
+            self.motor = ev3.LargeMotor(OUTPUT_B)
         elif out.upper() == "C":
-            self.motor = LargeMotor(OUTPUT_C)
+            self.motor = ev3.LargeMotor(OUTPUT_C)
         elif out.upper() == "D":
-            self.motor = LargeMotor(OUTPUT_D)
+            self.motor = ev3.LargeMotor(OUTPUT_D)
 
         threading.Thread.__init__(self)
 
@@ -143,16 +125,39 @@ class MotorThread(threading.Thread):
 
 def main():
 
-    client = Client(ip,port)
+    colorList = ("R", "W", "BW", "N", "BK", "BL", "G", "Y")
+
+    lMotorThread = MotorThread("LEFT", "A")
+    lMotorThread.setDaemon(True)
+    lMotorThread.start()
+
+    rMotorThread = MotorThread("RIGHT", "A")
+    lMotorThread.setDaemon(True)
+    lMotorThread.start()
+
+    ultrasonicSensor = ev3.UltrasonicSensor(INPUT_AUTO)
+    assert ultrasonicSensor.connected
+    colorSensorLeft = ev3.ColorSensor('in1')
+    assert colorSensorLeft.connected
+    colorSensorRight = ev3.ColorSensor('in4')
+    assert colorSensorRight.connected
+
+    client = Client(server_ip, server_port)
     print("Client starting")
 
+    rc = client.connect()
+    if rc:
+        while(isConnected):
+            rMotorCmd = client.getLCmdMsg()
+            rMotorThread.speed = rMotorCmd[1]
+            print("DEBUG: Right motor set to ", rMotorCmd[1])
+            lMotorCmd = client.getRCmdMsg()
+            lMotorThread.speed = lMotorCmd[1]
+            print("DEBUG: Left motor set to ", lMotorCmd[1])
 
-    try:
-        while(1):
-            pass
-
-    except KeyboardInterrupt:
-        pass
+            client.setUltra(ultrasonicSensor.value())
+            client.setLColour(colorList[colorSensorLeft.color()])
+            client.setRColour(colorList[colorSensorRight.color()])
 
 
 if __name__ == '__main__':
