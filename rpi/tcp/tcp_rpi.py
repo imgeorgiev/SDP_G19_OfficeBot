@@ -71,7 +71,7 @@ class Server:
         # else:
         #     raise Exception("ERROR: Wrong speed param")
 
-        sendMsg = "CMD:" + motor + str(speed)
+        sendMsg = "CMD:" + motor + "," + str(speed)
         self._server.sendMessage(sendMsg)
 
     def sendLineFollow(self, currentColor, nextColor, side, numJunctionsToIgnote):
@@ -83,22 +83,25 @@ class Server:
         if(not (side == "L" or side == "R")):
             raise Exception("ERROR: Invalid side input")
 
-        sendMsg = str("LFW:", currentColor, ",", nextColor, ",",
-            side, ",", numJunctionsToIgnote)
+        sendMsg = "LFW:" + currentColor + "," + nextColor + "," + side + "," + str(numJunctionsToIgnote)
 
         self._server.sendMessage(sendMsg)
+
+    def terminate(self):
+        self._server.terminate()
 
 
 def main():
     s = Server(5005)
-    s.sendCommand("L", 50)
 
-    try:
-        while(1):
+    # Test command sending
+    while(True):
+        s.sendCommand("L", 50)
+
+        try:
             pass
-
-    except KeyboardInterrupt:
-        pass
+        except KeyboardInterrupt:
+            s.terminate()
 
 
 if __name__ == '__main__':

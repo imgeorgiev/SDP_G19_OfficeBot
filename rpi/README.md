@@ -104,4 +104,15 @@ pass: r0b0tpow3r
 
 Note: you can't transfer files from there so best use GitHub for any file transfer
 
-## 3. Python scripts 
+## 3. Communication between RPi and EV3
+Achieved via TCP packets send between the two. RPi acting as a server and the EV3 acting as a client.
+
+To achieve this we have used the [tcpcom libary](http://www.aplu.ch/home/apluhomex.jsp?site=164).
+
+Packages:
+
+Each package has a header and comma-seperated parameters: `CMD:L,50`. Commands include:
+- RQT - Request command - RPi to EV3 - `RQT`. Request the EV3 to send data.
+- SNR - Sensor data - EV3 to RPi - `SNR:10.23,R,BL`. Send data back. Ultrasonic, Left colour sensor, right colour sensor
+- CMD - Motor command -  RPi to EV3 - `CMD:L,50`. Paramters: Motor [L or R], Speed [-100,100].
+- LFW - Line follow command - RPi to EV3 - `CMD:Y,BL,L,4`. Parameters: Line to follow, next line to follow, side to turn, num of junctions to skip
