@@ -1,0 +1,6 @@
+Battery tests,,,
+,only EV3,EV3 + Rpi,EV3 + Rpi + Arduino
+Test 1,3.24,1.45,1.34
+Test 2,3.82,1.48,1.47
+Test 3,3.45,1.57,1.42
+All data was tested on SparkFuns’ EV3 with all sensors and motors attached and powered on. Arduino running at full speed. Raspberry Pi sitting idling while connected to the internet. EV3 occasionally runnning local programs. Motors were not being run for the most part. Note: Battery pack used is 5 years old and might have degraded in performance,,,
