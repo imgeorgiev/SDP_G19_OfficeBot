@@ -11,7 +11,9 @@
 # RPI IP: 169.254.21.44
 
 from tcpcom import TCPServer
-# import sys
+import pygame  # needed for joystick commands
+import sys
+import time
 
 
 tcp_ip = "169.254.21.44"    # 169.254.21.44
@@ -28,30 +30,30 @@ class Server:
 
     def __init__(self, port):
         self._server = TCPServer(port, stateChanged=stateTrans)
-        # self._isConnected = False
-        # self._reqSensorReceived = False
-        # self._sensorData = None
         self._colorList = ("R", "W", "BW", "N", "BK", "BL", "G", "Y")
 
     def stateTrans(state, msg):
+        global isConnected
+        global reqSensorReceived
+        global sensorData
+
         if state == "LISTENING":
-            print("DEBUG: Server:-- Listening...")
+            print("DEBUG: Server: Listening...")
         elif state == "CONNECTED":
             isConnected = True
-            print("DEBUG: Server:-- Connected to ", msg)
+            print("DEBUG: Server: Connected to ", msg)
         elif state == "MESSAGE":
-            print("DEBUG: Server:-- Message received: ", msg)
+            print("DEBUG: Server: Message received: ", msg)
             if(msg[0:2] == "SNR"):
                 reqSensorReceived = True
                 sensorData = msg
-                print("DEBUG: Server:-- Sensor message received: ",
-                    sensorData)
+                print("DEBUG: Server: Sensor message received: ", sensorData)
 
     def getSensors(self):
         self._server.sendMessage("RQT")
-        while(not self._reqSensorReceived):
+        while(not reqSensorReceived):
             pass
-        return self._sensorData
+        return sensorData
 
     # Sends a command mapped to a motor. Params:
     # motor - either L or R, stands for left or right
@@ -91,17 +93,102 @@ class Server:
         self._server.terminate()
 
 
+# transform joystick inputs to motor outputs
+def scale_stick(value):
+    return scale(value, (0, 1), (-100, 100))
+
+
+# Generic scale function
+# Scale src range to dst range
+def scale(val, src, dst):
+    return (int(val - src[0]) / (src[1] - src[0])) * (dst[1] - dst[0]) + dst[0]
+
+
+def attenuate(val, min, max):
+    if val > max:
+        return max
+    if val < min:
+        return min
+
+
+# Settings for the joystick
+yAxis = 5               # Joystick axis to read for up / down position
+xAxis = 0               # Joystick axis to read for left / right position
+
+
 def main():
+
+    print("Initialising TCP Server")
     s = Server(5005)
 
-    # Test command sending
-    while(True):
-        s.sendCommand("L", 50)
-
+    pygame.init()
+    print("Waiting for joystick... (press CTRL+C to abort)")
+    while True:
         try:
-            pass
+            try:
+                pygame.joystick.init()
+                # Attempt to setup the joystick
+                if(pygame.joystick.get_count() < 1):
+                    # No joystick attached, set LEDs blue
+                    pygame.joystick.quit()
+                    time.sleep(0.1)
+                else:
+                    # We have a joystick, attempt to initialise it!
+                    joystick = pygame.joystick.Joystick(0)
+                    break
+            except pygame.error:
+                # Failed to connect to the joystick
+                pygame.joystick.quit()
+                time.sleep(0.1)
         except KeyboardInterrupt:
-            s.terminate()
+            # CTRL+C exit, give up
+            print("\nUser aborted")
+            sys.exit()
+    print("Joystick found")
+    print("Initialising PS4 joystick")
+    joystick.init()
+
+    try:
+        print("Press CTRL+C to quit")
+        yAxis = 0.0
+        xAxis = 0.0
+        # Loop indefinitely
+        while(True):
+            # Get the latest events from the system
+            hadEvent = False
+            events = pygame.event.get()
+            # Handle each event individually
+            for event in events:
+                if event.type == pygame.JOYBUTTONDOWN:
+                    # A button on the joystick just got pushed down
+                    hadEvent = True
+                elif event.type == pygame.JOYAXISMOTION:
+                    # A joystick has been moved
+                    hadEvent = True
+                    if event.value == yAxis:
+                        yPoll = True
+                        ySpeed = joystick.get_axis(yAxis)
+                    elif event.value == xAxis:
+                        xPoll = True
+                        xSpeed = joystick.get_axis(xAxis)
+                if(hadEvent and xPoll and yPoll):
+                    # Determine the drive power levels
+                    xSpeed = scale_stick(xSpeed)
+                    ySpeed = scale_stick(ySpeed)
+
+                    l_wheel_speed = attenuate(ySpeed - xSpeed / 2)
+                    r_wheel_speed = attenuate(ySpeed + xSpeed / 2)
+
+                    s.sendCommand("L", l_wheel_speed)
+                    s.sendCommand("R", r_wheel_speed)
+
+                    xPoll = False
+                    yPoll = False
+    except KeyboardInterrupt:
+        # CTRL+C exit, disable all drives
+        s.terminate()
+        print("\nUser aborted")
+        sys.exit()
 
 
 if __name__ == '__main__':

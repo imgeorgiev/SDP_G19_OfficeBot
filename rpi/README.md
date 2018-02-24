@@ -65,7 +65,9 @@ Note: We had issues with nested SSHing from Windows.
 #### 5. Install necessary packages
 ```
 sudo apt-get install python-pip3
-sudo pip3 install Flask pyserial
+sudo apt-get install python-pip
+sudo pip3 install Flask pyserial apscheduler
+sudo pip install pygame
 ```
 
 Install [OpenCV](https://gist.github.com/willprice/c216fcbeba8d14ad1138)
