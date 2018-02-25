@@ -14,6 +14,7 @@ from tcpcom import TCPServer
 import pygame  # needed for joystick commands
 import sys
 import time
+import os
 
 
 tcp_ip = "169.254.21.44"    # 169.254.21.44
@@ -75,6 +76,7 @@ class Server:
 
         sendMsg = "CMD:" + motor + "," + str(speed)
         self._server.sendMessage(sendMsg)
+        print("DEBUG: Server : Sending ", sendMsg)
 
     def sendLineFollow(self, currentColor, nextColor, side, numJunctionsToIgnote):
         if(currentColor not in self._colorList):
@@ -111,17 +113,22 @@ def attenuate(val, min, max):
         return min
 
 
-# Settings for the joystick
-yAxis = 5               # Joystick axis to read for up / down position
-xAxis = 0               # Joystick axis to read for left / right position
-
-
 def main():
+
+    # Settings for the joystick
+    yAxis = 1               # Joystick axis to read for up / down position
+    xAxis = 0               # Joystick axis to read for left / right position
+    xPoll = False
+    yPoll = False
 
     print("Initialising TCP Server")
     s = Server(5005)
 
     pygame.init()
+    # Configuration for headless
+    os.environ["SDL_VIDEODRIVER"] = "dummy"
+    pygame.display.init()
+    screen = pygame.display.set_mode((1, 1))
     print("Waiting for joystick... (press CTRL+C to abort)")
     while True:
         try:
@@ -150,8 +157,6 @@ def main():
 
     try:
         print("Press CTRL+C to quit")
-        yAxis = 0.0
-        xAxis = 0.0
         # Loop indefinitely
         while(True):
             # Get the latest events from the system
@@ -162,22 +167,28 @@ def main():
                 if event.type == pygame.JOYBUTTONDOWN:
                     # A button on the joystick just got pushed down
                     hadEvent = True
+                    print("DEBUG: had keypress event")
                 elif event.type == pygame.JOYAXISMOTION:
                     # A joystick has been moved
+                    # print("DEBUG: had joystick event")
                     hadEvent = True
                     if event.value == yAxis:
                         yPoll = True
                         ySpeed = joystick.get_axis(yAxis)
-                    elif event.value == xAxis:
+                        # print("DEBUG: y axis used", str(ySpeed))
+                    if event.value == xAxis:
                         xPoll = True
                         xSpeed = joystick.get_axis(xAxis)
+                        # print("DEBUG: x axis used", str(xSpeed))
                 if(hadEvent and xPoll and yPoll):
                     # Determine the drive power levels
                     xSpeed = scale_stick(xSpeed)
                     ySpeed = scale_stick(ySpeed)
 
-                    l_wheel_speed = attenuate(ySpeed - xSpeed / 2)
-                    r_wheel_speed = attenuate(ySpeed + xSpeed / 2)
+                    l_wheel_speed = attenuate(ySpeed - xSpeed / 2, -100, 100)
+                    r_wheel_speed = attenuate(ySpeed + xSpeed / 2, -100, 100)
+
+                    # print("DEBUG: Joystick command send reached")
 
                     s.sendCommand("L", l_wheel_speed)
                     s.sendCommand("R", r_wheel_speed)
