@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 
 # Library for sending UDP commands to an EV3
@@ -10,8 +10,10 @@
 # EV3 IP: 169.254.21.39
 # RPI IP: 169.254.21.44
 
+import evdev
+from time import sleep
 from tcpcom import TCPClient
-from ev3dev.auto import ev3
+from ev3dev.auto import *
 import threading
 # import sys
 
@@ -31,6 +33,9 @@ class Client:
         self._ultra = None
         self._lColour = None
         self._rColour = None
+
+    def connect(self):
+        return self._Client.connect()
 
     def stateTrans(state, msg):
         global isConnected
@@ -101,13 +106,13 @@ class MotorThread(threading.Thread):
         self.speed = 0
         self.side = side
 
-        self.motor = ev3.LargeMotor(OUTPUT_A)
+        self.motor = LargeMotor(OUTPUT_A)
         if out.upper() == "B":
-            self.motor = ev3.LargeMotor(OUTPUT_B)
+            self.motor = LargeMotor(OUTPUT_B)
         elif out.upper() == "C":
-            self.motor = ev3.LargeMotor(OUTPUT_C)
+            self.motor = LargeMotor(OUTPUT_C)
         elif out.upper() == "D":
-            self.motor = ev3.LargeMotor(OUTPUT_D)
+            self.motor = LargeMotor(OUTPUT_D)
 
         threading.Thread.__init__(self)
 
@@ -131,15 +136,15 @@ def main():
     lMotorThread.setDaemon(True)
     lMotorThread.start()
 
-    rMotorThread = MotorThread("RIGHT", "A")
-    lMotorThread.setDaemon(True)
-    lMotorThread.start()
+    rMotorThread = MotorThread("RIGHT", "D")
+    rMotorThread.setDaemon(True)
+    rMotorThread.start()
 
-    ultrasonicSensor = ev3.UltrasonicSensor(INPUT_AUTO)
+    ultrasonicSensor = UltrasonicSensor(INPUT_AUTO)
     assert ultrasonicSensor.connected
-    colorSensorLeft = ev3.ColorSensor('in1')
+    colorSensorLeft = ColorSensor('in1')
     assert colorSensorLeft.connected
-    colorSensorRight = ev3.ColorSensor('in4')
+    colorSensorRight = ColorSensor('in4')
     assert colorSensorRight.connected
 
     client = Client(server_ip, server_port)
