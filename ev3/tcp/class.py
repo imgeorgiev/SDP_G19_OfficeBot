@@ -13,7 +13,7 @@
 import evdev
 from time import sleep
 from tcpcom import TCPClient
-from ev3dev.auto import *
+import ev3dev.auto as ev3
 import threading
 # import sys
 
@@ -106,13 +106,13 @@ class MotorThread(threading.Thread):
         self.speed = 0
         self.side = side
 
-        self.motor = LargeMotor(OUTPUT_A)
+        self.motor = ev3.LargeMotor(ev3.OUTPUT_A)
         if out.upper() == "B":
-            self.motor = LargeMotor(OUTPUT_B)
+            self.motor = ev3.LargeMotor(ev3.OUTPUT_B)
         elif out.upper() == "C":
-            self.motor = LargeMotor(OUTPUT_C)
+            self.motor = ev3.LargeMotor(ev3.OUTPUT_C)
         elif out.upper() == "D":
-            self.motor = LargeMotor(OUTPUT_D)
+            self.motor = ev3.LargeMotor(ev3.OUTPUT_D)
 
         threading.Thread.__init__(self)
 
@@ -140,11 +140,11 @@ def main():
     rMotorThread.setDaemon(True)
     rMotorThread.start()
 
-    ultrasonicSensor = UltrasonicSensor(INPUT_AUTO)
+    ultrasonicSensor = ev3.UltrasonicSensor(ev3.INPUT_AUTO)
     assert ultrasonicSensor.connected
-    colorSensorLeft = ColorSensor('in1')
+    colorSensorLeft = ev3.ColorSensor('in1')
     assert colorSensorLeft.connected
-    colorSensorRight = ColorSensor('in4')
+    colorSensorRight = ev3.ColorSensor('in4')
     assert colorSensorRight.connected
 
     client = Client(server_ip, server_port)
