@@ -145,3 +145,13 @@ ev3 has a mini-usb port, so can power it.
 * Line-following and multi-colour line following
 * Test camera in demo space, pure functions for camera (efficiency for Pi), how to actually interact with robot. Laplace transforms?
 * Line following: rounded corners? Multi-lines?
+
+### Notes for meeting 26.02
+* Behind on milestones: give Siobhan explanation for change/new milestones
+* -> follows single line, and clunkily
+* Colour sensors are clunky, focus on camera? PID controller. other teams have done this.
+* -> not simulate but try it IRL. not as reliable as colour sensors, line following can properly fail.
+* Continue focus for demo, then reshift after.
+* Remove voice control
+* Group 14 (?) & 16 are working on line-following: ask them!
+* Controlling robot through web-app: change, not possible.
