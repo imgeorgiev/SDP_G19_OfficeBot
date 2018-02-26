@@ -12,7 +12,7 @@
 
 import evdev
 from time import sleep
-from tcpcom import TCPClient
+from tcpcom_py3 import TCPClient
 import ev3dev.auto as ev3
 import threading
 # import sys

@@ -1,10 +1,10 @@
 # DataClient2.py
 
-from tcpcom import TCPClient
+from tcpcom_py3 import TCPClient
 import time
 
-IP_ADDRESS = "192.168.0.17"
-IP_PORT = 22000
+IP_ADDRESS = "169.254.23.50"
+IP_PORT = 5005
 
 
 def onStateChanged(state, msg):

@@ -12,17 +12,16 @@
 
 import evdev
 import time
-from tcpcom import TCPClient
+from tcpcom_py3 import TCPClient
 import ev3dev.auto as ev3
 import threading
 # import sys
 
-server_ip = "169.254.21.39"
+server_ip = "169.254.23.50"
 server_port = 5005
 
 # client = TCPClient(ip, port, stateChanged=stateTrans)
-LCmdMsg = 0
-RCmdMsg = 0
+cmdMsg = 0
 lfwMsg = None
 ultra = 0
 lColour = None
@@ -34,28 +33,25 @@ colorList = ("R", "W", "BW", "N", "BK", "BL", "G", "Y")
 def stateTrans(state, msg):
     global isConnected
     global lfwMsg
-    global LCmdMsg
-    global RCmdMsg
+    global cmdMsg
 
     if state == "LISTENING":
-        print("DEBUG: Client:-- Listening...")
+        pass
+        # print("DEBUG: Client:-- Listening...")
     elif state == "CONNECTED":
         isConnected = True
-        print("DEBUG: Client:-- Connected to ", msg)
+        # print("DEBUG: Client:-- Connected to ", msg)
     elif state == "DISCONNECTED":
-        print("DEBUG: Client:-- Connection lost.")
+        # print("DEBUG: Client:-- Connection lost.")
         isConnected = False
     elif state == "MESSAGE":
-        print("DEBUG: Client:-- Message received: ", msg)
-        if(msg[0:2] == "RQT"):
+        # print("DEBUG: Client:-- Message received: ", msg)
+        if(msg[0:3] == "RQT"):
             sendSensorData()
-        elif(msg[0:2] == "LFW"):
+        elif(msg[0:3] == "LFW"):
             lfwMsg = parseMsg(msg)
-        elif(msg[0:2] == "CMD"):
-            if(msg[4] == "L"):
-                LCmdMsg = parseMsg(msg)[1]
-            elif(msg[4] == "R"):
-                RCmdMsg = parseMsg(msg)[1]
+        elif(msg[0:3] == "CMD"):
+            cmdMsg = parseMsg(msg)
         else:
             print("ERROR: Message not recognised")
 
@@ -66,7 +62,7 @@ def sendSensorData():
 
 
 # helper func: Discard message header and split the rest into a list
-def parseMsg(self, msg):
+def parseMsg(msg):
     return msg[4:].split(",")
 
 
@@ -125,19 +121,20 @@ def main():
     print("Client starting")
 
     rc = client.connect()
-    if rc:
-        isConnected = True  # not sure if needed
-        while(isConnected):
-            rMotorThread.speed = RCmdMsg
-            print("DEBUG: Right motor set to ", RCmdMsg)
-            lMotorThread.speed = LCmdMsg
-            print("DEBUG: Left motor set to ", LCmdMsg)
+    while(True):
+        if rc:
+            isConnected = True  # not sure if needed
+            while(isConnected):
+                rMotorThread.speed = int(cmdMsg[1])
+                print("DEBUG: Right motor set to ", cmdMsg[1])
+                lMotorThread.speed = int(cmdMsg[0])
+                print("DEBUG: Left motor set to ", cmdMsg[0])
 
-            ultra = ultrasonicSensor.value()
-            lColor = colorList[colorSensorLeft.color]
-            rColor = colorList[colorSensorRight.color]
-    else:
-        print("Client:-- Connection failed")
+                ultra = ultrasonicSensor.value()
+                lColor = colorList[colorSensorLeft.color]
+                rColor = colorList[colorSensorRight.color]
+        else:
+            print("Client:-- Connection failed")
 
 
 if __name__ == '__main__':

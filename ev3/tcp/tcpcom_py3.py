@@ -206,7 +206,7 @@ class TCPServer(Thread):
             TCPServer.debug("Not connected")
             return
         try:
-            self.conn.sendall(msg + self.endOfBlock)    
+            self.conn.sendall((msg + self.endOfBlock).encode())
         except:
             TCPClient.debug("Exception in sendMessage()")
 
@@ -239,7 +239,7 @@ class TCPServer(Thread):
     def debug(msg):
         if TCPServer.isVerbose:
             print("   TCPServer-> " + msg)
- 
+
     @staticmethod
     def getVersion():
         '''
@@ -366,7 +366,7 @@ class TCPClient():
         reply = None
         try:
             msg += "\0";  # Append \0
-            rc = self.sock.sendall(msg)
+            rc = self.sock.sendall(msg.encode())
             if responseTime > 0:
                 reply = self._waitForReply(responseTime)  # Blocking
         except:
@@ -489,20 +489,20 @@ class ClientHandler(Thread):
         Thread.__init__(self)
         self.client = client
         self.start()
-                
+
     def run(self):
         TCPClient.debug("ClientHandler thread started")
         while True:
             try:
-                junk = self.readResponse().split("\0")
-                # more than 1 message may be received 
+                junk = (self.readResponse().decode()).split("\x00")
+                # more than 1 message may be received
                 # if transfer is fast. data: xxxx\0yyyyy\0zzz\0
                 for i in range(len(junk) - 1):
                     try:
                         self.client.stateChanged(TCPClient.MESSAGE, junk[i])
                     except Exception as e:
                         print("Caught exception in TCPClient.MESSAGE:", e)
-            except:    
+            except:
                 TCPClient.debug("Exception in readResponse() Msg: " + str(sys.exc_info()[0]) + \
                   " at line # " +  str(sys.exc_info()[-1].tb_lineno))
                 if self.client.checkRefused:
@@ -517,8 +517,8 @@ class ClientHandler(Thread):
     def readResponse(self):
         TCPClient.debug("Calling readResponse")
         bufSize = 4096
-        data = ""
-        while not data[-1:]  ==  "\0":
+        data = bytearray()
+        while not data[-1:]  ==  b'\0':
             try:
                 reply = self.client.sock.recv(bufSize)  # blocking
                 if len(reply) == 0:
@@ -603,18 +603,18 @@ class HTTPServer(TCPServer):
             if len(msg) != 0:
                 filename, params = self._parseURL(msg)
                 if filename == None:
-                    self.sendMessage(self.getHeader1())
+                    self.sendMessage(self.getHeader1().encode())
                 else:
                     text, stateHandler = self.requestHandler(self.clientIP, filename, params)
-                    self.sendMessage(self.getHeader2() % (len(text)))
-                    self.sendMessage(text)
+                    self.sendMessage((self.getHeader2() % (len(text))).encode())
+                    self.sendMessage(text.encode())
                     if stateHandler != None:
                         try:
                             stateHandler()
                         except:
                             print("Exception in stateHandler()")
             else:
-                self.sendMessage(self.getHeader1())
+                self.sendMessage(self.getHeader1().encode())
             self.disconnect()
           
     def _parseURL(self, request):
