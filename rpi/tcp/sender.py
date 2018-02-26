@@ -44,7 +44,7 @@ def stateTrans(state, msg):
             print("DEBUG: Server: Sensor message received: ", str(sensorData))
 
 
-def getSensors(self):
+def getSensors():
     server.sendMessage("RQT")
     while(not reqSensorReceived):
         pass
@@ -54,7 +54,7 @@ def getSensors(self):
 # speed - int in range [-100, 100]
 
 
-def sendMotorCommand(self, l_motor, r_motor, pause=False, stop=False):
+def sendMotorCommand(l_motor, r_motor, pause=False, stop=False):
     # Speed input error
     if(-100 <= int(l_motor) <= 100):
         pass
@@ -70,7 +70,7 @@ def sendMotorCommand(self, l_motor, r_motor, pause=False, stop=False):
     print("DEBUG: Server : Sending ", sendMsg)
 
 
-def sendLineFollow(self, currentColor, nextColor, side, numJunctionsToIgnote):
+def sendLineFollow(currentColor, nextColor, side, numJunctionsToIgnote):
     if(currentColor not in self._colorList):
         raise Exception("ERROR: Invalid currentColor input")
     if(nextColor not in self._colorList):
@@ -118,7 +118,7 @@ def main():
     ySpeed = 0
 
     print("Initialising TCP Server")
-    server = TCPServer(5005)
+    server = TCPServer(5005, stateChanged=stateTrans)
 
     pygame.init()
     # Configuration for headless
