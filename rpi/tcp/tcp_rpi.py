@@ -44,11 +44,11 @@ class Server:
             isConnected = True
             print("DEBUG: Server: Connected to ", msg)
         elif state == "MESSAGE":
-            print("DEBUG: Server: Message received: ", msg)
+            print("DEBUG: Server: Message received: " + str(msg))
             if(msg[0:2] == "SNR"):
                 reqSensorReceived = True
                 sensorData = msg
-                print("DEBUG: Server: Sensor message received: ", sensorData)
+                print("DEBUG: Server: Sensor message received: ", str(sensorData))
 
     def getSensors(self):
         self._server.sendMessage("RQT")
@@ -59,22 +59,21 @@ class Server:
     # Sends a command mapped to a motor. Params:
     # motor - either L or R, stands for left or right
     # speed - int in range [-100, 100]
-    def sendCommand(self, motor, speed, pause=False, stop=False):
-        # Motor input error
-        motor.upper()
-        motor = motor[0]
-        if(not (motor == 'L' or motor == 'R')):
-            raise Exception("ERROR: Wrong motor param")
+    def sendMotorCommand(self, l_motor, r_motor, pause=False, stop=False):
 
         # Speed input error
-        if(speed > 100):
-            speed = 100
-        elif(speed < -100):
-            speed = -100
-        # else:
-        #     raise Exception("ERROR: Wrong speed param")
+        if(-100 <= int(l_motor) <= 100):
+            pass
+        else:
+            raise Exception("ERROR: Wrong l_motor arg")
 
-        sendMsg = "CMD:" + motor + "," + str(speed)
+        # Speed input error
+        if(-100 <= int(r_motor) <= 100):
+            pass
+        else:
+            raise Exception("ERROR: Wrong r_motor arg")
+
+        sendMsg = "CMD:" + str(l_motor) + "," + str(r_motor)
         self._server.sendMessage(sendMsg)
         print("DEBUG: Server : Sending ", sendMsg)
 
@@ -97,7 +96,10 @@ class Server:
 
 # transform joystick inputs to motor outputs
 def scale_stick(value):
-    return scale(value, (0, 1), (-100, 100))
+    if value == 0.0:
+        return 0.0
+    else:
+        return scale(value, (-1, 1), (-100, 100))
 
 
 # Generic scale function
@@ -111,15 +113,18 @@ def attenuate(val, min, max):
         return max
     if val < min:
         return min
+    return val
 
 
 def main():
 
     # Settings for the joystick
-    yAxis = 1               # Joystick axis to read for up / down position
-    xAxis = 0               # Joystick axis to read for left / right position
-    xPoll = False
-    yPoll = False
+    yAxis = 4               # Joystick axis to read for up / down position
+    xAxis = 0              # Joystick axis to read for left / right position
+    # xPoll = False
+    # yPoll = False
+    xSpeed = 0
+    ySpeed = 0
 
     print("Initialising TCP Server")
     s = Server(5005)
@@ -171,30 +176,35 @@ def main():
                 elif event.type == pygame.JOYAXISMOTION:
                     # A joystick has been moved
                     # print("DEBUG: had joystick event")
+                    # print(event.dict, event.joy, event.axis, event.value)
                     hadEvent = True
-                    if event.value == yAxis:
-                        yPoll = True
-                        ySpeed = joystick.get_axis(yAxis)
+                    if event.axis == yAxis:
+                        # xPoll = True
+                        ySpeed = -joystick.get_axis(yAxis) * 100
                         # print("DEBUG: y axis used", str(ySpeed))
-                    if event.value == xAxis:
-                        xPoll = True
-                        xSpeed = joystick.get_axis(xAxis)
+                    if event.axis == xAxis:
+                        # xPoll = True
+                        xSpeed = -joystick.get_axis(xAxis) * 100
                         # print("DEBUG: x axis used", str(xSpeed))
-                if(hadEvent and xPoll and yPoll):
-                    # Determine the drive power levels
-                    xSpeed = scale_stick(xSpeed)
-                    ySpeed = scale_stick(ySpeed)
 
-                    l_wheel_speed = attenuate(ySpeed - xSpeed / 2, -100, 100)
-                    r_wheel_speed = attenuate(ySpeed + xSpeed / 2, -100, 100)
+                if(hadEvent):
+                    # Determine the drive power levels
+                    print("xspeed: " + str(xSpeed) + " yspeed: " + str(ySpeed))
+                    # xSpeed = scale_stick(xSpeed)
+                    # ySpeed = scale_stick(ySpeed)
+                    l_wheel_speed = ySpeed - (xSpeed / 2)
+                    r_wheel_speed = ySpeed + (xSpeed / 2)
+                    # print("l_wheel: " + str(l_wheel_speed) + " r_wheel: " + str(r_wheel_speed))
+                    l_wheel_speed = int(attenuate(l_wheel_speed, -100, 100))
+                    r_wheel_speed = int(attenuate(r_wheel_speed, -100, 100))
+                    # print("l_wheel: " + str(l_wheel_speed) + " r_wheel: " + str(r_wheel_speed))
 
                     # print("DEBUG: Joystick command send reached")
 
-                    s.sendCommand("L", l_wheel_speed)
-                    s.sendCommand("R", r_wheel_speed)
+                    s.sendMotorCommand(l_wheel_speed, r_wheel_speed)
 
-                    xPoll = False
-                    yPoll = False
+                    # xPoll = False
+                    # yPoll = False
     except KeyboardInterrupt:
         # CTRL+C exit, disable all drives
         s.terminate()
