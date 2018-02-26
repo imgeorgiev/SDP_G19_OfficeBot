@@ -11,7 +11,7 @@
 # RPI IP: 169.254.21.44
 
 import evdev
-from time import sleep
+import time
 from tcpcom import TCPClient
 import ev3dev.auto as ev3
 import threading
@@ -136,6 +136,8 @@ def main():
             ultra = ultrasonicSensor.value()
             lColor = colorList[colorSensorLeft.color]
             rColor = colorList[colorSensorRight.color]
+    else:
+        print("Client:-- Connection failed")
 
 
 if __name__ == '__main__':
