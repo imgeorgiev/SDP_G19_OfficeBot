@@ -118,3 +118,10 @@ Each package has a header and comma-seperated parameters: `CMD:L,50`. Commands i
 - SNR - Sensor data - EV3 to RPi - `SNR:10.23,R,BL`. Send data back. Ultrasonic, Left colour sensor, right colour sensor
 - CMD - Motor command -  RPi to EV3 - `CMD:L,50`. Paramters: Motor [L or R], Speed [-100,100].
 - LFW - Line follow command - RPi to EV3 - `CMD:Y,BL,L,4`. Parameters: Line to follow, next line to follow, side to turn, num of junctions to skip
+
+
+### To control directly via PS4 controller
+Launch `python3 ~/SDP_G19_OfficeBot/rpi/tcp/tcp_rpi.py` with the joystick connected to the RPi.
+
+
+Otherwise simply import the `tcp_rpi.py` class into your code and use its functions. Should be straightforward, if not look into its code and `tcpcom_py3.py`.

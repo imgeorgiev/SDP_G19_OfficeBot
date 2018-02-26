@@ -10,7 +10,7 @@
 # EV3 IP: 169.254.21.39
 # RPI IP: 169.254.21.44
 
-from tcpcom import TCPServer
+from tcpcom_py3 import TCPServer
 import pygame  # needed for joystick commands
 import sys
 import time
@@ -32,16 +32,17 @@ def stateTrans(state, msg):
     global reqSensorReceived
     global sensorData
     if state == "LISTENING":
+        pass
         print("DEBUG: Server: Listening...")
     elif state == "CONNECTED":
         isConnected = True
         print("DEBUG: Server: Connected to ", msg)
     elif state == "MESSAGE":
-        print("DEBUG: Server: Message received: " + str(msg))
+        # print("DEBUG: Server: Message received: " + str(msg))
         if(msg[0:2] == "SNR"):
             reqSensorReceived = True
             sensorData = msg
-            print("DEBUG: Server: Sensor message received: ", str(sensorData))
+            #print("DEBUG: Server: Sensor message received: ", str(sensorData))
 
 
 def getSensors():
@@ -67,13 +68,13 @@ def sendMotorCommand(l_motor, r_motor, pause=False, stop=False):
         raise Exception("ERROR: Wrong r_motor arg")
     sendMsg = "CMD:" + str(l_motor) + "," + str(r_motor)
     server.sendMessage(sendMsg)
-    print("DEBUG: Server : Sending ", sendMsg)
+    # print("DEBUG: Server : Sending ", sendMsg)
 
 
 def sendLineFollow(currentColor, nextColor, side, numJunctionsToIgnote):
-    if(currentColor not in self._colorList):
+    if(currentColor not in colorList):
         raise Exception("ERROR: Invalid currentColor input")
-    if(nextColor not in self._colorList):
+    if(nextColor not in colorList):
         raise Exception("ERROR: Invalid nextColor input")
 
     side = side.upper()[0]
@@ -110,7 +111,7 @@ def main():
     global server
 
     # Settings for the joystick
-    yAxis = 4               # Joystick axis to read for up / down position
+    yAxis = 5               # Joystick axis to read for up / down position
     xAxis = 0              # Joystick axis to read for left / right position
     # xPoll = False
     # yPoll = False
@@ -170,32 +171,23 @@ def main():
                     # print(event.dict, event.joy, event.axis, event.value)
                     hadEvent = True
                     if event.axis == yAxis:
-                        # xPoll = True
                         ySpeed = -joystick.get_axis(yAxis) * 100
                         # print("DEBUG: y axis used", str(ySpeed))
                     if event.axis == xAxis:
-                        # xPoll = True
                         xSpeed = -joystick.get_axis(xAxis) * 100
                         # print("DEBUG: x axis used", str(xSpeed))
 
                 if(hadEvent):
                     # Determine the drive power levels
-                    print("xspeed: " + str(xSpeed) + " yspeed: " + str(ySpeed))
-                    # xSpeed = scale_stick(xSpeed)
-                    # ySpeed = scale_stick(ySpeed)
+                    # print("xspeed: " + str(xSpeed) + " yspeed: " + str(ySpeed))
                     l_wheel_speed = ySpeed - (xSpeed / 2)
                     r_wheel_speed = ySpeed + (xSpeed / 2)
-                    # print("l_wheel: " + str(l_wheel_speed) + " r_wheel: " + str(r_wheel_speed))
                     l_wheel_speed = int(attenuate(l_wheel_speed, -100, 100))
                     r_wheel_speed = int(attenuate(r_wheel_speed, -100, 100))
-                    # print("l_wheel: " + str(l_wheel_speed) + " r_wheel: " + str(r_wheel_speed))
-
                     # print("DEBUG: Joystick command send reached")
 
                     sendMotorCommand(l_wheel_speed, r_wheel_speed)
 
-                    # xPoll = False
-                    # yPoll = False
     except KeyboardInterrupt:
         # CTRL+C exit, disable all drives
         server.terminate()

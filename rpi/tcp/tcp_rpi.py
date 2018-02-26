@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 
 # Library for sending UDP commands to an EV3
@@ -10,7 +10,7 @@
 # EV3 IP: 169.254.21.39
 # RPI IP: 169.254.21.44
 
-from tcpcom import TCPServer
+from tcpcom_py3 import TCPServer
 import pygame  # needed for joystick commands
 import sys
 import time
@@ -44,12 +44,14 @@ class Server:
             isConnected = True
             print("DEBUG: Server: Connected to ", msg)
         elif state == "MESSAGE":
-            print("DEBUG: Server: Message received: " + str(msg))
+            # print("DEBUG: Server: Message received: " + str(msg))
             if(msg[0:2] == "SNR"):
                 reqSensorReceived = True
                 sensorData = msg
                 print("DEBUG: Server: Sensor message received: ", str(sensorData))
 
+    # Returns designedtaed sensor values from the EV3.
+    # Currently returns [int Ultrasonic, string Left color sensor, string Right color sensor]
     def getSensors(self):
         self._server.sendMessage("RQT")
         while(not reqSensorReceived):
@@ -57,7 +59,7 @@ class Server:
         return sensorData
 
     # Sends a command mapped to a motor. Params:
-    # motor - either L or R, stands for left or right
+    # Must input commands for both left and right motor
     # speed - int in range [-100, 100]
     def sendMotorCommand(self, l_motor, r_motor, pause=False, stop=False):
 
@@ -75,8 +77,14 @@ class Server:
 
         sendMsg = "CMD:" + str(l_motor) + "," + str(r_motor)
         self._server.sendMessage(sendMsg)
-        print("DEBUG: Server : Sending ", sendMsg)
+        # print("DEBUG: Server : Sending ", sendMsg)
 
+    # Sends a command to follow a line as Alex wanted
+    # arguments should be self explanatory
+    # current color to follow
+    # next color to follow
+    # on which side to look for the junction
+    # num of junctions to skip before turning
     def sendLineFollow(self, currentColor, nextColor, side, numJunctionsToIgnote):
         if(currentColor not in self._colorList):
             raise Exception("ERROR: Invalid currentColor input")
@@ -119,7 +127,7 @@ def attenuate(val, min, max):
 def main():
 
     # Settings for the joystick
-    yAxis = 4               # Joystick axis to read for up / down position
+    yAxis = 5               # Joystick axis to read for up / down position
     xAxis = 0              # Joystick axis to read for left / right position
     # xPoll = False
     # yPoll = False
@@ -189,7 +197,7 @@ def main():
 
                 if(hadEvent):
                     # Determine the drive power levels
-                    print("xspeed: " + str(xSpeed) + " yspeed: " + str(ySpeed))
+                    # print("xspeed: " + str(xSpeed) + " yspeed: " + str(ySpeed))
                     # xSpeed = scale_stick(xSpeed)
                     # ySpeed = scale_stick(ySpeed)
                     l_wheel_speed = ySpeed - (xSpeed / 2)
