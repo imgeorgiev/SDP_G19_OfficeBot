@@ -219,14 +219,31 @@ def main():
         file = open("dest.txt","r+")
         content = file.read()
         print("File content: " + content)
+
         if (len(content) > 0):
             destination = int(content)
+
+            # Manual override
+            if (destination == 100 or destination == 200):
+                file.seek(0)
+                file.truncate()
+                file.close()
+                print("MANUAL OVERRIDE TRIGGERED.")
+                while(True):
+                    # TO-DO: trigger ps4 controls, and periodically check
+                    # for 200 code to remove manual override
+                    pass
+
             file.seek(0)
             file.truncate()
             file.close()
             print("RECEIVED DESTINATION: " + str(destination) + ".")
             if (destination != position):
-                compute_path()
+
+                if (destination not in [1, 2, 3, 4, 5, 6, 7, 8, 9]):
+                    print("Destination not valid!")
+                else:
+                    compute_path()
             else:
                 print("Destination is the same as current position. Skipping.")
         file.close()

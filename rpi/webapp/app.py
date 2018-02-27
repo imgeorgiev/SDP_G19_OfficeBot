@@ -19,6 +19,8 @@ job_queue = []
 
 error_msg = False
 
+manual_control = False
+
 sched_alg = "none"
 
 # Next job to be written to the file
@@ -38,6 +40,47 @@ def index():
     templateData = {
         'desks' : desks
     }
+    return render_template('index.html', **templateData)
+
+@app.route("/manual")
+def manual_toggle():
+    global manual_control
+    global written_job
+    global CURRENTLY_WRITING
+
+    # prevent race condition
+    while (CURRENTLY_WRITING):
+        time.sleep(0.1)
+
+    CURRENTLY_WRITING = 1
+
+    manual_control = not manual_control
+    message = " Manual override toggled."
+    error_msg = False
+
+    written_job = None
+
+    file = open("dest.txt","w")
+    file.seek(0)
+    file.truncate()
+
+    if (manual_control):
+        # Special character for manual override
+        file.write("100")
+    else:
+        file.write("200")
+    file.close()
+
+
+    templateData = {
+        'desks' : desks,
+        'message' : message,
+        'error_msg' : error_msg,
+        'manual_control' : manual_control
+    }
+
+    CURRENTLY_WRITING = 0
+
     return render_template('index.html', **templateData)
 
 
