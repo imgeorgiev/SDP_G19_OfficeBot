@@ -216,7 +216,7 @@ def main():
     global position
 
     while (True):
-        file = open("dest.txt","r+")
+        file = open("/home/pi/SDP_G19_OfficeBot/rpi/webapp/dest.txt","r+")
         content = file.read()
         print("File content: " + content)
 
