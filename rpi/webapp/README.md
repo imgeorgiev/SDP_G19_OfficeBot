@@ -1,4 +1,4 @@
-Install Flask by using: `pip install Flask` (make sure you have pip installed)
+Install Flask by using: `sudo apt install pip` and then `pip install Flask`
 
 Install APScheduler by using `sudo apt install python3-pip`, then `sudo pip3 install apscheduler`
 
