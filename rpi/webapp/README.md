@@ -1,8 +1,4 @@
-Install Flask by using: `pip install Flask` (make sure you have pip installed)
-
-Install APScheduler by using `sudo apt install python3-pip`, then `sudo pip3 install apscheduler`
-
-Make sure you have Flask installed on your system.
+Install Flask and APScheduler by using `sudo apt install python3-pip`, then `sudo pip3 install flask` and `sudo pip3 install apscheduler`
 
 Navigate to `webapp/` and run `sudo python3 app.py`
 
