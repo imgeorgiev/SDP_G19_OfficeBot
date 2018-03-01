@@ -13,8 +13,8 @@ class LineFollower:
 
         # initialise motors and LEDs
         self.leftMotor, self.rightMotor = self.initialiseMotors(speed)
+
         # initialise sensors and check they are connected
-#       self.ultrasonicSensor = UltrasonicSensor(INPUT_AUTO); assert self.ultrasonicSensor.connected
         self.colorSensorLeft = ColorSensor('in1'); assert self.colorSensorLeft.connected
         self.colorSensorRight = ColorSensor('in4'); assert self.colorSensorRight.connected
         self.button = Button()
