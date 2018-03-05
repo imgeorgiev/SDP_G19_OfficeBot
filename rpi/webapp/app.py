@@ -3,6 +3,7 @@
 from flask import Flask, render_template
 from apscheduler.schedulers.background import BackgroundScheduler
 import time
+import numpy as np
 
 app = Flask(__name__)
 
@@ -15,13 +16,20 @@ desks = {
     6 : {'name' : 'Desk 6', 'colour' : 'purple'}
 }
 
+# x and y coordinates for desks
+desks_x_y = [[1, 1], [3, 2], [0, 3], [3, 3], [4, 5], [1, 6]]
+
+# matrix of distances between desks
+distances = []
+
 job_queue = []
 
 error_msg = False
 
 manual_control = False
 
-sched_alg = "none"
+# scheduling algorithm. values: simple, parameterised
+sched_alg = "parameterised"
 
 # Next job to be written to the file
 next_job = None
@@ -89,6 +97,7 @@ def action(desk, action):
     global CURRENTLY_WRITING
     global currently_processing
     global job_queue
+    global sched_alg
 
     # prevent race condition
     while (CURRENTLY_WRITING):
@@ -116,7 +125,7 @@ def action(desk, action):
             # add desk to front of job_queue
             job_queue.insert(0, desk)
             print("\ncall " + str(desk) + "\njob_queue is: " + str(job_queue) + "\n")
-            reorder_jobs()
+            reorder_jobs(sched_alg)
             write_job()
             CURRENTLY_WRITING = 0
 
@@ -137,11 +146,25 @@ def action(desk, action):
     CURRENTLY_WRITING = 0
     return render_template('index.html', **templateData)
 
+def calc_distances():
+    global desks_x_y
+    global distances
+
+    nr_desks = len(desks_x_y)
+    distances = np.zeros((len(desks_x_y), len(desks_x_y)))
+
+    # creates a matrix of distances D(x,y): abs(x_1 - x_2) + abs(y_1 - y_2)
+    for i in range (0, nr_desks):
+        for j in range (0, nr_desks):
+            distances[i][j] = abs((desks_x_y[i][0] - desks_x_y[j][0])) + abs((desks_x_y[i][1] - desks_x_y[j][1]))
+    print("\nCalculated distances:\n\n" + str(distances) + "\n")
+
 # Reorders job_queue based on the sched_alg and current job
-def reorder_jobs():
+def reorder_jobs(alg):
     global next_job
     global currently_processing
     global job_queue
+    global distances
 
     # Assumption: the desk numbers reflect their absolute order
     # Eg:
@@ -152,20 +175,34 @@ def reorder_jobs():
     #    1 ---|
     #
 
-    # Simplest algorithm. Checks closest location to currently_processing
-    # and moves it to the front of the queue.
     if ((len(job_queue) > 1) and (currently_processing is not None)):
-        differences = [abs(currently_processing - loc) for loc in job_queue]
+
+        # Simplest algorithm. Checks closest location to currently_processing
+        # and moves it to the front of the queue.
+        if (alg == "simple"):
+            differences = [abs(currently_processing - loc) for loc in job_queue]
+        # Uses distances calculated using calc_distances (x and y coordinates of desks).
+        elif (alg == "parameterised"):
+            # - 1 needed to account for 0-indexing of distances
+            differences = [distances[currently_processing - 1][loc - 1] for loc in job_queue]
+        else:
+            print("SCHEDULING ALGORITHM NOT FOUND. job_queue unchanged.")
+
         idx_smallest = differences.index(min(differences))
         print("REORDER_JOBS. Closest to " + str(currently_processing) + " is " + str(job_queue[idx_smallest]) + ".")
+        print("Scheduling algorithm: " + str(alg) + ".")
         job_queue.append(job_queue.pop(idx_smallest))
-    print("REORDER_JOBS COMPLETE. job_queue: " + str(job_queue))
+        print("REORDER_JOBS COMPLETE. job_queue: " + str(job_queue))
+
+    else:
+        print("REORDER_JOBS not needed for execution.")
 
 def write_job():
     global next_job
     global job_queue
     global written_job
     global currently_processing
+    global sched_alg
 
     print("Logic is processing " + str(currently_processing) + ".")
 
@@ -193,7 +230,7 @@ def write_job():
             if (written_job is not None):
                 job_queue.remove(written_job)
                 print("REMOVED " + str(written_job) + " from job queue.")
-                reorder_jobs()
+                reorder_jobs(sched_alg)
                 print("job_queue: " + str(job_queue))
                 currently_processing = written_job
                 written_job = None
@@ -224,6 +261,7 @@ def check_file():
     global job_queue
     global CURRENTLY_WRITING
     global currently_processing
+    global sched_alg
 
     if (CURRENTLY_WRITING == 0):
 
@@ -236,7 +274,7 @@ def check_file():
             job_queue.remove(written_job)
             currently_processing = written_job
             written_job = None
-            reorder_jobs()
+            reorder_jobs(sched_alg)
             write_job()
             print("Logic has processed a job. New job_queue: " + str(job_queue))
         file.close()
@@ -249,9 +287,13 @@ def main():
     file.seek(0)
     file.truncate()
     file.close()
+
     scheduler = BackgroundScheduler()
     job = scheduler.add_job(check_file, 'interval', seconds=2)
     scheduler.start()
+
+    if (sched_alg == "parameterised"):
+        calc_distances()
 
 # redirect unknown URLs to homepage
 @app.errorhandler(404)
