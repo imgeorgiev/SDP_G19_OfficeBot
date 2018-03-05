@@ -10,17 +10,13 @@
 # EV3 IP: 169.254.21.39
 # RPI IP: 169.254.21.44
 
-import evdev
-import time
+
 from tcpcom_py3 import TCPClient
 import ev3dev.auto as ev3
-import threading
-# import sys
 
 server_ip = "169.254.23.50"
 server_port = 5005
 
-# client = TCPClient(ip, port, stateChanged=stateTrans)
 cmdMsg = 0
 lfwMsg = None
 ultra = 0
@@ -66,13 +62,10 @@ def parseMsg(msg):
     return msg[4:].split(",")
 
 
-class MotorThread(threading.Thread):
+class CustomMotor:
     def __init__(self, side, out):
-        self.work = True
-        self.pause = False
-        self.reverse = False
-        self.speed = 0
         self.side = side
+        self.speed = 0
 
         self.motor = ev3.LargeMotor(ev3.OUTPUT_A)
         if out.upper() == "B":
@@ -82,18 +75,26 @@ class MotorThread(threading.Thread):
         elif out.upper() == "D":
             self.motor = ev3.LargeMotor(ev3.OUTPUT_D)
 
-        threading.Thread.__init__(self)
+    def reverse(self):
+        self.motor.run_forever(speed_sp=-self.speed)
 
-    def run(self):
-        print(self.side, "wheel is ready")
-        while self.work:
-            if self.reverse:
-                self.speed = -self.speed
-            if self.pause:
-                self.speed = 0
-            self.motor.run_direct(duty_cycle_sp=-self.speed)
+    def pause(self):
+        self.motor.run_forever(speed_sp=0)
 
+    def forward(self):
+        self.motor.run_forever(speed_sp=self.speed)
+
+    def stop(self):
         self.motor.stop()
+
+    def setPolarity(self, polarity):
+        self.motor.polarity = polarity
+
+    def isReversing(self):
+        return self.motor.speed < 0
+
+    def isGoingForward(self):
+        return self.motor.speed > 0
 
 
 def main():
@@ -102,32 +103,28 @@ def main():
     global rColor
     global client
 
-    lMotorThread = MotorThread("LEFT", "A")
-    lMotorThread.setDaemon(True)
-    lMotorThread.start()
+    leftMotor = CustomMotor("LEFT", "A")
+    rightMotor = CustomMotor("RIGHT", "D")
 
-    rMotorThread = MotorThread("RIGHT", "D")
-    rMotorThread.setDaemon(True)
-    rMotorThread.start()
 
-    ultrasonicSensor = ev3.UltrasonicSensor(ev3.INPUT_AUTO)
-    assert ultrasonicSensor.connected
-    colorSensorLeft = ev3.ColorSensor('in1')
-    assert colorSensorLeft.connected
-    colorSensorRight = ev3.ColorSensor('in4')
-    assert colorSensorRight.connected
+    ultrasonicSensor = ev3.UltrasonicSensor(ev3.INPUT_AUTO); assert ultrasonicSensor.connected
+    colorSensorLeft = ev3.ColorSensor('in1'); assert colorSensorLeft.connected
+    colorSensorRight = ev3.ColorSensor('in4'); assert colorSensorRight.connected
+
 
     client = TCPClient(server_ip, server_port, stateChanged=stateTrans)
     print("Client starting")
 
     rc = client.connect()
-    while(True):
+    while True:
         if rc:
             isConnected = True  # not sure if needed
-            while(isConnected):
-                rMotorThread.speed = int(cmdMsg[1])
+            while isConnected:
+                rightMotor.speed = int(cmdMsg[1])
+                rightMotor.forward()
                 print("DEBUG: Right motor set to ", cmdMsg[1])
-                lMotorThread.speed = int(cmdMsg[0])
+                leftMotor.speed = int(cmdMsg[0])
+                leftMotor.forward()
                 print("DEBUG: Left motor set to ", cmdMsg[0])
 
                 ultra = ultrasonicSensor.value()
