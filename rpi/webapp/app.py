@@ -60,7 +60,7 @@ def manual_toggle():
 
     written_job = None
 
-    file = open("/home/pi/SDP_G19_OfficeBot/rpi/webapp/dest.txt","w")
+    file = open("dest.txt","w")
     file.seek(0)
     file.truncate()
 
@@ -176,7 +176,7 @@ def write_job():
         print("next_job: " + str(next_job))
 
         # Check if file is empty (logic has taken a destination to process)
-        file = open("/home/pi/SDP_G19_OfficeBot/rpi/webapp/dest.txt","r+")
+        file = open("dest.txt","r+")
         content = file.read()
         print("File content: " + content)
 
@@ -228,7 +228,7 @@ def check_file():
     if (CURRENTLY_WRITING == 0):
 
         CURRENTLY_WRITING = 1
-        file = open("/home/pi/SDP_G19_OfficeBot/rpi/webapp/dest.txt","r")
+        file = open("dest.txt","r")
         content = file.read()
         print("File content: " + content)
         # Initial state will have written_job = None
@@ -244,7 +244,7 @@ def check_file():
 
 def main():
     # clear dest.txt when app.py first launched
-    file = open("/home/pi/SDP_G19_OfficeBot/rpi/webapp/dest.txt","r+")
+    file = open("dest.txt","r+")
     content = file.read()
     file.seek(0)
     file.truncate()
