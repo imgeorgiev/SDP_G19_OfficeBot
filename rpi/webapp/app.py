@@ -243,6 +243,12 @@ def check_file():
         CURRENTLY_WRITING = 0
 
 def main():
+    # clear dest.txt when app.py first launched
+    file = open("/home/pi/SDP_G19_OfficeBot/rpi/webapp/dest.txt","r+")
+    content = file.read()
+    file.seek(0)
+    file.truncate()
+    file.close()
     scheduler = BackgroundScheduler()
     job = scheduler.add_job(check_file, 'interval', seconds=2)
     scheduler.start()
