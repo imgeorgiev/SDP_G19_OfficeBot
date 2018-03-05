@@ -106,6 +106,12 @@ img {
   border: 1px solid #e54444;
 }
 
+.priority-color, a.priority-color {
+  color: #ec9b76;
+  background-color: #ffeee6;
+  border: 1px solid #ec9b76;
+}
+
 a.btn {
     display: inline-block;
     width: 100%;

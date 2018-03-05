@@ -22,6 +22,9 @@ desks_x_y = [[1, 1], [3, 2], [0, 3], [3, 3], [4, 5], [1, 6]]
 # matrix of distances between desks
 distances = []
 
+# for priority scheduling
+priorities = [0, 0, 0, 0, 0, 0]
+
 job_queue = []
 
 error_msg = False
@@ -98,6 +101,7 @@ def action(desk, action):
     global currently_processing
     global job_queue
     global sched_alg
+    global priorities
 
     # prevent race condition
     while (CURRENTLY_WRITING):
@@ -117,14 +121,25 @@ def action(desk, action):
 
     deskName = desks[desk]['name']
 
-    if action == "call":
+    if action == "call" or action == "priority-call":
         if desk not in job_queue and desk != currently_processing:
             message = " OfficeBot has been called to " + deskName + "."
             error_msg = False
 
-            # add desk to front of job_queue
-            job_queue.insert(0, desk)
-            print("\ncall " + str(desk) + "\njob_queue is: " + str(job_queue) + "\n")
+            if action == "call":
+                # add desk to end of job_queue
+                job_queue.insert(0, desk)
+            # priority call
+            else:
+                # add desk to front of job_queue, behind any other prioritised desks
+                i = 1;
+                while ((len(job_queue) >= i) and (priorities[job_queue[-i] - 1] != 1)):
+                    i += 1
+                job_queue.append(desk)
+                # set that desk to be a priority desk
+                priorities[desk - 1] = 1
+
+            print("\nCall to " + str(desk) + "." + "\njob_queue is: " + str(job_queue) + "\n")
             reorder_jobs(sched_alg)
             write_job()
             CURRENTLY_WRITING = 0
@@ -165,6 +180,7 @@ def reorder_jobs(alg):
     global currently_processing
     global job_queue
     global distances
+    global priorities
 
     # Assumption: the desk numbers reflect their absolute order
     # Eg:
@@ -177,22 +193,27 @@ def reorder_jobs(alg):
 
     if ((len(job_queue) > 1) and (currently_processing is not None)):
 
-        # Simplest algorithm. Checks closest location to currently_processing
-        # and moves it to the front of the queue.
-        if (alg == "simple"):
-            differences = [abs(currently_processing - loc) for loc in job_queue]
-        # Uses distances calculated using calc_distances (x and y coordinates of desks).
-        elif (alg == "parameterised"):
-            # - 1 needed to account for 0-indexing of distances
-            differences = [distances[currently_processing - 1][loc - 1] for loc in job_queue]
-        else:
-            print("SCHEDULING ALGORITHM NOT FOUND. job_queue unchanged.")
+        # if the current front of queue is not a priority
+        if (priorities[job_queue[-1] - 1] != 1):
+            # Simplest algorithm. Checks closest location to currently_processing
+            # and moves it to the front of the queue.
+            if (alg == "simple"):
+                differences = [abs(currently_processing - loc) for loc in job_queue]
+            # Uses distances calculated using calc_distances (x and y coordinates of desks).
+            elif (alg == "parameterised"):
+                # - 1 needed to account for 0-indexing of distances
+                differences = [distances[currently_processing - 1][loc - 1] for loc in job_queue]
+            else:
+                print("SCHEDULING ALGORITHM NOT FOUND. job_queue unchanged.")
 
-        idx_smallest = differences.index(min(differences))
-        print("REORDER_JOBS. Closest to " + str(currently_processing) + " is " + str(job_queue[idx_smallest]) + ".")
-        print("Scheduling algorithm: " + str(alg) + ".")
-        job_queue.append(job_queue.pop(idx_smallest))
-        print("REORDER_JOBS COMPLETE. job_queue: " + str(job_queue))
+            idx_smallest = differences.index(min(differences))
+            print("REORDER_JOBS. Closest to " + str(currently_processing) + " is " + str(job_queue[idx_smallest]) + ".")
+            print("Scheduling algorithm: " + str(alg) + ".")
+            job_queue.append(job_queue.pop(idx_smallest))
+            print("REORDER_JOBS COMPLETE. job_queue: " + str(job_queue))
+        else:
+            print("FRONT OF QUEUE HAS PRIORITY. REORDER_JOBS doesn't execute.")
+            print("job_queue: " + str(job_queue))
 
     else:
         print("REORDER_JOBS not needed for execution.")
@@ -203,6 +224,7 @@ def write_job():
     global written_job
     global currently_processing
     global sched_alg
+    global priorities
 
     print("Logic is processing " + str(currently_processing) + ".")
 
@@ -233,6 +255,8 @@ def write_job():
                 reorder_jobs(sched_alg)
                 print("job_queue: " + str(job_queue))
                 currently_processing = written_job
+                # reset priority of that desk
+                priorities[currently_processing - 1] = 0;
                 written_job = None
                 next_job = job_queue[-1]
 
