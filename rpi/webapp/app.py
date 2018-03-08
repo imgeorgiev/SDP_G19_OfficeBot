@@ -132,14 +132,30 @@ def action(desk, action):
             # priority call
             else:
                 # add desk to front of job_queue, behind any other prioritised desks
+
+                # TODO: fix this to properly work
+                # i = 0;
+                # while (priorities[job_queue[i]] != 1):
+                #     i += 1
+                # if (len(job_queue) == i):
+                #     i = 0
+                #     break
+
                 i = 1;
-                while ((len(job_queue) >= i) and (priorities[job_queue[-i] - 1] != 1)):
+                while ((len(job_queue) > i) and (priorities[job_queue[-i] - 1] == 1)):
+                    print("i: " + str(i) + " priorities[job_queue[-i] - 1]:" + str(priorities[job_queue[-i] - 1]))
                     i += 1
-                job_queue.append(desk)
+                job_queue.insert(i, desk)
                 # set that desk to be a priority desk
                 priorities[desk - 1] = 1
 
-            print("\n**ACTION**\nCall to " + str(desk) + "." + "\njob_queue is: " + str(job_queue) + "\n")
+            print("\n**ACTION**\nCall to " + str(desk) + ".")
+            if (action == "call"):
+                print("Standard call.\n")
+            else:
+                print("Priority call.\n")
+            print("job_queue is: " + str(job_queue) + "\n")
+            print("priorities queue: " + str(priorities))
             reorder_jobs(sched_alg)
             write_job()
             CURRENTLY_WRITING = 0
@@ -195,6 +211,9 @@ def reorder_jobs(alg):
 
         # if the current front of queue is not a priority
         if (priorities[job_queue[-1] - 1] != 1):
+            print("job_queue[-1]: " + str(job_queue[-1]) + " priorities[job_queue[-1] - 1]: " + str(priorities[job_queue[-1] - 1]))
+            print("priorities queue: " + str(priorities))
+            print("Not a priority call!\n")
             # Simplest algorithm. Checks closest location to currently_processing
             # and moves it to the front of the queue.
             if (alg == "simple"):
@@ -217,7 +236,7 @@ def reorder_jobs(alg):
             print("job_queue: " + str(job_queue) + "\n")
 
     else:
-        print("\nREORDER_JOBS not needed for execution.\n")
+        print("\nREORDER_JOBS not needed for execution.")
 
 def write_job():
     global next_job
@@ -227,7 +246,7 @@ def write_job():
     global sched_alg
     global priorities
 
-    print("\n**WRITE_JOB**\nLogic is processing " + str(currently_processing) + ".")
+    print("\n**WRITE_JOB**\ncurrently_processing: " + str(currently_processing) + ".")
 
     # If there are jobs in the queue
     if (len(job_queue) > 0):
@@ -252,13 +271,15 @@ def write_job():
             # because we just initialised the app. skip written_job removal.
             if (written_job is not None):
                 job_queue.remove(written_job)
-                print("REMOVED " + str(written_job) + " from job queue: now " + str(job_queue))
+                print("REMOVED " + str(written_job) + " from job_queue.")
                 reorder_jobs(sched_alg)
                 currently_processing = written_job
                 # reset priority of that desk
                 priorities[currently_processing - 1] = 0;
+                print("priorities queue: " + str(priorities))
                 written_job = None
                 next_job = job_queue[-1]
+                print("job_queue: " + str(job_queue))
 
             write_to_file(file)
 
@@ -273,7 +294,7 @@ def write_to_file(f):
     f.truncate()
     f.write(str(next_job))
     f.close()
-    print("\n**WRITE_TO_FILE**\nnext_job: " + str(next_job) + ", so overwrote file with " + str(next_job) + ".\n")
+    print("\n**WRITE_TO_FILE**\nnext_job: " + str(next_job) + ", so overwrote file with " + str(next_job) + ".")
     written_job = next_job
 
 # Checks text file periodically, and if a job has been removed then it
@@ -294,12 +315,13 @@ def check_file():
         print("\n**CHECK_FILE**\nFile content: " + content + "\n")
         # Initial state will have written_job = None
         if ((len(content) == 0) and written_job is not None):
+            print("Logic has processed a job. START OF CHECK_FILE UPDATING.")
             job_queue.remove(written_job)
             currently_processing = written_job
             written_job = None
             reorder_jobs(sched_alg)
             write_job()
-            print("Logic has processed a job. New job_queue: " + str(job_queue) + "\n")
+            print("END OF CHECK_FILE UPDATING. New job_queue: " + str(job_queue) + "\n")
         file.close()
         CURRENTLY_WRITING = 0
 
