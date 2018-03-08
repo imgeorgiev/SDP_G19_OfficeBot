@@ -4,6 +4,7 @@ from flask import Flask, render_template
 from apscheduler.schedulers.background import BackgroundScheduler
 import time
 import numpy as np
+import logging
 
 app = Flask(__name__)
 
@@ -339,6 +340,10 @@ def main():
 
     if (sched_alg == "parameterised"):
         calc_distances()
+
+    # disable Flask HTTP messages (better readability)
+    log = logging.getLogger('werkzeug')
+    log.setLevel(logging.ERROR)
 
 # redirect unknown URLs to homepage
 @app.errorhandler(404)
