@@ -110,7 +110,7 @@ def action(desk, action):
     CURRENTLY_WRITING = 1
     # if desk provided in URL does not exist, return error page
     if desk not in desks:
-        print("\nCall to invalid desk number: " + str(desk) + "\n")
+        print("\n**ACTION**\nCall to invalid desk number: " + str(desk) + "\n")
         templateData = {
             'desks' : desks,
             'message' : ' Desk does not exist!',
@@ -139,7 +139,7 @@ def action(desk, action):
                 # set that desk to be a priority desk
                 priorities[desk - 1] = 1
 
-            print("\nCall to " + str(desk) + "." + "\njob_queue is: " + str(job_queue) + "\n")
+            print("\n**ACTION**\nCall to " + str(desk) + "." + "\njob_queue is: " + str(job_queue) + "\n")
             reorder_jobs(sched_alg)
             write_job()
             CURRENTLY_WRITING = 0
@@ -148,7 +148,7 @@ def action(desk, action):
         else:
             message = " OfficeBot was called to " + deskName + " already!"
             error_msg = True
-            print("\ncall void" + "\njob_queue is: " + str(job_queue) + "\n")
+            print("\n**ACTION**\nCall void" + "\njob_queue is: " + str(job_queue) + "\n")
             CURRENTLY_WRITING = 0
     else:
         message = " Unknown action."
@@ -207,16 +207,17 @@ def reorder_jobs(alg):
                 print("SCHEDULING ALGORITHM NOT FOUND. job_queue unchanged.")
 
             idx_smallest = differences.index(min(differences))
-            print("REORDER_JOBS. Closest to " + str(currently_processing) + " is " + str(job_queue[idx_smallest]) + ".")
-            print("Scheduling algorithm: " + str(alg) + ".")
+            print("\n**REORDER_JOBS**\nScheduling algorithm: " + str(alg) + ".")
+            print("job_queue was: " + str(job_queue))
+            print("Closest to " + str(currently_processing) + " is " + str(job_queue[idx_smallest]) + ".")
             job_queue.append(job_queue.pop(idx_smallest))
-            print("REORDER_JOBS COMPLETE. job_queue: " + str(job_queue))
+            print("job_queue: " + str(job_queue) + "\n")
         else:
-            print("FRONT OF QUEUE HAS PRIORITY. REORDER_JOBS doesn't execute.")
-            print("job_queue: " + str(job_queue))
+            print("\nFRONT OF QUEUE HAS PRIORITY. REORDER_JOBS doesn't execute.")
+            print("job_queue: " + str(job_queue) + "\n")
 
     else:
-        print("REORDER_JOBS not needed for execution.")
+        print("\nREORDER_JOBS not needed for execution.\n")
 
 def write_job():
     global next_job
@@ -226,7 +227,7 @@ def write_job():
     global sched_alg
     global priorities
 
-    print("Logic is processing " + str(currently_processing) + ".")
+    print("\n**WRITE_JOB**\nLogic is processing " + str(currently_processing) + ".")
 
     # If there are jobs in the queue
     if (len(job_queue) > 0):
@@ -251,9 +252,8 @@ def write_job():
             # because we just initialised the app. skip written_job removal.
             if (written_job is not None):
                 job_queue.remove(written_job)
-                print("REMOVED " + str(written_job) + " from job queue.")
+                print("REMOVED " + str(written_job) + " from job queue: now " + str(job_queue))
                 reorder_jobs(sched_alg)
-                print("job_queue: " + str(job_queue))
                 currently_processing = written_job
                 # reset priority of that desk
                 priorities[currently_processing - 1] = 0;
@@ -273,9 +273,8 @@ def write_to_file(f):
     f.truncate()
     f.write(str(next_job))
     f.close()
-    print("next_job: " + str(next_job))
+    print("\n**WRITE_TO_FILE**\nnext_job: " + str(next_job) + ", so overwrote file with " + str(next_job) + ".\n")
     written_job = next_job
-    print("OVERWROTE, new content: " + str(next_job) + ".")
 
 # Checks text file periodically, and if a job has been removed then it
 # removes it from the job_queue
@@ -292,7 +291,7 @@ def check_file():
         CURRENTLY_WRITING = 1
         file = open("dest.txt","r")
         content = file.read()
-        print("File content: " + content)
+        print("\n**CHECK_FILE**\nFile content: " + content + "\n")
         # Initial state will have written_job = None
         if ((len(content) == 0) and written_job is not None):
             job_queue.remove(written_job)
@@ -300,7 +299,7 @@ def check_file():
             written_job = None
             reorder_jobs(sched_alg)
             write_job()
-            print("Logic has processed a job. New job_queue: " + str(job_queue))
+            print("Logic has processed a job. New job_queue: " + str(job_queue) + "\n")
         file.close()
         CURRENTLY_WRITING = 0
 
