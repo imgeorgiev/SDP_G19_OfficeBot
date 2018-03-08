@@ -3,17 +3,25 @@
 import numpy as np
 import cv2
 from tcp_rpi import *
+import time, sched
 
 
 class line_detect():
 
     def __init__(self):
-        self.width = 640
-        self.height = 480
-        # self.width = 1920
-        # self.height = 1080
-        self.image = []
+        # self.width = 640
+        # self.height = 480
+        self.width = 320
+        self.height = 240
+        self.image_black = []
+        self.image_blue = []
+        self.image_red = []
         self.slice = 4
+        self.weight_4 = [0.23, 0.23, 0.23, 0.23]
+        self.weight_3 = [0.3, 0.3, 0.3]
+        self.weight_2 = [0.45, 0.45]
+        self.weight_1 = [0.9]
+        self.threshold = 70
 
 
 
@@ -48,7 +56,7 @@ class line_detect():
 
     def RemoveBackground_HSV_Blue(self,image):
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-        lower = np.array([100,100,46])
+        lower = np.array([100,170,46])
         upper = np.array([124,255,255])
 
         mask = cv2.inRange(hsv, lower, upper)
@@ -63,16 +71,16 @@ class line_detect():
 
     def RemoveBackground_HSV_Red(self,image):
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-        channel1Min = -0.051;
-        channel1Max = 0.038;
-        channel2Min = 0.432;
-        channel2Max = 1.000;
-        channel3Min = 0.352;
-        channel3Max = 1.000;
+        channel1Min = 156;
+        channel1Max = 180;
+        channel2Min = 43;
+        channel2Max = 255;
+        channel3Min = 46;
+        channel3Max = 255;
         lower = np.array([channel1Min,channel2Min,channel3Min])
-        lower = self.transfer(lower)
+        # lower = self.transfer(lower)
         upper = np.array([channel1Max,channel2Max,channel3Max])
-        upper = self.transfer(upper)
+        # upper = self.transfer(upper)
 
         mask = cv2.inRange(hsv, lower, upper)
         kernel = np.ones((5,5),np.uint8)
@@ -179,13 +187,13 @@ class line_detect():
         return contour
 
 
-    def RepackImages(self):
-        img = self.image[0]
-        for i in range(len(self.image)):
+    def RepackImages(self, image):
+        img = image[0]
+        for i in range(len(image)):
             if i == 0:
-                img = np.concatenate((img, self.image[1]), axis=0)
+                img = np.concatenate((img, image[1]), axis=0)
             if i > 1:
-                img = np.concatenate((img, self.image[i]), axis=0)
+                img = np.concatenate((img, image[i]), axis=0)
 
         return img
 
@@ -203,216 +211,233 @@ class line_detect():
     def getContourExtent(self, contour):
         area = cv2.contourArea(contour)
         x,y,w,h = cv2.boundingRect(contour)
-        rect_area = w*h
+        rect_area = w*h*3
         if rect_area > 0:
             return (float(area)/rect_area)
 
 
-    def SlicePart_Black(self, im, slice):
+    def SlicePart(self, im, slice, color):
         sl = int(self.height/slice);
         distance = []
 
         for i in range(slice):
             part = sl*i
             crop_img = im[part:part+sl, 0:self.width]
-            self.image[i] = (crop_img)
-            h, w  = self.image[i].shape[:2]
-            middleh = int(h/2)
-            middlew = int(w/2)
-            img = self.RemoveBackground_HSV_Black(crop_img)
+            # middlew = middlew - 40
+            # print(middlew)
+            if color == 'BLACK':
+                self.image_black.append(crop_img)
+                h, w  = self.image_black[i].shape[:2]
+                middleh = int(h/2)
+                middlew = int(w/2)-70
+                img = self.RemoveBackground_HSV_Black(crop_img)
+            # elif color == 'RED':
+            #     self.image_black.append(crop_img)
+            #     h, w  = self.image_red[i].shape[:2]
+            #     middleh = int(h/2)
+            #     middlew = int(w/2)-70
+            #     img = self.RemoveBackground_HSV_Red(crop_img)
+            # elif color == 'BLUE':
+            #     self.image_black.append(crop_img)
+            #     h, w  = self.image_blue[i].shape[:2]
+            #     middleh = int(h/2)
+            #     middlew = int(w/2)-70
+            #     img = self.RemoveBackground_HSV_Blue(crop_img)
+            # elif color == 'GREEN':
+            #     self.image_black.append(crop_img)
+            #     h, w  = self.image_green[i].shape[:2]
+            #     middleh = int(h/2)
+            #     middlew = int(w/2)-70
+            #     img = self.RemoveBackground_HSV_Green(crop_img)
+            # elif color == 'YELLOW':
+            #     self.image_black.append(crop_img)
+            #     h, w  = self.image_yellow[i].shape[:2]
+            #     middleh = int(h/2)
+            #     middlew = int(w/2)-70
+            #     img = self.RemoveBackground_HSV_Yellow(crop_img)
+            # elif color == 'PURPLE':
+            #     self.image_black.append(crop_img)
+            #     h, w  = self.image_purple[i].shape[:2]
+            #     middleh = int(h/2)
+            #     middlew = int(w/2)-70
+            #     img = self.RemoveBackground_HSV_Purple(crop_img)
             contours = self.image_process(img)
             contours = self.contour_process(contours, h, w)
             # print(contours)
-            cv2.drawContours(crop_img, contours,-1,(0,255,0),3)
+            # cv2.drawContours(crop_img, contours,-1,(0,255,0),3)
             # dis = int((middlew-contourCenterX) * self.getContourExtent(contours[0]))
-            cv2.circle(crop_img, (middlew, middleh), 7, (0,0,255), -1) #Draw middle circle RED
+            # cv2.circle(crop_img, (middlew, middleh), 7, (0,0,255), -1) #Draw middle circle RED
             if contours:
                 contourCenterX = self.getContourCenter(contours[0])[0]
-                cv2.circle(crop_img, (contourCenterX, middleh), 7, (255,255,255), -1) #Draw dX circle WHITE
-                font = cv2.FONT_HERSHEY_SIMPLEX
-                cv2.putText(crop_img,str(middlew-contourCenterX),(contourCenterX+20, middleh), font, 1,(200,0,200),2,cv2.LINE_AA)
+                # cv2.circle(crop_img, (contourCenterX, middleh), 7, (255,255,255), -1) #Draw dX circle WHITE
+                # font = cv2.FONT_HERSHEY_SIMPLEX
+                # cv2.putText(crop_img,str(middlew-contourCenterX),(contourCenterX+20, middleh), font, 1,(200,0,200),2,cv2.LINE_AA)
                 # cv2.putText(crop_img,"Weight:%.3f"%self.getContourExtent(contours[0]),(contourCenterX+20, middleh+35), font, 0.5,(200,0,200),1,cv2.LINE_AA)
+                # bias = int(middlew-contourCenterX) * self.getContourExtent(contours[0])
+                bias = int(middlew-contourCenterX)
             # record the bias distance
-            distance.append(middlew-contourCenterX)
-        return distance[::-1]
-
-
-    def SlicePart_Blue(self, im, slice):
-        sl = int(self.height/slice);
-        distance = []
-
-        for i in range(slice):
-            part = sl*i
-            crop_img = im[part:part+sl, 0:self.width]
-            self.image[i] = (crop_img)
-            h, w  = self.image[i].shape[:2]
-            middleh = int(h/2)
-            middlew = int(w/2)
-            img = self.RemoveBackground_HSV_Blue(crop_img)
-            contours = self.image_process(img)
-            contours = self.contour_process(contours, h, w)
-            # print(contours)
-            cv2.drawContours(crop_img, contours,-1,(0,255,0),3)
-            # dis = int((middlew-contourCenterX) * self.getContourExtent(contours[0]))
-            cv2.circle(crop_img, (middlew, middleh), 7, (0,0,255), -1) #Draw middle circle RED
-            if contours:
-                contourCenterX = self.getContourCenter(contours[0])[0]
-                cv2.circle(crop_img, (contourCenterX, middleh), 7, (255,255,255), -1) #Draw dX circle WHITE
-                font = cv2.FONT_HERSHEY_SIMPLEX
-                cv2.putText(crop_img,str(middlew-contourCenterX),(contourCenterX+20, middleh), font, 1,(200,0,200),2,cv2.LINE_AA)
-                # cv2.putText(crop_img,"Weight:%.3f"%self.getContourExtent(contours[0]),(contourCenterX+20, middleh+35), font, 0.5,(200,0,200),1,cv2.LINE_AA)
-            # record the bias distance
-            distance.append(middlew-contourCenterX)
-        return distance[::-1]
-
-
-    def SlicePart_Yellow(self, im, slice):
-        sl = int(self.height/slice);
-        distance = []
-
-        for i in range(slice):
-            part = sl*i
-            crop_img = im[part:part+sl, 0:self.width]
-            self.image[i] = (crop_img)
-            h, w  = self.image[i].shape[:2]
-            middleh = int(h/2)
-            middlew = int(w/2)
-            img = self.RemoveBackground_HSV_Yellow(crop_img)
-            contours = self.image_process(img)
-            contours = self.contour_process(contours, h, w)
-            # print(contours)
-            cv2.drawContours(crop_img, contours,-1,(0,255,0),3)
-            # dis = int((middlew-contourCenterX) * self.getContourExtent(contours[0]))
-            cv2.circle(crop_img, (middlew, middleh), 7, (0,0,255), -1) #Draw middle circle RED
-            if contours:
-                contourCenterX = self.getContourCenter(contours[0])[0]
-                cv2.circle(crop_img, (contourCenterX, middleh), 7, (255,255,255), -1) #Draw dX circle WHITE
-                font = cv2.FONT_HERSHEY_SIMPLEX
-                cv2.putText(crop_img,str(middlew-contourCenterX),(contourCenterX+20, middleh), font, 1,(200,0,200),2,cv2.LINE_AA)
-                # cv2.putText(crop_img,"Weight:%.3f"%self.getContourExtent(contours[0]),(contourCenterX+20, middleh+35), font, 0.5,(200,0,200),1,cv2.LINE_AA)
-            # record the bias distance
-            distance.append(middlew-contourCenterX)
-        return distance[::-1]
-
-
-    def SlicePart_Red(self, im, slice):
-        sl = int(self.height/slice);
-        distance = []
-
-        for i in range(slice):
-            part = sl*i
-            crop_img = im[part:part+sl, 0:self.width]
-            self.image[i] = (crop_img)
-            h, w  = self.image[i].shape[:2]
-            middleh = int(h/2)
-            middlew = int(w/2)
-            img = self.RemoveBackground_HSV_Red(crop_img)
-            contours = self.image_process(img)
-            contours = self.contour_process(contours, h, w)
-            # print(contours)
-            cv2.drawContours(crop_img, contours,-1,(0,255,0),3)
-            # dis = int((middlew-contourCenterX) * self.getContourExtent(contours[0]))
-            cv2.circle(crop_img, (middlew, middleh), 7, (0,0,255), -1) #Draw middle circle RED
-            if contours:
-                contourCenterX = self.getContourCenter(contours[0])[0]
-                cv2.circle(crop_img, (contourCenterX, middleh), 7, (255,255,255), -1) #Draw dX circle WHITE
-                font = cv2.FONT_HERSHEY_SIMPLEX
-                cv2.putText(crop_img,str(middlew-contourCenterX),(contourCenterX+20, middleh), font, 1,(200,0,200),2,cv2.LINE_AA)
-                # cv2.putText(crop_img,"Weight:%.3f"%self.getContourExtent(contours[0]),(contourCenterX+20, middleh+35), font, 0.5,(200,0,200),1,cv2.LINE_AA)
-            # record the bias distance
-            distance.append(middlew-contourCenterX)
-        return distance[::-1]
-
-
-    def SlicePart_Green(self, im, slice):
-        sl = int(self.height/slice);
-        distance = []
-
-        for i in range(slice):
-            part = sl*i
-            crop_img = im[part:part+sl, 0:self.width]
-            self.image[i] = (crop_img)
-            h, w  = self.image[i].shape[:2]
-            middleh = int(h/2)
-            middlew = int(w/2)
-            img = self.RemoveBackground_HSV_Green(crop_img)
-            contours = self.image_process(img)
-            contours = self.contour_process(contours, h, w)
-            # print(contours)
-            cv2.drawContours(crop_img, contours,-1,(0,255,0),3)
-            # dis = int((middlew-contourCenterX) * self.getContourExtent(contours[0]))
-            cv2.circle(crop_img, (middlew, middleh), 7, (0,0,255), -1) #Draw middle circle RED
-            if contours:
-                contourCenterX = self.getContourCenter(contours[0])[0]
-                cv2.circle(crop_img, (contourCenterX, middleh), 7, (255,255,255), -1) #Draw dX circle WHITE
-                font = cv2.FONT_HERSHEY_SIMPLEX
-                cv2.putText(crop_img,str(middlew-contourCenterX),(contourCenterX+20, middleh), font, 1,(200,0,200),2,cv2.LINE_AA)
-                # cv2.putText(crop_img,"Weight:%.3f"%self.getContourExtent(contours[0]),(contourCenterX+20, middleh+35), font, 0.5,(200,0,200),1,cv2.LINE_AA)
-            # record the bias distance
-            distance.append(middlew-contourCenterX)
+                distance.append(bias)
         return distance[::-1]
 
 
     def line_following(self, distance):
         # threshold of corner
         # send command to ev3
-        if abs(distance[-1]) > 0 and abs(distance[-2]) > 10:
-            if distance[-1] > 0:
-                return [0,-100]
-            elif distance[-1] < 0:
-                return [-100,0]
-        else:
-            return [-100,-100]
+        if distance:
+            num = len(distance)
+            if num == 1:
+                bias = [i*j for i,j in zip(distance, self.weight_1)]
+                bias = sum(bias)
+            elif num == 2:
+                bias = [i*j for i,j in zip(distance, self.weight_2)]
+                bias = sum(bias)
+            elif num == 3:
+                bias = [i*j for i,j in zip(distance, self.weight_3)]
+                bias = sum(bias)
+            elif num == 4:
+                bias = [i*j for i,j in zip(distance, self.weight_4)]
+                bias = sum(bias)
+            # bias = sum(distance)
+            print('the distance list is {}'.format(distance))
+            print('the bias is {}'.format(bias))
+            speed = attenuate(bias/4, -40, 40)
+            if abs(bias) > self.threshold:
+                if bias > 0:
+                    return [20, 20+speed]
+                else:
+                    return [20+abs(speed), 20]
+            else:
+                return [50, 50]
+
+    def turn_R_angle(self, dir):
+        if dir == 'right':
+            # for time in range(1,3):
+            
+        elif dir == 'left':
+
+        elif dir == 'none':
+
 
 
 if __name__ == '__main__':
     line = line_detect()
     cap = cv2.VideoCapture(0)
+    # schedule = sched.scheduler(time.time, time.sleep)
     s = Server(5005)
     # cap = cv2.VideoCapture("test.MOV")
     cap.set(cv2.CAP_PROP_FRAME_WIDTH,line.width)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT,line.height)
-    for i in range(line.slice):
-        line.image.append(0)
+    prev_l = 0
+    prev_r = 0
+    # turn = False
+    # while(1):
+    #     s.sendMotorCommand(0,50)
+    #     pring('DEBUG: Test for sending (0,50) to ev3')
     while(1):
         ret, origin = cap.read()
-        # the main function
+        if(ret):
+            # the main function
+            line.image_red = []
+            line.image_blue = []
+            line.image_black = []
+            # for i in range(line.slice):
+            #     line.image_red.append(0)
+            #     line.image_blue.append(0)
+            #     line.image_black.append(0)
 
-        ############################# get distance between middle of vision and line #########################
-        distance_Black = line.SlicePart_Black(origin, line.slice)
-        distance_Blue = line.SlicePart_Blue(origin, line.slice)
-        distance_Green = line.SlicePart_Green(origin, line.slice)
-        distance_Red = line.SlicePart_Red(origin, line.slice)
-        distance_Yellow = line.SlicePart_Yellow(origin, line.slice)
+            ############################# HSV TEST ##############################
+            HSV_black = line.RemoveBackground_HSV_Black(origin)
+            # HSV_blue = line.RemoveBackground_HSV_Blue(origin)
+            # HSV = line.RemoveBackground_HSV_Green(origin)
+            # HSV = line.RemoveBackground_HSV_Yellow(origin)
+            # HSV = line.RemoveBackground_HSV_Purple(origin)
+            # HSV_red = line.RemoveBackground_HSV_Red(origin)
 
-        ############################# RGB TEST ##############################
-        # RGB = line.RemoveBackground_RGB(origin)
+            ############################# get distance between middle of vision and line #########################
+            distance_Black = line.SlicePart(HSV_black, line.slice, 'BLACK')
+            # distance_Blue = line.SlicePart(HSV_blue, line.slice, 'BLUE')
+            # distance_Green = line.SlicePart(origin, line.slice, 'GREEN')
+            # distance_Red = line.SlicePart(HSV_red, line.slice, 'RED')
+            # distance_Yellow = line.SlicePart(origin, line.slice, 'YELLOW')
 
-        ############################# HSV TEST ##############################
-        # HSV = line.RemoveBackground_HSV_Black(origin)
-        # HSV = line.RemoveBackground_HSV_Blue(origin)
-        # HSV = line.RemoveBackground_HSV_Green(origin)
-        # HSV = line.RemoveBackground_HSV_Yellow(origin)
-        # HSV = line.RemoveBackground_HSV_Purple(origin)
-        # HSV = line.RemoveBackground_HSV_Red(origin)
+            ############################# concatenate every slice ###############
+            # img_black = line.RepackImages(line.image_black)
+            # img_blue = line.RepackImages(line.image_blue)
+            # img_red = line.RepackImages(line.image_red)
 
-        ############################# concatenate every slice ###############
-        img = line.RepackImages()
+            ############################# get motor speed #######################
+            # assume we get a command from webapp, next line is blue line
+            # if distance_Black:
+            #     if not distance_Blue:
+            #         [left_motor, right_motor] = line.line_following(distance_Black)
+            #     else:
+            #         [left_motor, right_motor] = line.line_following(distance_Blue)
+            # if not distance_Black:
+            #     if not distance_Red and not distance_Blue:
+            #         [left_motor, right_motor] = [-200, 200]
+            #     elif distance_Blue:
+            #         [left_motor, right_motor] = line.line_following(distance_Blue)
+            #     elif distance_Red:
+            #         [left_motor, right_motor] = line.line_following(distance_Red)
+            # if distance_Black:
+            #     [left_motor, right_motor] = line.line_following(distance_Black)
 
-        ############################# get motor speed #######################
-        [left_motor, right_motor] = line.line_following(distance_Black)
+            ############################# assumption code #################
+            # if the robot doesn't turn:
+                # if distance_Black:
+                    # if not some_color(get from webapp):
+                        # line_following(black)
+                    # elif some_color(get from webapp):
+                        # line_following(some_color):
+                # elif not distance_Black:
+                    # if not some_color(get from webapp):
+                        # turn_itself
+                    # elif some_color:
+                        # line_following(some_color)
 
-        ############################# send command to ev3 ###################
-        s.sendCommand("L", left_motor)
-        s.sendCommand("R", right_motor)
+            # if the robot has already turned:
+                # if signal detected:
+                    # decide turn left or right
+                    # turn left or right, until signal at a "specific position".
+                    # reset turn
+                    # line_following(black)
+                # if not signal detected:
+                    # line_following(some_color)
 
-        ############################# output image TEST #####################
-        cv2.imshow('img',img)
-        # cv2.imshow('origin', origin)
-        # cv2.imshow('HSV', HSV)
+            # need color signal to specify turn left or right
+            if distance_Black:
+                [left_motor, right_motor] = line.line_following(distance_Black)
+                prev_l = left_motor
+                prev_r = right_motor
+            # if distance_Blue:
+            #     [left_motor, right_motor] = line.line_following(distance_Blue)
+            #     prev_l = left_motor
+            #     prev_r = right_motor
+            # elif not distance_Blue:
+            #     [left_motor, right_motor] = line.line_following(distance_Black)
+            #     prev_l = left_motor
+            #     prev_r = right_motor
+            else:
+                [left_motor, right_motor] = [-prev_l, -prev_r]
+            print("left motor speed is {}".format(left_motor))
+            print("right motor speed is {}".format(right_motor))
 
-        k = cv2.waitKey(1) & 0xff
-        if k == 27:
-            break
+            ############################# send command to ev3 ###################
+            # schedule.enter(1, 1, s.sendMotorCommand, argument=(int(left_motor), int(right_motor)))
+            # schedule.run()
+            s.sendMotorCommand(int(left_motor), int(right_motor))
+
+            ############################# output image TEST #####################
+            # cv2.imshow('img_black',img_black)
+            # cv2.imshow('img_blue', img_blue)
+            # cv2.imshow('img_red',img_red)
+            # cv2.imshow('origin', origin)
+            # cv2.imshow('HSV', HSV)
+
+
+            # k = cv2.waitKey(1) & 0xff
+            # if k == 27:
+            #     break
+            time.sleep(0.05)
     cap.release()
     cv2.destroyAllWindows()
