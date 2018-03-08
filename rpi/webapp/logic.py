@@ -12,6 +12,15 @@ position = 1
 
 destination = None
 
+desks = {
+    1 : {'name' : 'Desk 1', 'colour' : 'purple'},
+    2 : {'name' : 'Desk 2', 'colour' : 'green'},
+    3 : {'name' : 'Desk 3', 'colour' : 'yellow'},
+    4 : {'name' : 'Desk 4', 'colour' : 'blue'},
+    5 : {'name' : 'Desk 5', 'colour' : 'red'},
+    6 : {'name' : 'Desk 6', 'colour' : 'red'}
+}
+
 def wait_for_packet():
     # infinite loop while a TCP packet has not been received; blocks
     # the program until EV3 gives okay that it has encountered next_color
@@ -37,171 +46,77 @@ def compute_path():
     log.write("[" + datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') + "] ")
     log.write("Received command to move to " + str(destination) + ".\n")
 
-    # color to follow to get to the white line,
-    # aka turning left or right using either blue or red
-    color_to_white = None
+    first_junction = None
+    second_junction = None
+    dest_colour = desks[desk]['colour']
 
-    # color to follow to destination when on the white line
-    color_to_dest = None
-
-    # How many times should a color be skipped until the right
-    # turn is encountered (eg. from 3 to 5, the *second* red should be used)
-    # a value of 0 means the first encounter of that color should be followed
-    skip_counter = 0
-
-    # Compute color_to_white
+    # first_junction computation
     if (position == 1):
-        color_to_white = "red"
-    elif (position == 6):
-        color_to_white = "blue"
+        first_junction = "right"
     elif (position == 2):
         if (destination == 1):
-            color_to_white = "red"
+            first_junction = "right"
         else:
-            color_to_white = "blue"
+            first_junction = "left"
     elif (position == 3):
         if (destination in [1, 2]):
-            color_to_white = "blue"
+            first_junction = "left"
         else:
-            color_to_white = "red"
-    elif (position == 4):
+            first_junction = "right"
+    elif (position = 4):
         if (destination in [5, 6]):
-            color_to_white = "blue"
+            first_junction = "left"
         else:
-            color_to_white = "red"
-    elif (position == 5):
-        if (destination == 6):
-            color_to_white = "blue"
+            first_junction = "right"
+    elif (position = 5):
+        if (destination = 6):
+            first_junction = "right"
         else:
-            color_to_white = "red"
+            first_junction = "left"
+    else: # position 6
+        first_junction = "none"
 
-    # Compute color_to_dest and skip_counter
-    if (position == 1):
-        if (destination == 2):
-            color_to_dest = "red"
-            skip_counter = 0
-        elif (destination == 3):
-            color_to_dest = "blue"
-            skip_counter = 1
-        elif (destination ==  4):
-            color_to_dest = "red"
-            skip_counter = 2
-        elif (destination == 5):
-            color_to_dest = "red"
-            skip_counter = 3
-        else: # dest = 6
-            color_to_dest = "blue"
-            skip_counter = 4
+    # second junction
+    if (destination == 6):
+        second_junction = "none"
+    elif (position == 1):
+        if (destination in [2, 4]):
+            second_junction = "left"
+        else:
+            second_junction = "right"
     elif (position == 2):
-        if (destination == 1):
-            color_to_dest = "red"
-            skip_counter = 0
-        elif (destination == 3):
-            color_to_dest = "blue"
-            skip_counter = 0
-        elif (destination ==  4):
-            color_to_dest = "red"
-            skip_counter = 1
-        elif (destination == 5):
-            color_to_dest = "red"
-            skip_counter = 2
-        else: # dest = 6
-            color_to_dest = "blue"
-            skip_counter = 3
+        if (destination in [1, 4]):
+            second_junction = "left"
+        else:
+            second_junction = "right"
     elif (position == 3):
-        if (destination == 1):
-            color_to_dest = "red"
-            skip_counter = 1
-        elif (destination == 2):
-            color_to_dest = "blue"
-            skip_counter = 0
-        elif (destination ==  4):
-            color_to_dest = "red"
-            skip_counter = 0
-        elif (destination == 5):
-            color_to_dest = "red"
-            skip_counter = 1
-        else: # dest = 6
-            color_to_dest = "blue"
-            skip_counter = 2
+        if (destination in [2, 5]):
+            second_junction = "right"
+        else:
+            second_junction = "left"
     elif (position == 4):
-        if (destination == 1):
-            color_to_dest = "red"
-            skip_counter = 2
-        elif (destination == 2):
-            color_to_dest = "blue"
-            skip_counter = 1
-        elif (destination ==  3):
-            color_to_dest = "red"
-            skip_counter = 0
-        elif (destination == 5):
-            color_to_dest = "red"
-            skip_counter = 0
-        else: # dest = 6
-            color_to_dest = "blue"
-            skip_counter = 1
+        if (destination in [1, 3]):
+            second_junction = "left"
+        else:
+            second_junction = "right"
     elif (position == 5):
-        if (destination == 1):
-            color_to_dest = "red"
-            skip_counter = 3
-        elif (destination == 2):
-            color_to_dest = "blue"
-            skip_counter = 2
-        elif (destination ==  3):
-            color_to_dest = "red"
-            skip_counter = 1
-        elif (destination == 4):
-            color_to_dest = "blue"
-            skip_counter = 0
-        else: # dest = 6
-            color_to_dest = "blue"
-            skip_counter = 0
-    else: # pos = 6
-        if (destination == 1):
-            color_to_dest = "red"
-            skip_counter = 4
-        elif (destination == 2):
-            color_to_dest = "blue"
-            skip_counter = 3
-        elif (destination ==  3):
-            color_to_dest = "red"
-            skip_counter = 2
-        elif (destination == 4):
-            color_to_dest = "blue"
-            skip_counter = 1
-        else: # dest = 5
-            color_to_dest = "blue"
-            skip_counter = 0
+        if (destination in [1, 3]):
+            second_junction = "left"
+        else:
+            second_junction = "right"
+    else: # position 6
+        if (destination in [2, 4]):
+            second_junction = "right"
 
     # Debugging
     debug_text = "COMPUTING ROUTE." + " position: " + str(position) + ", destination: " + \
-    str(destination) + ", color_to_white: " + str(color_to_white) + \
-    ", color_to_dest: " + str(color_to_dest) + ", skip_counter: " + str(skip_counter) + \
-    ". MOVING."
+    str(destination) + "first_junction: " + str(first_junction) + \
+    "second_junction: " + str(second_junction) + ". MOVING."
     print(debug_text)
     log.write("[" + datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') + "] ")
     log.write(debug_text + "\n")
 
-    # getting to the main white line
-    follow_line(color_to_white,"white")
-    wait_for_packet()
-    print("Got to white line.")
-
-    # getting to the right turn
-    while (skip_counter != -1):
-        follow_line("white", color_to_dest)
-        wait_for_packet()
-        skip_counter -= 1
-        print("Got to color_to_dest. Decrementing skip_counter: " + str(skip_counter))
-        log.write("[" + datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') + "] ")
-        log.write("Got to color_to_dest. Decrementing skip_counter: " + str(skip_counter) + ".\n")
-    print("Got to needed turn.")
-    log.write("[" + datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') + "] ")
-    log.write("Got to needed turn." + "\n")
-
-    # getting to the end of the path to the dest
-    follow_line(color_to_dest, "green")
-    wait_for_packet()
+    # camera.followLine(first_junction, second_junction, dest_colour)
 
     log.write("[" + datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') + "] ")
     log.write("Successfully moved to " + str(destination) + ".\n")
