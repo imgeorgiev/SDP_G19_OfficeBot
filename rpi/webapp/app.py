@@ -111,7 +111,7 @@ def action(desk, action):
     CURRENTLY_WRITING = 1
     # if desk provided in URL does not exist, return error page
     if desk not in desks:
-        print("\n**ACTION**\nCall to invalid desk number: " + str(desk) + "\n")
+        print("**ACTION**\nCall to invalid desk number: " + str(desk) + "\n")
         templateData = {
             'desks' : desks,
             'message' : ' Desk does not exist!',
@@ -133,24 +133,21 @@ def action(desk, action):
             # priority call
             else:
                 # add desk to front of job_queue, behind any other prioritised desks
-
-                # TODO: fix this to properly work
-                # i = 0;
-                # while (priorities[job_queue[i]] != 1):
-                #     i += 1
-                # if (len(job_queue) == i):
-                #     i = 0
-                #     break
-
-                i = 1;
-                while ((len(job_queue) > i) and (priorities[job_queue[-i] - 1] == 1)):
-                    print("i: " + str(i) + " priorities[job_queue[-i] - 1]:" + str(priorities[job_queue[-i] - 1]))
+                i = 0
+                while (len(job_queue) != i and priorities[job_queue[i] - 1] != 1):
+                    # print("len(job_queue): " + str(len(job_queue)) + " priorities[job_queue[i]]: " + str(priorities[job_queue[i]]))
+                    # print("i: " + str(i) + ". incrementing i.")
                     i += 1
-                job_queue.insert(i, desk)
+
+                if (len(job_queue) == i):
+                    job_queue.append(desk)
+                else:
+                    job_queue.insert(i, desk)
+
                 # set that desk to be a priority desk
                 priorities[desk - 1] = 1
 
-            print("\n**ACTION**\nCall to " + str(desk) + ".")
+            print("**ACTION**\nCall to " + str(desk) + ".")
             if (action == "call"):
                 print("Standard call.\n")
             else:
@@ -165,7 +162,7 @@ def action(desk, action):
         else:
             message = " OfficeBot was called to " + deskName + " already!"
             error_msg = True
-            print("\n**ACTION**\nCall void" + "\njob_queue is: " + str(job_queue) + "\n")
+            print("**ACTION**\nCall void" + "\njob_queue is: " + str(job_queue) + "\n")
             CURRENTLY_WRITING = 0
     else:
         message = " Unknown action."
@@ -189,7 +186,7 @@ def calc_distances():
     for i in range (0, nr_desks):
         for j in range (0, nr_desks):
             distances[i][j] = abs((desks_x_y[i][0] - desks_x_y[j][0])) + abs((desks_x_y[i][1] - desks_x_y[j][1]))
-    print("\nCalculated distances:\n\n" + str(distances) + "\n")
+    print("Calculated distances:\n\n" + str(distances) + "\n")
 
 # Reorders job_queue based on the sched_alg and current job
 def reorder_jobs(alg):
@@ -227,17 +224,17 @@ def reorder_jobs(alg):
                 print("SCHEDULING ALGORITHM NOT FOUND. job_queue unchanged.")
 
             idx_smallest = differences.index(min(differences))
-            print("\n**REORDER_JOBS**\nScheduling algorithm: " + str(alg) + ".")
+            print("**REORDER_JOBS**\nScheduling algorithm: " + str(alg) + ".")
             print("job_queue was: " + str(job_queue))
             print("Closest to " + str(currently_processing) + " is " + str(job_queue[idx_smallest]) + ".")
             job_queue.append(job_queue.pop(idx_smallest))
             print("job_queue: " + str(job_queue) + "\n")
         else:
-            print("\nFRONT OF QUEUE HAS PRIORITY. REORDER_JOBS doesn't execute.")
+            print("FRONT OF QUEUE HAS PRIORITY. REORDER_JOBS doesn't execute.")
             print("job_queue: " + str(job_queue) + "\n")
 
     else:
-        print("\nREORDER_JOBS not needed for execution.")
+        print("REORDER_JOBS not needed for execution.")
 
 def write_job():
     global next_job
@@ -247,7 +244,7 @@ def write_job():
     global sched_alg
     global priorities
 
-    print("\n**WRITE_JOB**\ncurrently_processing: " + str(currently_processing) + ".")
+    print("**WRITE_JOB**\ncurrently_processing: " + str(currently_processing) + ".")
 
     # If there are jobs in the queue
     if (len(job_queue) > 0):
@@ -295,7 +292,7 @@ def write_to_file(f):
     f.truncate()
     f.write(str(next_job))
     f.close()
-    print("\n**WRITE_TO_FILE**\nnext_job: " + str(next_job) + ", so overwrote file with " + str(next_job) + ".")
+    print("**WRITE_TO_FILE**\nnext_job: " + str(next_job) + ", so overwrote file with " + str(next_job) + ".")
     written_job = next_job
 
 # Checks text file periodically, and if a job has been removed then it
@@ -313,7 +310,7 @@ def check_file():
         CURRENTLY_WRITING = 1
         file = open("dest.txt","r")
         content = file.read()
-        print("\n**CHECK_FILE**\nFile content: " + content + "\n")
+        print("**CHECK_FILE**\nFile content: " + content + "\n")
         # Initial state will have written_job = None
         if ((len(content) == 0) and written_job is not None):
             print("Logic has processed a job. START OF CHECK_FILE UPDATING.")
