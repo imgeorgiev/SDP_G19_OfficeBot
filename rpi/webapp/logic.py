@@ -326,11 +326,11 @@ class line_detect():
     def turn_R_angle(self, dir):
         if dir == 'right':
             # for time in range(1,3):
-
+            pass
         elif dir == 'left':
-
+            pass
         elif dir == 'none':
-
+            pass
 
 def follow_line(current_color, next_color):
     # will call LineFollower(current_color, next_color), which will follow
