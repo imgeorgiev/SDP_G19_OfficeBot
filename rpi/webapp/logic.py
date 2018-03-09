@@ -2,14 +2,16 @@
 
 # multi-color lines detect in HSV and distance between middle of robot vision and center of line.
 
+import sys
+# TODO: modify path for when on rpi
+sys.path.append('/home/vaida/SDP_G19_OfficeBot/rpi/tcp')
+
 import numpy as np
 import cv2
 from tcp_rpi import *
 import time, sched, datetime
 
-position = 1
-
-destination = None
+global position, destination
 
 desks = {
     1 : {'name' : 'Desk 1', 'colour' : 'purple'},
@@ -428,47 +430,10 @@ def compute_path():
     position = destination
     destination = None
 
-def main():
-    global destination
-    global position
-
-    while (True):
-        file = open("dest.txt","r+")
-        content = file.read()
-        print("File content: " + content)
-
-        if (len(content) > 0):
-            destination = int(content)
-
-            # Manual override
-            if (destination == 100 or destination == 200):
-                file.seek(0)
-                file.truncate()
-                file.close()
-                print("MANUAL OVERRIDE TRIGGERED.")
-                while(True):
-                    # TO-DO: trigger ps4 controls, and periodically check
-                    # for 200 code to remove manual override
-                    pass
-
-            file.seek(0)
-            file.truncate()
-            file.close()
-            print("RECEIVED DESTINATION: " + str(destination) + ".")
-            if (destination != position):
-
-                if (destination not in [1, 2, 3, 4, 5, 6, 7, 8, 9]):
-                    print("Destination not valid!")
-                else:
-                    compute_path()
-            else:
-                print("Destination is the same as current position. Skipping.")
-        file.close()
-        time.sleep(1) # pings file every second
-
 if __name__ == '__main__':
-    global destination
-    global position
+
+    position = 1
+    destination = None
 
     line = line_detect()
     cap = cv2.VideoCapture(0)
