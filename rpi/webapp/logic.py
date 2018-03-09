@@ -48,7 +48,7 @@ def compute_path():
 
     first_junction = None
     second_junction = None
-    dest_colour = desks[desk]['colour']
+    dest_colour = desks[destination]['colour']
 
     # first_junction computation
     if (position == 1):
@@ -63,13 +63,13 @@ def compute_path():
             first_junction = "left"
         else:
             first_junction = "right"
-    elif (position = 4):
+    elif (position == 4):
         if (destination in [5, 6]):
             first_junction = "left"
         else:
             first_junction = "right"
-    elif (position = 5):
-        if (destination = 6):
+    elif (position == 5):
+        if (destination == 6):
             first_junction = "right"
         else:
             first_junction = "left"
@@ -110,13 +110,14 @@ def compute_path():
 
     # Debugging
     debug_text = "COMPUTING ROUTE." + " position: " + str(position) + ", destination: " + \
-    str(destination) + "first_junction: " + str(first_junction) + \
-    "second_junction: " + str(second_junction) + ". MOVING."
+    str(destination) + " first_junction: " + str(first_junction) + \
+    " second_junction: " + str(second_junction) + ". MOVING."
     print(debug_text)
     log.write("[" + datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') + "] ")
     log.write(debug_text + "\n")
 
     # camera.followLine(first_junction, second_junction, dest_colour)
+    time.sleep(5)
 
     log.write("[" + datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') + "] ")
     log.write("Successfully moved to " + str(destination) + ".\n")
