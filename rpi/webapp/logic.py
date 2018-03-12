@@ -461,6 +461,7 @@ if __name__ == '__main__':
 
     position = 1
     destination = None
+    arrived = 0
 
     line = line_detect()
     cap = cv2.VideoCapture(0)
@@ -484,7 +485,7 @@ if __name__ == '__main__':
         ############################# LOGIC ##############################
         file_ping = file_ping % 100
 
-        if (file_ping == 0):
+        if ((arrived == 1) and (file_ping == 0)):
             file = open("dest.txt","r+")
             content = file.read()
             print("File content: " + content)
@@ -582,6 +583,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Red and circle == True:
                             prev_dest = dest_color
+                            arrived = 0
                             log_success()
                             pass
                         else:
@@ -591,6 +593,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Blue and circle == True:
                             prev_dest = dest_color
+                            arrived = 0
                             log_success()
                             pass
                         else:
@@ -600,6 +603,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Green and circle == True:
                             prev_dest = dest_color
+                            arrived = 0
                             log_success()
                             pass
                         else:
@@ -609,6 +613,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Yellow and circle == True:
                             prev_dest = dest_color
+                            arrived = 0
                             log_success()
                             pass
                         else:
@@ -618,6 +623,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Purple and circle == True:
                             prev_dest = dest_color
+                            arrived = 0
                             log_success()
                             pass
                         else:
@@ -631,6 +637,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(first_junction)
                         elif distance_Red and circle == True:
                             prev_dest = dest_color
+                            arrived = 0
                             log_success()
                             pass
                         else:
@@ -640,6 +647,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(first_junction)
                         elif distance_Blue and circle == True:
                             prev_dest = dest_color
+                            arrived = 0
                             log_success()
                             pass
                         else:
@@ -649,6 +657,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(first_junction)
                         elif distance_Green and circle == True:
                             prev_dest = dest_color
+                            arrived = 0
                             log_success()
                             pass
                         else:
@@ -658,6 +667,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(first_junction)
                         elif distance_Yellow and circle == True:
                             prev_dest = dest_color
+                            arrived = 0
                             log_success()
                             pass
                         else:
@@ -667,6 +677,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(first_junction)
                         elif distance_Purple and circle == True:
                             prev_dest = dest_color
+                            arrived = 0
                             log_success()
                             pass
                         else:
@@ -682,6 +693,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Red and circle == True:
                             prev_dest = dest_color
+                            arrived = 0
                             log_success()
                             pass
                         else:
@@ -693,6 +705,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Blue and circle == True:
                             prev_dest = dest_color
+                            arrived = 0
                             log_success()
                             pass
                         else:
@@ -705,6 +718,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Red and circle == True:
                             prev_dest = dest_color
+                            arrived = 0
                             log_success()
                             pass
                         else:
@@ -716,6 +730,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Yellow and circle == True:
                             prev_dest = dest_color
+                            arrived = 0
                             log_success()
                             pass
                         else:
@@ -728,6 +743,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Red and circle == True:
                             prev_dest = dest_color
+                            arrived = 0
                             log_success()
                             pass
                         else:
@@ -739,6 +755,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Green and circle == True:
                             prev_dest = dest_color
+                            arrived = 0
                             log_success()
                             pass
                         else:
@@ -751,6 +768,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Red and circle == True:
                             prev_dest = dest_color
+                            arrived = 0
                             log_success()
                             pass
                         else:
@@ -762,6 +780,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Green and circle == True:
                             prev_dest = dest_color
+                            arrived = 0
                             log_success()
                             pass
                         else:
@@ -774,6 +793,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Red and circle == True:
                             prev_dest = dest_color
+                            arrived = 0
                             log_success()
                             pass
                         else:
@@ -785,6 +805,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Purple and circle == True:
                             prev_dest = dest_color
+                            arrived = 0
                             log_success()
                             pass
                         else:
@@ -797,6 +818,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Yellow and circle == True:
                             prev_dest = dest_color
+                            arrived = 0
                             log_success()
                             pass
                         else:
@@ -808,6 +830,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Blue and circle == True:
                             prev_dest = dest_color
+                            arrived = 0
                             log_success()
                             pass
                         else:
@@ -820,6 +843,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Green and circle == True:
                             prev_dest = dest_color
+                            arrived = 0
                             log_success()
                             pass
                         else:
@@ -831,6 +855,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Blue and circle == True:
                             prev_dest = dest_color
+                            arrived = 0
                             log_success()
                             pass
                         else:
@@ -843,6 +868,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Purple and circle == True:
                             prev_dest = dest_color
+                            arrived = 0
                             log_success()
                             pass
                         else:
@@ -854,6 +880,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Blue and circle == True:
                             prev_dest = dest_color
+                            arrived = 0
                             log_success()
                             pass
                         else:
@@ -866,6 +893,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Green and circle == True:
                             prev_dest = dest_color
+                            arrived = 0
                             log_success()
                             pass
                         else:
@@ -877,6 +905,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Yellow and circle == True:
                             prev_dest = dest_color
+                            arrived = 0
                             log_success()
                             pass
                         else:
@@ -889,6 +918,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Purple and circle == True:
                             prev_dest = dest_color
+                            arrived = 0
                             log_success()
                             pass
                         else:
@@ -900,6 +930,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Yellow and circle == True:
                             prev_dest = dest_color
+                            arrived = 0
                             log_success()
                             pass
                         else:
@@ -912,6 +943,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Purple and circle == True:
                             prev_dest = dest_color
+                            arrived = 0
                             log_success()
                             pass
                         else:
@@ -924,6 +956,7 @@ if __name__ == '__main__':
                         elif distance_Green and circle == True:
                             prev_dest = dest_color
                             log_success()
+                            arrived = 0
                             pass
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
