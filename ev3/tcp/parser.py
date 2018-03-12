@@ -17,8 +17,8 @@ import ev3dev.auto as ev3
 server_ip = "169.254.23.50"
 server_port = 5005
 
-cmdMsg = 0
-lfwMsg = None
+wheelSpeedMessage = 0
+lineFollowMsg = None
 ultra = 0
 lColour = None
 rColour = None
@@ -28,8 +28,9 @@ colorList = ("R", "W", "BW", "N", "BK", "BL", "G", "Y")
 
 def stateTrans(state, msg):
     global isConnected
-    global lfwMsg
-    global cmdMsg
+    global lineFollowMsg
+    global wheelSpeedMessage
+    global turnMessage
 
     if state == "LISTENING":
         pass
@@ -45,9 +46,11 @@ def stateTrans(state, msg):
         if(msg[0:3] == "RQT"):
             sendSensorData()
         elif(msg[0:3] == "LFW"):
-            lfwMsg = parseMsg(msg)
+            lineFollowMsg = parseMsg(msg)
         elif(msg[0:3] == "CMD"):
-            cmdMsg = parseMsg(msg)
+            wheelSpeedMessage = parseMsg(msg)
+        elif(msg[0:3] == "TRN"):
+            turnMessage = parseMsg(msg)
         else:
             print("ERROR: Message not recognised")
 
@@ -96,6 +99,8 @@ class CustomMotor:
     def isGoingForward(self):
         return self.motor.speed > 0
 
+    def turn(self, degrees):
+            self.motor.run_to_rel_pos(degrees)
 
 def main():
     global ultra
@@ -118,14 +123,14 @@ def main():
     rc = client.connect()
     while True:
         if rc:
-            isConnected = True  # not sure if needed
+            isConnected = True
             while isConnected:
-                rightMotor.speed = int(cmdMsg[1])
+                rightMotor.speed = int(wheelSpeedMessage[1])
                 rightMotor.forward()
-                print("DEBUG: Right motor set to ", cmdMsg[1])
-                leftMotor.speed = int(cmdMsg[0])
+                print("DEBUG: Right motor set to ", wheelSpeedMessage[1])
+                leftMotor.speed = int(wheelSpeedMessage[0])
                 leftMotor.forward()
-                print("DEBUG: Left motor set to ", cmdMsg[0])
+                print("DEBUG: Left motor set to ", wheelSpeedMessage[0])
 
                 ultra = ultrasonicSensor.value()
                 lColor = colorList[colorSensorLeft.color]
@@ -136,3 +141,17 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+# turns the robot by degrees, anticlockwise if clockwise is false
+def turn(self, motors, clockwise, degrees):
+        leftMotor = motors[0]
+        rightMotor = motors[1]
+        multiplier = 1
+        if not clockwise:
+            multiplier = -1
+
+        leftMotor.turn(degrees*multiplier)
+        rightMotor.turn(degrees*-multiplier)
+
+
+
