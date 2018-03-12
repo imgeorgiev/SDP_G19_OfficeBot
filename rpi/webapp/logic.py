@@ -600,7 +600,7 @@ if __name__ == '__main__':
                         pass
                     else:
                         [left_motor, right_motor] = line.line_following(distance_Black)
-                elif pos_color == 'red' and dest_color == 'blue'
+                elif pos_color == 'red' and dest_color == 'blue':
                     if distance_Red:
                         line.turn_R_angle(first_junction)
                     elif distance_Blue and circle == False:
@@ -619,7 +619,7 @@ if __name__ == '__main__':
                         pass
                     else:
                         [left_motor, right_motor] = line.line_following(distance_Black)
-                elif pos_color == 'red' and dest_color == 'yellow'
+                elif pos_color == 'red' and dest_color == 'yellow':
                     if distance_Red:
                         line.turn_R_angle(first_junction)
                     elif distance_Yellow and circle == False:
@@ -638,7 +638,7 @@ if __name__ == '__main__':
                         pass
                     else:
                         [left_motor, right_motor] = line.line_following(distance_Black)
-                elif pos_color == 'red' and dest_color == 'green'
+                elif pos_color == 'red' and dest_color == 'green':
                     if distance_Red:
                         line.turn_R_angle(first_junction)
                     elif distance_Green and circle == False:
@@ -657,7 +657,7 @@ if __name__ == '__main__':
                         pass
                     else:
                         [left_motor, right_motor] = line.line_following(distance_Black)
-                elif pos_color == 'red' and dest_color == 'green'
+                elif pos_color == 'red' and dest_color == 'green':
                     if distance_Red:
                         line.turn_R_angle(first_junction)
                     elif distance_Green and circle == False:
@@ -676,7 +676,7 @@ if __name__ == '__main__':
                         pass
                     else:
                         [left_motor, right_motor] = line.line_following(distance_Black)
-                elif pos_color == 'red' and dest_color == 'purple'
+                elif pos_color == 'red' and dest_color == 'purple':
                     if distance_Red:
                         line.turn_R_angle(first_junction)
                     elif distance_Purple and circle == False:
@@ -695,7 +695,7 @@ if __name__ == '__main__':
                         pass
                     else:
                         [left_motor, right_motor] = line.line_following(distance_Black)
-                elif pos_color == 'yellow' and dest_color == 'blue'
+                elif pos_color == 'yellow' and dest_color == 'blue':
                     if distance_Yellow:
                         line.turn_R_angle(first_junction)
                     elif distance_Blue and circle == False:
@@ -714,7 +714,7 @@ if __name__ == '__main__':
                         pass
                     else:
                         [left_motor, right_motor] = line.line_following(distance_Black)
-                elif pos_color == 'green' and dest_color == 'blue'
+                elif pos_color == 'green' and dest_color == 'blue':
                     if distance_Green:
                         line.turn_R_angle(first_junction)
                     elif distance_Blue and circle == False:
@@ -733,7 +733,7 @@ if __name__ == '__main__':
                         pass
                     else:
                         [left_motor, right_motor] = line.line_following(distance_Black)
-                elif pos_color == 'purple' and dest_color == 'blue'
+                elif pos_color == 'purple' and dest_color == 'blue':
                     if distance_Purple:
                         line.turn_R_angle(first_junction)
                     elif distance_Blue and circle == False:
@@ -752,7 +752,7 @@ if __name__ == '__main__':
                         pass
                     else:
                         [left_motor, right_motor] = line.line_following(distance_Black)
-                elif pos_color == 'green' and dest_color == 'yellow'
+                elif pos_color == 'green' and dest_color == 'yellow':
                     if distance_Green:
                         line.turn_R_angle(first_junction)
                     elif distance_Yellow and circle == False:
@@ -771,7 +771,7 @@ if __name__ == '__main__':
                         pass
                     else:
                         [left_motor, right_motor] = line.line_following(distance_Black)
-                elif pos_color == 'purple' and dest_color == 'yellow'
+                elif pos_color == 'purple' and dest_color == 'yellow':
                     if distance_Purple:
                         line.turn_R_angle(first_junction)
                     elif distance_Yellow and circle == False:
@@ -790,7 +790,7 @@ if __name__ == '__main__':
                         pass
                     else:
                         [left_motor, right_motor] = line.line_following(distance_Black)
-                elif pos_color == 'purple' and dest_color == 'green'
+                elif pos_color == 'purple' and dest_color == 'green':
                     if distance_Purple:
                         line.turn_R_angle(first_junction)
                     elif distance_Green and circle == False:
