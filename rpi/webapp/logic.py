@@ -57,8 +57,8 @@ class line_detect():
     #     return image
 
 
+    # this function will remove everything which is not black
     def RemoveBackground_HSV_Black(self,image):
-        # modify 'V' of upper to change the captured range
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
         lower = np.array([0,0,0])
         upper = np.array([180,255,75])
@@ -73,7 +73,7 @@ class line_detect():
         image = (255 - image)
         return image
 
-
+    # this function will remove everything which is not blue
     def RemoveBackground_HSV_Blue(self,image):
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
         lower = np.array([100,170,46])
@@ -88,7 +88,7 @@ class line_detect():
         image = (255 - image)
         return image
 
-
+    # this function will remove everything which is not red
     def RemoveBackground_HSV_Red(self,image):
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
         channel1Min = 156;
@@ -111,7 +111,7 @@ class line_detect():
         image = (255 - image)
         return image
 
-
+    # this function will remove everything which is not green
     def RemoveBackground_HSV_Green(self,image):
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
         channel1Min = 35;
@@ -132,6 +132,7 @@ class line_detect():
         image = (255 - image)
         return image
 
+    # this function will remove everything which is not yellow
     def RemoveBackground_HSV_Yellow(self,image):
         # modify the ‘H’ of upper to change the captured range
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
@@ -156,6 +157,7 @@ class line_detect():
         return image
 
 
+    # this function will remove everything which is not purple
     def RemoveBackground_HSV_Purple(self,image):
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
         lower = np.array([125,43,46])
@@ -167,7 +169,7 @@ class line_detect():
         image = (255 - image)
         return image
 
-
+    # this function will change percentage hsv to [0-360, 0-255, 0-255]
     def transfer(self, array):
         array[0] = array[0]*360
         array[1] = array[1]*255
@@ -175,6 +177,7 @@ class line_detect():
         return array
 
 
+    # Process the image and return the contour of line, it will change image to gray scale
     def image_process(self, img):
         imgray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY) #Convert to Gray Scale
         element = cv2.getStructuringElement(cv2.MORPH_RECT, (15, 15))
@@ -187,6 +190,7 @@ class line_detect():
         # return thresh
 
 
+    # get the center of contour
     def getContourCenter(self, contour):
         M = cv2.moments(contour)
 
@@ -197,16 +201,19 @@ class line_detect():
         return [x,y]
 
 
+    # it will delete contours which area less than a specifiy threshold
     def contour_process(self, img, h, w):
         contour = []
         for i in range(len(img)):
             cnt = img[i]
             area = cv2.contourArea(cnt)
+            # this is the threshold
             if(area >= (h/20*w/20)):
                 contour.append(cnt)
         return contour
 
 
+    # it will concatenate the image in array
     def RepackImages(self, image):
         img = image[0]
         for i in range(len(image)):
@@ -236,6 +243,7 @@ class line_detect():
             return (float(area)/rect_area)
 
 
+    # this is the main function which will return an array which contains all distance bias for every point
     def SlicePart(self, im, slice, color):
         sl = int(self.height/slice);
         distance = []
@@ -299,6 +307,7 @@ class line_detect():
                 distance.append(bias)
         return distance[::-1]
 
+    # this function will detect whether there is a circle(destination) in the robot vision
     def dest_detect(self, img):
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1,100, param1=100, param2=30, minRadius=0, maxRadius=200)
@@ -308,6 +317,7 @@ class line_detect():
             return False
 
 
+    # through the distance bias array, we can use this function to reach line_following
     def line_following(self, distance):
         # threshold of corner
         # send command to ev3
@@ -561,6 +571,9 @@ if __name__ == '__main__':
             # schedule.run()
             # s.sendMotorCommand(int(left_motor), int(right_motor))
 
+            # if first junction is none, then we only need to do once turning.
+            # Only dest_color is detected, then call turn_R_angle
+
             if first_junction == 'none':
                 if dest_color == 'red':
                     if distance_Red and cirle == False:
@@ -597,6 +610,48 @@ if __name__ == '__main__':
                         pass
                     else:
                         [left_motor, right_motor] = line.line_following(distance_Black)
+
+            # if second junction is none, then we only need to do once turning.
+            # Only post_color is detected, then call turn_R_angle
+            elif: second_junction == 'none':
+                if pos_color == 'red':
+                    if distance_Red and cirle == False:
+                        line.turn_R_angle(first_junction)
+                    elif distance_Red and cirle == True:
+                        pass
+                    else:
+                        [left_motor, right_motor] = line.line_following(distance_Black)
+                elif pos_color == 'blue':
+                    if distance_Blue and circle == False:
+                        line.turn_R_angle(first_junction)
+                    elif distance_Blue and cirle == True:
+                        pass
+                    else:
+                        [left_motor, right_motor] = line.line_following(distance_Black)
+                elif pos_color == 'green':
+                    if distance_Green and circle == False:
+                        line.turn_R_angle(first_junction)
+                    elif distance_Green and cirle == True:
+                        pass
+                    else:
+                        [left_motor, right_motor] = line.line_following(distance_Black)
+                elif pos_color == 'yellow':
+                    if distance_Yellow and circle == False:
+                        line.turn_R_angle(first_junction)
+                    elif distance_Yellow and cirle == True:
+                        pass
+                    else:
+                        [left_motor, right_motor] = line.line_following(distance_Black)
+                elif pos_color == 'purple':
+                    if distance_Purple and circle == False:
+                        line.turn_R_angle(first_junction)
+                    elif distance_Purple and cirle == True:
+                        pass
+                    else:
+                        [left_motor, right_motor] = line.line_following(distance_Black)
+
+            # if first_junction and second_junction all have values
+            #  we detect color combination and call function
             else:
                 if pos_color == 'blue' and dest_color == 'red':
                     if distance_Blue:
