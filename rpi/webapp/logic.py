@@ -625,7 +625,7 @@ if __name__ == '__main__':
 
                 # if second junction is none, then we only need to do once turning.
                 # Only post_color is detected, then call turn_R_angle
-                elif: second_junction == 'none':
+                elif second_junction == 'none':
                     if pos_color == 'red':
                         if distance_Red and circle == False:
                             line.turn_R_angle(first_junction)
