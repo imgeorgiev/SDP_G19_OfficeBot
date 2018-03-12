@@ -167,7 +167,7 @@ class CustomMotor:
             self.motor.run_to_rel_pos(degrees*GEAR_RATIO)
 
 # turns the robot by degrees, anticlockwise if clockwise is false
-def turn(self, motors, clockwise, degrees):
+def turn(motors, clockwise, degrees):
         leftMotor = motors[0]
         rightMotor = motors[1]
         multiplier = 1
