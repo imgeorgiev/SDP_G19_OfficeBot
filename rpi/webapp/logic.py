@@ -22,6 +22,13 @@ desks = {
     6 : {'name' : 'Desk 6', 'colour' : 'white'}
 }
 
+def log_success():
+    log = open("log.txt","a+")
+    log.write("[" + datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') + "] ")
+    log.write("Successfully moved to " + str(destination) + ".\n")
+    print("MOVED TO " + str(destination) + ". BACK TO PINGING FILE.")
+    log.close()
+
 class line_detect():
 
     def __init__(self):
@@ -442,10 +449,7 @@ def compute_path():
     print(debug_text)
     log.write("[" + datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') + "] ")
     log.write(debug_text + "\n")
-
-    log.write("[" + datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') + "] ")
-    log.write("Successfully moved to " + str(destination) + ".\n")
-    print("MOVED TO " + str(destination) + ". BACK TO PINGING FILE.")
+    log.close()
 
     # Updates location
     position = destination
@@ -578,6 +582,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Red and circle == True:
                             prev_dest = dest_color
+                            log_success()
                             pass
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
@@ -586,6 +591,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Blue and circle == True:
                             prev_dest = dest_color
+                            log_success()
                             pass
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
@@ -594,6 +600,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Green and circle == True:
                             prev_dest = dest_color
+                            log_success()
                             pass
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
@@ -602,6 +609,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Yellow and circle == True:
                             prev_dest = dest_color
+                            log_success()
                             pass
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
@@ -610,6 +618,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Purple and circle == True:
                             prev_dest = dest_color
+                            log_success()
                             pass
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
@@ -622,6 +631,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(first_junction)
                         elif distance_Red and circle == True:
                             prev_dest = dest_color
+                            log_success()
                             pass
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
@@ -630,6 +640,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(first_junction)
                         elif distance_Blue and circle == True:
                             prev_dest = dest_color
+                            log_success()
                             pass
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
@@ -638,6 +649,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(first_junction)
                         elif distance_Green and circle == True:
                             prev_dest = dest_color
+                            log_success()
                             pass
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
@@ -646,6 +658,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(first_junction)
                         elif distance_Yellow and circle == True:
                             prev_dest = dest_color
+                            log_success()
                             pass
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
@@ -654,6 +667,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(first_junction)
                         elif distance_Purple and circle == True:
                             prev_dest = dest_color
+                            log_success()
                             pass
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
@@ -668,6 +682,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Red and circle == True:
                             prev_dest = dest_color
+                            log_success()
                             pass
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
@@ -678,6 +693,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Blue and circle == True:
                             prev_dest = dest_color
+                            log_success()
                             pass
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
@@ -689,6 +705,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Red and circle == True:
                             prev_dest = dest_color
+                            log_success()
                             pass
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
@@ -699,6 +716,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Yellow and circle == True:
                             prev_dest = dest_color
+                            log_success()
                             pass
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
@@ -710,6 +728,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Red and circle == True:
                             prev_dest = dest_color
+                            log_success()
                             pass
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
@@ -720,6 +739,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Green and circle == True:
                             prev_dest = dest_color
+                            log_success()
                             pass
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
@@ -731,6 +751,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Red and circle == True:
                             prev_dest = dest_color
+                            log_success()
                             pass
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
@@ -741,6 +762,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Green and circle == True:
                             prev_dest = dest_color
+                            log_success()
                             pass
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
@@ -752,6 +774,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Red and circle == True:
                             prev_dest = dest_color
+                            log_success()
                             pass
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
@@ -762,6 +785,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Purple and circle == True:
                             prev_dest = dest_color
+                            log_success()
                             pass
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
@@ -773,6 +797,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Yellow and circle == True:
                             prev_dest = dest_color
+                            log_success()
                             pass
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
@@ -783,6 +808,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Blue and circle == True:
                             prev_dest = dest_color
+                            log_success()
                             pass
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
@@ -794,6 +820,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Green and circle == True:
                             prev_dest = dest_color
+                            log_success()
                             pass
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
@@ -804,6 +831,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Blue and circle == True:
                             prev_dest = dest_color
+                            log_success()
                             pass
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
@@ -815,6 +843,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Purple and circle == True:
                             prev_dest = dest_color
+                            log_success()
                             pass
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
@@ -825,6 +854,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Blue and circle == True:
                             prev_dest = dest_color
+                            log_success()
                             pass
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
@@ -836,6 +866,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Green and circle == True:
                             prev_dest = dest_color
+                            log_success()
                             pass
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
@@ -846,6 +877,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Yellow and circle == True:
                             prev_dest = dest_color
+                            log_success()
                             pass
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
@@ -857,6 +889,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Purple and circle == True:
                             prev_dest = dest_color
+                            log_success()
                             pass
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
@@ -867,6 +900,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Yellow and circle == True:
                             prev_dest = dest_color
+                            log_success()
                             pass
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
@@ -878,6 +912,7 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Purple and circle == True:
                             prev_dest = dest_color
+                            log_success()
                             pass
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
@@ -888,11 +923,12 @@ if __name__ == '__main__':
                             line.turn_R_angle(second_junction)
                         elif distance_Green and circle == True:
                             prev_dest = dest_color
+                            log_success()
                             pass
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
             else:
-                print('DEBUG: dest does not change')    
+                print('DEBUG: dest does not change')
 
                 s.sendMotorCommand(left_motor, right_motor)
                 print('DEBUG: left motor speed: {}'.format(left_motor))
