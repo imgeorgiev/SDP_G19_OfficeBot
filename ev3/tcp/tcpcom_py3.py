@@ -65,7 +65,7 @@ class TCPServer(Thread):
     TERMINATED = "TERMINATED"
     MESSAGE = "MESSAGE"
 
-    def __init__(self, port, stateChanged, endOfBlock = '\0', isVerbose = False):
+    def __init__(self, port, stateChanged, endOfBlock = b'\0', isVerbose = False):
         '''
         Creates a TCP socket server that listens on TCP port
         for a connecting client. The server runs in its own thread, so the
@@ -145,7 +145,7 @@ class TCPServer(Thread):
             self.socketHandler = ServerHandler(self, self.endOfBlock)
             self.socketHandler.setDaemon(True)  # necessary to terminate thread at program termination
             self.socketHandler.start()
-            try: 
+            try:
                 self.stateChanged(TCPServer.CONNECTED, self.addr[0])
             except Exception as e:
                 print("Caught exception in TCPServer.CONNECTED:", e)
@@ -294,10 +294,11 @@ class ServerHandler(Thread):
                 if not isRunning:
                     break
                 TCPServer.debug("Received msg: " + data + "; len: " + str(len(data)))
-                junk = data.split(self.endOfBlock)  # more than 1 message may be received if
+                junk = data.split(self.endOfBlock.decode())  # more than 1 message may be received if
                                          # transfer is fast. data: xxxx<eob>yyyyy<eol>zzz<eob>
                 for i in range(len(junk) - 1):
                     try:
+                        TCPServer.debug("Returning message to state changer")
                         self.server.stateChanged(TCPServer.MESSAGE, junk[i]) # eol is not included
                     except Exception as e:
                         print("Caught exception in TCPServer.MESSAGE:", e)

@@ -44,17 +44,19 @@ class Server:
             isConnected = True
             print("DEBUG: Server: Connected to ", msg)
         elif state == "MESSAGE":
-            # print("DEBUG: Server: Message received: " + str(msg))
-            if(msg[0:2] == "SNR"):
+            print("DEBUG: Server: Message received: " + str(msg))
+            if(msg[0:3] == "SNR"):
                 reqSensorReceived = True
-                sensorData = msg
+                sensorData = msg[4:]
                 print("DEBUG: Server: Sensor message received: ", str(sensorData))
 
     # Returns designedtaed sensor values from the EV3.
     # Currently returns [int Ultrasonic, string Left color sensor, string Right color sensor]
     def getSensors(self):
+        global reqSensorReceived
+        reqSensorReceived = False
         self._server.sendMessage("RQT")
-        while(not self.reqSensorReceived):
+        while(reqSensorReceived == False):
             pass
         return sensorData
 
