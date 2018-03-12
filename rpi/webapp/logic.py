@@ -443,9 +443,6 @@ def compute_path():
     log.write("[" + datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') + "] ")
     log.write(debug_text + "\n")
 
-    # camera.followLine(first_junction, second_junction, dest_colour)
-    time.sleep(5)
-
     log.write("[" + datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') + "] ")
     log.write("Successfully moved to " + str(destination) + ".\n")
     print("MOVED TO " + str(destination) + ". BACK TO PINGING FILE.")
