@@ -20,6 +20,8 @@ server_port = 5005
 
 colorList = ("R", "W", "BW", "N", "BK", "BL", "G", "Y")
 
+GEAR_RATIO = 3
+
 def main():
     global client
 
@@ -162,7 +164,7 @@ class CustomMotor:
         return self.motor.speed > 0
 
     def turn(self, degrees):
-            self.motor.run_to_rel_pos(degrees)
+            self.motor.run_to_rel_pos(degrees*GEAR_RATIO)
 
 # turns the robot by degrees, anticlockwise if clockwise is false
 def turn(self, motors, clockwise, degrees):
