@@ -260,31 +260,31 @@ class line_detect():
                 middlew = int(w/2)-70
                 img = self.RemoveBackground_HSV_Black(crop_img)
             elif color == 'RED':
-                self.image_black.append(crop_img)
+                self.image_red.append(crop_img)
                 h, w  = self.image_red[i].shape[:2]
                 middleh = int(h/2)
                 middlew = int(w/2)-70
                 img = self.RemoveBackground_HSV_Red(crop_img)
             elif color == 'BLUE':
-                self.image_black.append(crop_img)
+                self.image_blue.append(crop_img)
                 h, w  = self.image_blue[i].shape[:2]
                 middleh = int(h/2)
                 middlew = int(w/2)-70
                 img = self.RemoveBackground_HSV_Blue(crop_img)
             elif color == 'GREEN':
-                self.image_black.append(crop_img)
+                self.image_green.append(crop_img)
                 h, w  = self.image_green[i].shape[:2]
                 middleh = int(h/2)
                 middlew = int(w/2)-70
                 img = self.RemoveBackground_HSV_Green(crop_img)
             elif color == 'YELLOW':
-                self.image_black.append(crop_img)
+                self.image_yellow.append(crop_img)
                 h, w  = self.image_yellow[i].shape[:2]
                 middleh = int(h/2)
                 middlew = int(w/2)-70
                 img = self.RemoveBackground_HSV_Yellow(crop_img)
             elif color == 'PURPLE':
-                self.image_black.append(crop_img)
+                self.image_purple.append(crop_img)
                 h, w  = self.image_purple[i].shape[:2]
                 middleh = int(h/2)
                 middlew = int(w/2)-70
@@ -892,7 +892,7 @@ if __name__ == '__main__':
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
             else:
-                print('DEBUG: dest does not change')    
+                print('DEBUG: dest does not change')
 
                 s.sendMotorCommand(left_motor, right_motor)
                 print('DEBUG: left motor speed: {}'.format(left_motor))
