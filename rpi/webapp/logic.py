@@ -42,6 +42,7 @@ class line_detect():
         self.image_purple = []
         self.image_green = []
         self.image_yellow = []
+        self.image_white = []
         self.slice = 4
         self.weight_4 = [0.23, 0.23, 0.23, 0.23]
         self.weight_3 = [0.3, 0.3, 0.3]
@@ -161,6 +162,19 @@ class line_detect():
         image = cv2.bitwise_and(image,image, mask=mask)
         image = cv2.bitwise_not(image,image, mask=mask)
         image = (255 - image)
+        return image
+
+
+    def RemoveBackground_HSV_White(self,image):
+        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+        lower = np.array([0,0,0])
+        upper = np.array([0,0,150])
+
+        mask = cv2.inRange(hsv, lower, upper)
+        kernel = np.ones((5,5),np.uint8)
+        mask = cv2.dilate(mask,kernel,iterations=5)
+        mask = cv2.erode(mask,kernel,iterations=4)
+        image = cv2.bitwise_and(image,image, mask=mask)
         return image
 
 
@@ -529,6 +543,7 @@ if __name__ == '__main__':
             line.image_purple = []
             line.image_green = []
             line.image_yellow = []
+            line.image_white = []
             prev_dest = 'white'
             circle = line.dest_detect(origin)
             ############################# HSV TEST ##############################
@@ -538,6 +553,7 @@ if __name__ == '__main__':
             HSV_yellow = line.RemoveBackground_HSV_Yellow(origin)
             HSV_purple = line.RemoveBackground_HSV_Purple(origin)
             HSV_red = line.RemoveBackground_HSV_Red(origin)
+            HSV_white = line.RemoveBackground_HSV_White(origin)
 
             ############################# get distance between middle of vision and line #########################
             distance_Black = line.SlicePart(HSV_black, line.slice, 'BLACK')
@@ -546,6 +562,7 @@ if __name__ == '__main__':
             distance_Red = line.SlicePart(HSV_red, line.slice, 'RED')
             distance_Yellow = line.SlicePart(HSV_yellow, line.slice, 'YELLOW')
             distance_Purple = line.SlicePart(HSV_purple, line.slice, 'PURPLE')
+            distance_White = line.SlicePart(HSV_white, line.slice, 'WHITE')
 
             ############################# assumption code #################
             # if the robot doesn't turn:
@@ -628,6 +645,17 @@ if __name__ == '__main__':
                             pass
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
+                    elif dest_color == 'white':
+                        if distance_White and circle == False:
+                            line.turn_R_angle(second_junction)
+                        elif distance_White and circle == True:
+                            prev_dest = dest_color
+                            arrived = 0
+                            log_success()
+                            pass
+                        else:
+                            [left_motor, right_motor] = line.line_following(distance_Black)
+
 
                 # if second junction is none, then we only need to do once turning.
                 # Only post_color is detected, then call turn_R_angle
@@ -676,6 +704,16 @@ if __name__ == '__main__':
                         if distance_Purple and circle == False:
                             line.turn_R_angle(first_junction)
                         elif distance_Purple and circle == True:
+                            prev_dest = dest_color
+                            arrived = 0
+                            log_success()
+                            pass
+                        else:
+                            [left_motor, right_motor] = line.line_following(distance_Black)
+                    elif pos_color == 'white':
+                        if distance_White and circle == False:
+                            line.turn_R_angle(first_junction)
+                        elif distance_White and circle == True:
                             prev_dest = dest_color
                             arrived = 0
                             log_success()
@@ -960,12 +998,133 @@ if __name__ == '__main__':
                             pass
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
-            else:
-                print('DEBUG: dest does not change')
-
+                    elif pos_color == 'white' and dest_color == 'purple':
+                        if distance_white:
+                            line.turn_R_angle(first_junction)
+                        elif distance_Purple and circle == False:
+                            line.turn_R_angle(second_junction)
+                        elif distance_Purple and circle == True:
+                            prev_dest = dest_color
+                            arrived = 0
+                            log_success()
+                            pass
+                        else:
+                            [left_motor, right_motor] = line.line_following(distance_Black)
+                    elif pos_color == 'purple' and dest_color == 'white':
+                        if distance_Purple:
+                            line.turn_R_angle(first_junction)
+                        elif distance_White and circle == False:
+                            line.turn_R_angle(second_junction)
+                        elif distance_White and circle == True:
+                            prev_dest = dest_color
+                            log_success()
+                            arrived = 0
+                            pass
+                        else:
+                            [left_motor, right_motor] = line.line_following(distance_Black)
+                    elif pos_color == 'white' and dest_color == 'red':
+                        if distance_white:
+                            line.turn_R_angle(first_junction)
+                        elif distance_Red and circle == False:
+                            line.turn_R_angle(second_junction)
+                        elif distance_Red and circle == True:
+                            prev_dest = dest_color
+                            arrived = 0
+                            log_success()
+                            pass
+                        else:
+                            [left_motor, right_motor] = line.line_following(distance_Black)
+                    elif pos_color == 'red' and dest_color == 'white':
+                        if distance_red:
+                            line.turn_R_angle(first_junction)
+                        elif distance_White and circle == False:
+                            line.turn_R_angle(second_junction)
+                        elif distance_White and circle == True:
+                            prev_dest = dest_color
+                            log_success()
+                            arrived = 0
+                            pass
+                        else:
+                            [left_motor, right_motor] = line.line_following(distance_Black)
+                    elif pos_color == 'white' and dest_color == 'blue':
+                        if distance_white:
+                            line.turn_R_angle(first_junction)
+                        elif distance_Blue and circle == False:
+                            line.turn_R_angle(second_junction)
+                        elif distance_Blue and circle == True:
+                            prev_dest = dest_color
+                            arrived = 0
+                            log_success()
+                            pass
+                        else:
+                            [left_motor, right_motor] = line.line_following(distance_Black)
+                    elif pos_color == 'blue' and dest_color == 'white':
+                        if distance_Blue:
+                            line.turn_R_angle(first_junction)
+                        elif distance_White and circle == False:
+                            line.turn_R_angle(second_junction)
+                        elif distance_White and circle == True:
+                            prev_dest = dest_color
+                            log_success()
+                            arrived = 0
+                            pass
+                        else:
+                            [left_motor, right_motor] = line.line_following(distance_Black)
+                    elif pos_color == 'white' and dest_color == 'yellow':
+                        if distance_white:
+                            line.turn_R_angle(first_junction)
+                        elif distance_Yellow and circle == False:
+                            line.turn_R_angle(second_junction)
+                        elif distance_Yellow and circle == True:
+                            prev_dest = dest_color
+                            arrived = 0
+                            log_success()
+                            pass
+                        else:
+                            [left_motor, right_motor] = line.line_following(distance_Black)
+                    elif pos_color == 'yellow' and dest_color == 'white':
+                        if distance_Yellow:
+                            line.turn_R_angle(first_junction)
+                        elif distance_White and circle == False:
+                            line.turn_R_angle(second_junction)
+                        elif distance_White and circle == True:
+                            prev_dest = dest_color
+                            log_success()
+                            arrived = 0
+                            pass
+                        else:
+                            [left_motor, right_motor] = line.line_following(distance_Black)
+                    elif pos_color == 'white' and dest_color == 'green':
+                        if distance_white:
+                            line.turn_R_angle(first_junction)
+                        elif distance_Green and circle == False:
+                            line.turn_R_angle(second_junction)
+                        elif distance_Green and circle == True:
+                            prev_dest = dest_color
+                            arrived = 0
+                            log_success()
+                            pass
+                        else:
+                            [left_motor, right_motor] = line.line_following(distance_Black)
+                    elif pos_color == 'green' and dest_color == 'white':
+                        if distance_Green:
+                            line.turn_R_angle(first_junction)
+                        elif distance_White and circle == False:
+                            line.turn_R_angle(second_junction)
+                        elif distance_White and circle == True:
+                            prev_dest = dest_color
+                            log_success()
+                            arrived = 0
+                            pass
+                        else:
+                            [left_motor, right_motor] = line.line_following(distance_Black)
+                            
                 s.sendMotorCommand(left_motor, right_motor)
                 print('DEBUG: left motor speed: {}'.format(left_motor))
                 print('DEBUG: right motor spped: {}'.format(right_motor))
+
+            else:
+                print('DEBUG: dest does not change')
 
         else:
             print('DEBUG: No input frames')
