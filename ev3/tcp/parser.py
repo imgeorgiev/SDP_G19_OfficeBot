@@ -22,9 +22,8 @@ colorList = ("R", "W", "BW", "N", "BK", "BL", "G", "Y")
 
 GEAR_RATIO = 3
 
-global leftMotor, rightMotor, ultrasonicSensor, client
-
 def main():
+    global leftMotor, rightMotor, ultrasonicSensor, client, isConnected
     # initialise motors
     leftMotor = CustomMotor("LEFT", "A")
     rightMotor = CustomMotor("RIGHT", "D")
@@ -62,8 +61,6 @@ def setWheelSpeeds(leftMotor, rightMotor, wheelSpeedMessage):
 
 
 def onStateChanged(state, msg):
-    global isConnected
-
     if state == "CONNECTED":
         isConnected = True
         # print("DEBUG: Client:-- Connected to ", msg)
