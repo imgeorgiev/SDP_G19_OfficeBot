@@ -15,7 +15,7 @@ from tcpcom_py3 import TCPClient
 import ev3dev.auto as ev3
 from time import sleep
 
-server_ip = "169.254.23.50"
+server_ip = "10.42.0.1"
 server_port = 5005
 
 colorList = ("R", "W", "BW", "N", "BK", "BL", "G", "Y")
@@ -32,12 +32,14 @@ def main():
     ultrasonicSensor = ev3.UltrasonicSensor(ev3.INPUT_AUTO); assert ultrasonicSensor.connected
 
     # start TCP client
-    client = TCPClient(server_ip, server_port, stateChanged=onStateChanged)
+    client = TCPClient(server_ip, server_port, stateChanged=onStateChanged, isVerbose=True)
     print("Client starting")
 
     rc = client.connect()
     try:
         while True:
+            sleep(0.01)
+            # print("true loop")
             if not rc:
                 print("Client:-- Connection failed")
                 sleep(1)
@@ -61,26 +63,32 @@ def setWheelSpeeds(leftMotor, rightMotor, wheelSpeedMessage):
 
 
 def onStateChanged(state, msg):
+    global isConnected
+    global ultra
+    global lineFollowMsg
+    global wheelSpeedMessage
+    global leftMotor, rightMotor, ultrasonicSensor
+
     if state == "CONNECTED":
         isConnected = True
-        # print("DEBUG: Client:-- Connected to ", msg)
+        print("DEBUG: Client:-- Connected to ", msg)
 
     elif state == "DISCONNECTED":
-        # print("DEBUG: Client:-- Connection lost.")
+        print("DEBUG: Client:-- Connection lost.")
         isConnected = False
 
-#   elif state == "LISTENING":
-#       pass
-#       print("DEBUG: Client:-- Listening...")
+    elif state == "LISTENING":
+        pass
+        print("DEBUG: Client:-- Listening...")
 
     elif state == "MESSAGE":
-        # print("DEBUG: Client:-- Message received: ", msg)
+        print("DEBUG: Client:-- Message received: ", msg)
         if(msg[0:3] == "RQT"):
             ultra = ultrasonicSensor.value()
             sendSensorData(ultra)
 
-#       elif(msg[0:3] == "LFW"):
-#           lineFollowMsg = parseMsg(msg)
+        elif(msg[0:3] == "LFW"):
+            lineFollowMsg = parseMsg(msg)
 
         elif(msg[0:3] == "CMD"):
             wheelSpeedMessage = parseMsg(msg)
