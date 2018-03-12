@@ -465,41 +465,48 @@ if __name__ == '__main__':
     # while(1):
     #     s.sendMotorCommand(0,50)
     #     pring('DEBUG: Test for sending (0,50) to ev3')
+
+    # file ping counter
+    file_ping = 0
+
     while(1):
         ############################# LOGIC ##############################
-        file = open("dest.txt","r+")
-        content = file.read()
-        print("File content: " + content)
+        file_ping = file_ping % 100
 
-        if (len(content) > 0):
-            destination = int(content)
+        if (file_ping == 0):
+            file = open("dest.txt","r+")
+            content = file.read()
+            print("File content: " + content)
 
-            # Manual override
-            if (destination == 100 or destination == 200):
+            if (len(content) > 0):
+                destination = int(content)
+
+                # Manual override
+                if (destination == 100 or destination == 200):
+                    file.seek(0)
+                    file.truncate()
+                    file.close()
+                    print("MANUAL OVERRIDE TRIGGERED.")
+                    while(True):
+                        # TO-DO: trigger ps4 controls, and periodically check
+                        # for 200 code to remove manual override
+                        pass
+
                 file.seek(0)
                 file.truncate()
                 file.close()
-                print("MANUAL OVERRIDE TRIGGERED.")
-                while(True):
-                    # TO-DO: trigger ps4 controls, and periodically check
-                    # for 200 code to remove manual override
-                    pass
+                print("RECEIVED DESTINATION: " + str(destination) + ".")
+                if (destination != position):
 
-            file.seek(0)
-            file.truncate()
-            file.close()
-            print("RECEIVED DESTINATION: " + str(destination) + ".")
-            if (destination != position):
-
-                if (destination not in [1, 2, 3, 4, 5, 6, 7, 8, 9]):
-                    print("Destination not valid!")
+                    if (destination not in [1, 2, 3, 4, 5, 6, 7, 8, 9]):
+                        print("Destination not valid!")
+                    else:
+                        [first_junction, second_junction, pos_color, dest_color] = compute_path()
                 else:
-                    [first_junction, second_junction, pos_color, dest_color] = compute_path()
-            else:
-                print("Destination is the same as current position. Skipping.")
-        file.close()
-        # time.sleep(1) # pings file every second
-
+                    print("Destination is the same as current position. Skipping.")
+            file.close()
+            # time.sleep(1) # pings file every second
+        file_ping += 1
         ############################# CAMERA ##############################
         ret, origin = cap.read()
         if(ret):
