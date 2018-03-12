@@ -22,65 +22,24 @@ colorList = ("R", "W", "BW", "N", "BK", "BL", "G", "Y")
 
 GEAR_RATIO = 3
 
-def main():
-    global client
+global leftMotor, rightMotor, ultrasonicSensor, client
 
+def main():
     # initialise motors
     leftMotor = CustomMotor("LEFT", "A")
     rightMotor = CustomMotor("RIGHT", "D")
-    motors = [leftMotor, rightMotor]
 
     # initialise sensors
     ultrasonicSensor = ev3.UltrasonicSensor(ev3.INPUT_AUTO); assert ultrasonicSensor.connected
-    colorSensorLeft = ev3.ColorSensor('in1'); assert colorSensorLeft.connected
-    colorSensorRight = ev3.ColorSensor('in4'); assert colorSensorRight.connected
 
     # start TCP client
-    client = TCPClient(server_ip, server_port, stateChanged=stateTrans)
+    client = TCPClient(server_ip, server_port, stateChanged=onStateChanged)
     print("Client starting")
-
-    # initial variable values
-    wheelSpeedMessage = None
-    turnMessage = None
-    lineFollowMsg = None
-    shouldSendSensorData = False
 
     rc = client.connect()
     try:
         while True:
-            if rc:
-                while isConnected:
-                    if wheelSpeedMessage:
-                        newLeftWheelSpeed = int(wheelSpeedMessage[0])
-                        newRightWheelSpeed = int(wheelSpeedMessage[1])
-
-                        leftMotor.speed = newLeftWheelSpeed
-                        leftMotor.forward()
-                        print("DEBUG: Left motor set to ", newLeftWheelSpeed)
-
-                        rightMotor.speed = newRightWheelSpeed
-                        rightMotor.forward()
-                        print("DEBUG: Right motor set to ", newRightWheelSpeed)
-
-                        # wheels have been set to new speed, delete wheelSendMessage
-                        wheelSpeedMessage = None
-
-                    elif turnMessage:
-                        clockwise = int(turnMessage[0])
-                        degreesToTurn = int(turnMessage[1])
-                        turn(motors, clockwise, degreesToTurn)
-
-                        # should be turning, delete turnMessage
-                        turnMessage = None
-
-                    elif shouldSendSensorData:
-                        ultra = ultrasonicSensor.value()
-                        lColor = colorList[colorSensorLeft.color]
-                        rColor = colorList[colorSensorRight.color]
-                        sendSensorData(ultra, lColor, rColor)
-
-                        shouldSendSensorData = False
-            else:
+            if not rc:
                 print("Client:-- Connection failed")
                 sleep(1)
     except KeyboardInterrupt:
@@ -89,38 +48,59 @@ def main():
     rightMotor.stop()
     client.disconnect()
 
-def stateTrans(state, msg):
-    global isConnected
-    global lineFollowMsg
-    global wheelSpeedMessage
-    global turnMessage
-    global shouldSendSensorData
 
-    if state == "LISTENING":
-        pass
-        # print("DEBUG: Client:-- Listening...")
-    elif state == "CONNECTED":
+def setWheelSpeeds(leftMotor, rightMotor, wheelSpeedMessage):
+    newLeftWheelSpeed = int(wheelSpeedMessage[0])
+    leftMotor.speed = newLeftWheelSpeed
+    leftMotor.forward()
+    print("DEBUG: Left motor set to ", newLeftWheelSpeed)
+
+    newRightWheelSpeed = int(wheelSpeedMessage[1])
+    rightMotor.speed = newRightWheelSpeed
+    rightMotor.forward()
+    print("DEBUG: Right motor set to ", newRightWheelSpeed)
+
+
+def onStateChanged(state, msg):
+    global isConnected
+
+    if state == "CONNECTED":
         isConnected = True
         # print("DEBUG: Client:-- Connected to ", msg)
+
     elif state == "DISCONNECTED":
         # print("DEBUG: Client:-- Connection lost.")
         isConnected = False
+
+#   elif state == "LISTENING":
+#       pass
+#       print("DEBUG: Client:-- Listening...")
+
     elif state == "MESSAGE":
         # print("DEBUG: Client:-- Message received: ", msg)
         if(msg[0:3] == "RQT"):
-            shouldSendSensorData = True
-        elif(msg[0:3] == "LFW"):
-            lineFollowMsg = parseMsg(msg)
+            ultra = ultrasonicSensor.value()
+            sendSensorData(ultra)
+
+#       elif(msg[0:3] == "LFW"):
+#           lineFollowMsg = parseMsg(msg)
+
         elif(msg[0:3] == "CMD"):
             wheelSpeedMessage = parseMsg(msg)
+            setWheelSpeeds(leftMotor, rightMotor, wheelSpeedMessage)
+
         elif(msg[0:3] == "TRN"):
             turnMessage = parseMsg(msg)
+            clockwise = int(turnMessage[0])
+            degreesToTurn = int(turnMessage[1])
+            turn([leftMotor, rightMotor], clockwise, degreesToTurn)
+
         else:
             print("ERROR: Message not recognised")
 
 
-def sendSensorData(ultra, lColor, rColor):
-    sensorMessage = "SNR:" + str(ultra) + "," + lColor + "," + rColor
+def sendSensorData(ultra):
+    sensorMessage = "SNR:" + str(ultra)
     client.sendMessage(sensorMessage)
 
 
