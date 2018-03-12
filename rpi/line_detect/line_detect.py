@@ -22,6 +22,7 @@ class line_detect():
         self.weight_2 = [0.45, 0.45]
         self.weight_1 = [0.9]
         self.threshold = 70
+        self.FPS_limit = 10
 
 
 
@@ -312,7 +313,7 @@ class line_detect():
     def turn_R_angle(self, dir):
         if dir == 'right':
             # for time in range(1,3):
-            
+
         elif dir == 'left':
 
         elif dir == 'none':
@@ -327,6 +328,7 @@ if __name__ == '__main__':
     # cap = cv2.VideoCapture("test.MOV")
     cap.set(cv2.CAP_PROP_FRAME_WIDTH,line.width)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT,line.height)
+    cap.set(CV_CAP_PROP_FPS,line.FPS_limit);
     prev_l = 0
     prev_r = 0
     # turn = False
@@ -335,6 +337,7 @@ if __name__ == '__main__':
     #     pring('DEBUG: Test for sending (0,50) to ev3')
     while(1):
         ret, origin = cap.read()
+        time.sleep(0.1)
         if(ret):
             # the main function
             line.image_red = []
@@ -438,6 +441,8 @@ if __name__ == '__main__':
             # k = cv2.waitKey(1) & 0xff
             # if k == 27:
             #     break
-            time.sleep(0.05)
+            # time.sleep(0.05)
+        else:
+            print('DEBUG: No frames input')
     cap.release()
     cv2.destroyAllWindows()
