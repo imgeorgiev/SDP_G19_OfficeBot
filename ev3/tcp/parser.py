@@ -13,24 +13,86 @@
 
 from tcpcom_py3 import TCPClient
 import ev3dev.auto as ev3
+from time import sleep
 
 server_ip = "169.254.23.50"
 server_port = 5005
 
-wheelSpeedMessage = 0
-lineFollowMsg = None
-ultra = 0
-lColour = None
-rColour = None
-
 colorList = ("R", "W", "BW", "N", "BK", "BL", "G", "Y")
 
+def main():
+    global client
+
+    # initialise motors
+    leftMotor = CustomMotor("LEFT", "A")
+    rightMotor = CustomMotor("RIGHT", "D")
+    motors = [leftMotor, rightMotor]
+
+    # initialise sensors
+    ultrasonicSensor = ev3.UltrasonicSensor(ev3.INPUT_AUTO); assert ultrasonicSensor.connected
+    colorSensorLeft = ev3.ColorSensor('in1'); assert colorSensorLeft.connected
+    colorSensorRight = ev3.ColorSensor('in4'); assert colorSensorRight.connected
+
+    # start TCP client
+    client = TCPClient(server_ip, server_port, stateChanged=stateTrans)
+    print("Client starting")
+
+    # initial variable values
+    wheelSpeedMessage = None
+    turnMessage = None
+    lineFollowMsg = None
+    shouldSendSensorData = False
+
+    rc = client.connect()
+    try:
+        while True:
+            if rc:
+                while isConnected:
+                    if wheelSpeedMessage:
+                        newLeftWheelSpeed = int(wheelSpeedMessage[0])
+                        newRightWheelSpeed = int(wheelSpeedMessage[1])
+
+                        leftMotor.speed = newLeftWheelSpeed
+                        leftMotor.forward()
+                        print("DEBUG: Left motor set to ", newLeftWheelSpeed)
+
+                        rightMotor.speed = newRightWheelSpeed
+                        rightMotor.forward()
+                        print("DEBUG: Right motor set to ", newRightWheelSpeed)
+
+                        # wheels have been set to new speed, delete wheelSendMessage
+                        wheelSpeedMessage = None
+
+                    elif turnMessage:
+                        clockwise = int(turnMessage[0])
+                        degreesToTurn = int(turnMessage[1])
+                        turn(motors, clockwise, degreesToTurn)
+
+                        # should be turning, delete turnMessage
+                        turnMessage = None
+
+                    elif shouldSendSensorData:
+                        ultra = ultrasonicSensor.value()
+                        lColor = colorList[colorSensorLeft.color]
+                        rColor = colorList[colorSensorRight.color]
+                        sendSensorData(ultra, lColor, rColor)
+
+                        shouldSendSensorData = False
+            else:
+                print("Client:-- Connection failed")
+                sleep(1)
+    except KeyboardInterrupt:
+        pass
+    leftMotor.stop()
+    rightMotor.stop()
+    client.disconnect()
 
 def stateTrans(state, msg):
     global isConnected
     global lineFollowMsg
     global wheelSpeedMessage
     global turnMessage
+    global shouldSendSensorData
 
     if state == "LISTENING":
         pass
@@ -44,7 +106,7 @@ def stateTrans(state, msg):
     elif state == "MESSAGE":
         # print("DEBUG: Client:-- Message received: ", msg)
         if(msg[0:3] == "RQT"):
-            sendSensorData()
+            shouldSendSensorData = True
         elif(msg[0:3] == "LFW"):
             lineFollowMsg = parseMsg(msg)
         elif(msg[0:3] == "CMD"):
@@ -55,8 +117,8 @@ def stateTrans(state, msg):
             print("ERROR: Message not recognised")
 
 
-def sendSensorData():
-    sensorMessage = "SNR:" + str(ultra) + "," + lColour + "," + rColour
+def sendSensorData(ultra, lColor, rColor):
+    sensorMessage = "SNR:" + str(ultra) + "," + lColor + "," + rColor
     client.sendMessage(sensorMessage)
 
 
@@ -79,13 +141,13 @@ class CustomMotor:
             self.motor = ev3.LargeMotor(ev3.OUTPUT_D)
 
     def reverse(self):
-        self.motor.run_forever(speed_sp=-self.speed)
+        self.motor.run_forever(speed_sp=-self.speed*9) # scaling
 
     def pause(self):
         self.motor.run_forever(speed_sp=0)
 
     def forward(self):
-        self.motor.run_forever(speed_sp=self.speed)
+        self.motor.run_forever(speed_sp=self.speed*9)
 
     def stop(self):
         self.motor.stop()
@@ -102,46 +164,6 @@ class CustomMotor:
     def turn(self, degrees):
             self.motor.run_to_rel_pos(degrees)
 
-def main():
-    global ultra
-    global lColor
-    global rColor
-    global client
-
-    leftMotor = CustomMotor("LEFT", "A")
-    rightMotor = CustomMotor("RIGHT", "D")
-
-
-    ultrasonicSensor = ev3.UltrasonicSensor(ev3.INPUT_AUTO); assert ultrasonicSensor.connected
-    colorSensorLeft = ev3.ColorSensor('in1'); assert colorSensorLeft.connected
-    colorSensorRight = ev3.ColorSensor('in4'); assert colorSensorRight.connected
-
-
-    client = TCPClient(server_ip, server_port, stateChanged=stateTrans)
-    print("Client starting")
-
-    rc = client.connect()
-    while True:
-        if rc:
-            isConnected = True
-            while isConnected:
-                rightMotor.speed = int(wheelSpeedMessage[1])
-                rightMotor.forward()
-                print("DEBUG: Right motor set to ", wheelSpeedMessage[1])
-                leftMotor.speed = int(wheelSpeedMessage[0])
-                leftMotor.forward()
-                print("DEBUG: Left motor set to ", wheelSpeedMessage[0])
-
-                ultra = ultrasonicSensor.value()
-                lColor = colorList[colorSensorLeft.color]
-                rColor = colorList[colorSensorRight.color]
-        else:
-            print("Client:-- Connection failed")
-
-
-if __name__ == '__main__':
-    main()
-
 # turns the robot by degrees, anticlockwise if clockwise is false
 def turn(self, motors, clockwise, degrees):
         leftMotor = motors[0]
@@ -149,9 +171,8 @@ def turn(self, motors, clockwise, degrees):
         multiplier = 1
         if not clockwise:
             multiplier = -1
-
         leftMotor.turn(degrees*multiplier)
         rightMotor.turn(degrees*-multiplier)
 
-
-
+if __name__ == '__main__':
+    main()
