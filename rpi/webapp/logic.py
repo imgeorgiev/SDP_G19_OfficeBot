@@ -12,27 +12,36 @@ from tcp_rpi import *
 import time, sched, datetime
 
 desks = {
-    1 : {'name' : 'Desk 1', 'colour' : 'purple'},
-    2 : {'name' : 'Desk 2', 'colour' : 'green'},
-    3 : {'name' : 'Desk 3', 'colour' : 'yellow'},
-    4 : {'name' : 'Desk 4', 'colour' : 'blue'},
-    5 : {'name' : 'Desk 5', 'colour' : 'red'},
-    6 : {'name' : 'Desk 6', 'colour' : 'white'}
+    1: {'name': 'Desk 1', 'colour': 'purple'},
+    2: {'name': 'Desk 2', 'colour': 'green'},
+    3: {'name': 'Desk 3', 'colour': 'yellow'},
+    4: {'name': 'Desk 4', 'colour': 'blue'},
+    5: {'name': 'Desk 5', 'colour': 'red'},
+    6: {'name': 'Desk 6', 'colour': 'white'}
 }
 
 def log_success():
-    log = open("log.txt","a+")
+    log = open("log.txt", "a+")
     log.write("[" + datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') + "] ")
     log.write("Successfully moved to " + str(destination) + ".\n")
     print("MOVED TO " + str(destination) + ". BACK TO PINGING FILE.")
     log.close()
-
 
 # noinspection PyPep8Naming
 class line_detect():
     def __init__(self):
         self.width = 320
         self.height = 240
+        self.slice = 4
+
+        self.weight_1 = [0.9]
+        self.weight_2 = [0.45, 0.45]
+        self.weight_3 = [0.3, 0.3, 0.3]
+        self.weight_4 = [0.23, 0.23, 0.23, 0.23]
+
+        self.threshold = 70
+        self.FPS_limit = 10
+
         self.image_black = []
         self.image_blue = []
         self.image_red = []
@@ -40,20 +49,13 @@ class line_detect():
         self.image_green = []
         self.image_yellow = []
         self.image_white = []
-        self.slice = 4
-        self.weight_4 = [0.23, 0.23, 0.23, 0.23]
-        self.weight_3 = [0.3, 0.3, 0.3]
-        self.weight_2 = [0.45, 0.45]
-        self.weight_1 = [0.9]
-        self.threshold = 70
-        self.FPS_limit = 10
 
         # initialising numpy upper and lower bounds for cv2 mask
-        self.blackLower = np.array([0,0,0])
-        self.blackUpper =  np.array([180,255,75])
+        self.blackLower = np.array([0, 0, 0])
+        self.blackUpper = np.array([180, 255, 75])
 
-        self.blueLower = np.array([100,170,46])
-        self.blueUpper = np.array([124,255,255])
+        self.blueLower = np.array([100, 170, 46])
+        self.blueUpper = np.array([124, 255, 255])
 
         self.redLower = np.array([156, 43, 46])
         self.redUpper = np.array([180, 255, 255])
@@ -67,13 +69,10 @@ class line_detect():
         self.whiteLower = np.array([0, 0, 0])
         self.whiteUpper = np.array([0, 0, 150])
 
-        self.purpleLower = np.array([125,43,46])
-        self.purpleUpper = np.array([155,255,255])
+        self.purpleLower = np.array([125, 43, 46])
+        self.purpleUpper = np.array([155, 255, 255])
 
-        self.kernel = np.ones((5,5),np.uint8)
-
-
-
+        self.kernel = np.ones((5, 5), np.uint8)
 
     # def RemoveBackground_RGB(self,image):
     #     low = 0
@@ -86,7 +85,6 @@ class line_detect():
     #     image = cv2.bitwise_and(image, image, mask = mask)
     #     return image
 
-
     def RemoveBackground_HSV(self, image, lower, upper):
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
@@ -94,8 +92,8 @@ class line_detect():
         mask = cv2.dilate(mask, self.kernel, iterations=5)
         mask = cv2.erode(mask, self.kernel, iterations=4)
 
-        image = cv2.bitwise_and(image,image, mask=mask)
-        image = cv2.bitwise_not(image,image, mask=mask)
+        image = cv2.bitwise_and(image, image, mask=mask)
+        image = cv2.bitwise_not(image, image, mask=mask)
         image = (255 - image)
 
         return image
@@ -130,11 +128,11 @@ class line_detect():
     # Process the image and return the contour of line, it will change image to gray scale
     @staticmethod
     def image_process(self, img):
-        imgray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY) #Convert to Gray Scale
+        imgray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)  # Convert to Gray Scale
         element = cv2.getStructuringElement(cv2.MORPH_RECT, (15, 15))
-        dst	= cv2.morphologyEx(imgray, cv2.MORPH_OPEN, element)
-        ret, thresh = cv2.threshold(dst,100,255,cv2.THRESH_BINARY_INV) #Get Threshold
-        _, contours, _ = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE) #Get contour
+        dst = cv2.morphologyEx(imgray, cv2.MORPH_OPEN, element)
+        ret, thresh = cv2.threshold(dst, 100, 255, cv2.THRESH_BINARY_INV)  # Get Threshold
+        _, contours, _ = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)  # Get contour
         # mainContour = max(contours, key=cv2.contourArea)
         # return mainContour
         return contours
@@ -147,9 +145,9 @@ class line_detect():
 
         if M["m00"] == 0:
             return 0
-        x = int(M["m10"]/M["m00"])
-        y = int(M["m01"]/M["m00"])
-        return [x,y]
+        x = int(M["m10"] / M["m00"])
+        y = int(M["m01"] / M["m00"])
+        return [x, y]
 
     # it will delete contours which area less than a specifiy threshold
     @staticmethod
@@ -159,7 +157,7 @@ class line_detect():
             cnt = img[i]
             area = cv2.contourArea(cnt)
             # this is the threshold
-            if(area >= (h/20*w/20)):
+            if (area >= (h/20 * w/20)):
                 contour.append(cnt)
         return contour
 
@@ -185,56 +183,56 @@ class line_detect():
     @staticmethod
     def getContourExtent(self, contour):
         area = cv2.contourArea(contour)
-        x,y,w,h = cv2.boundingRect(contour)
+        x, y, w, h = cv2.boundingRect(contour)
         rect_area = w*h*3
         if rect_area > 0:
-            return (float(area)/rect_area)
+            return (float(area) / rect_area)
 
     # this is the main function which will return an array which contains all distance bias for every point
     def SlicePart(self, im, slice, color):
-        sl = int(self.height/slice)
+        sl = int(self.height / slice)
         distance = []
 
         for i in range(slice):
             part = sl*i
-            crop_img = im[part:part+sl, 0:self.width]
+            crop_img = im[part:part + sl, 0:self.width]
             # middlew = middlew - 40
             # print(middlew)
             if color == 'BLACK':
                 self.image_black.append(crop_img)
-                h, w  = self.image_black[i].shape[:2]
+                h, w = self.image_black[i].shape[:2]
                 middleh = int(h/2)
-                middlew = int(w/2)-70
+                middlew = int(w/2) - 70
                 img = self.RemoveBackground_HSV_Black(crop_img)
             elif color == 'RED':
                 self.image_red.append(crop_img)
-                h, w  = self.image_red[i].shape[:2]
+                h, w = self.image_red[i].shape[:2]
                 middleh = int(h/2)
-                middlew = int(w/2)-70
+                middlew = int(w/2) - 70
                 img = self.RemoveBackground_HSV_Red(crop_img)
             elif color == 'BLUE':
                 self.image_blue.append(crop_img)
-                h, w  = self.image_blue[i].shape[:2]
+                h, w = self.image_blue[i].shape[:2]
                 middleh = int(h/2)
-                middlew = int(w/2)-70
+                middlew = int(w/2) - 70
                 img = self.RemoveBackground_HSV_Blue(crop_img)
             elif color == 'GREEN':
                 self.image_green.append(crop_img)
-                h, w  = self.image_green[i].shape[:2]
+                h, w = self.image_green[i].shape[:2]
                 middleh = int(h/2)
-                middlew = int(w/2)-70
+                middlew = int(w/2) - 70
                 img = self.RemoveBackground_HSV_Green(crop_img)
             elif color == 'YELLOW':
                 self.image_yellow.append(crop_img)
-                h, w  = self.image_yellow[i].shape[:2]
+                h, w = self.image_yellow[i].shape[:2]
                 middleh = int(h/2)
-                middlew = int(w/2)-70
+                middlew = int(w/2) - 70
                 img = self.RemoveBackground_HSV_Yellow(crop_img)
             elif color == 'PURPLE':
                 self.image_purple.append(crop_img)
-                h, w  = self.image_purple[i].shape[:2]
+                h, w = self.image_purple[i].shape[:2]
                 middleh = int(h/2)
-                middlew = int(w/2)-70
+                middlew = int(w/2) - 70
                 img = self.RemoveBackground_HSV_Purple(crop_img)
             contours = self.image_process(img)
             contours = self.contour_process(contours, h, w)
@@ -249,8 +247,8 @@ class line_detect():
                 # cv2.putText(crop_img,str(middlew-contourCenterX),(contourCenterX+20, middleh), font, 1,(200,0,200),2,cv2.LINE_AA)
                 # cv2.putText(crop_img,"Weight:%.3f"%self.getContourExtent(contours[0]),(contourCenterX+20, middleh+35), font, 0.5,(200,0,200),1,cv2.LINE_AA)
                 # bias = int(middlew-contourCenterX) * self.getContourExtent(contours[0])
-                bias = int(middlew-contourCenterX)
-            # record the bias distance
+                bias = int(middlew - contourCenterX)
+                # record the bias distance
                 distance.append(bias)
         return distance[::-1]
 
@@ -258,7 +256,7 @@ class line_detect():
     @staticmethod
     def circle_detect(self, img):
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1,100, param1=100, param2=30, minRadius=0, maxRadius=200)
+        circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, 100, param1=100, param2=30, minRadius=0, maxRadius=200)
         return (circles is not None)
 
     # through the distance bias array, we can use this function to reach line_following
@@ -268,16 +266,16 @@ class line_detect():
         if distance:
             num = len(distance)
             if num == 1:
-                bias = [i*j for i,j in zip(distance, self.weight_1)]
+                bias = [i*j for i, j in zip(distance, self.weight_1)]
                 bias = sum(bias)
             elif num == 2:
-                bias = [i*j for i,j in zip(distance, self.weight_2)]
+                bias = [i*j for i, j in zip(distance, self.weight_2)]
                 bias = sum(bias)
             elif num == 3:
-                bias = [i*j for i,j in zip(distance, self.weight_3)]
+                bias = [i*j for i, j in zip(distance, self.weight_3)]
                 bias = sum(bias)
             elif num == 4:
-                bias = [i*j for i,j in zip(distance, self.weight_4)]
+                bias = [i*j for i, j in zip(distance, self.weight_4)]
                 bias = sum(bias)
             # bias = sum(distance)
             print('the distance list is {}'.format(distance))
@@ -285,12 +283,11 @@ class line_detect():
             speed = attenuate(bias/4, -40, 40)
             if abs(bias) > self.threshold:
                 if bias > 0:
-                    return [20, 20+speed]
+                    return [20, 20 + speed]
                 else:
-                    return [20+abs(speed), 20]
+                    return [20 + abs(speed), 20]
             else:
                 return [50, 50]
-
 
     @staticmethod
     def turn_R_angle(self, dir):
@@ -300,15 +297,17 @@ class line_detect():
         elif dir == 'left':
             pass
 
+
 def follow_line(current_color, next_color):
     # will call LineFollower(current_color, next_color), which will follow
     # current_color until it reaches next_color. it will then send a TCP
     # packet back to the RPi, allowing the next follow_line to execute
     pass
 
+
 def compute_path(position, destination):
     # Debugging
-    log = open("log.txt","a+")
+    log = open("log.txt", "a+")
     log.write("[" + datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') + "] ")
     log.write("Received command to move to " + str(destination) + ".\n")
 
@@ -340,7 +339,7 @@ def compute_path(position, destination):
             first_junction = "right"
         else:
             first_junction = "left"
-    else: # position 6
+    else:  # position 6
         first_junction = "none"
 
     # second junction
@@ -371,14 +370,14 @@ def compute_path(position, destination):
             second_junction = "left"
         else:
             second_junction = "right"
-    else: # position 6
+    else:  # position 6
         if (destination in [2, 4]):
             second_junction = "right"
 
     # Debugging
     debug_text = "COMPUTING ROUTE." + " position: " + str(position) + ", destination: " + \
-    str(destination) + " first_junction: " + str(first_junction) + \
-    " second_junction: " + str(second_junction) + ". MOVING."
+                 str(destination) + " first_junction: " + str(first_junction) + \
+                 " second_junction: " + str(second_junction) + ". MOVING."
     print(debug_text)
     log.write("[" + datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') + "] ")
     log.write(debug_text + "\n")
@@ -1039,6 +1038,7 @@ def main():
                 print('DEBUG: right motor speed: {}'.format(right_motor))
     cap.release()
     cv2.destroyAllWindows()
+
 
 if __name__ == '__main__':
     main()
