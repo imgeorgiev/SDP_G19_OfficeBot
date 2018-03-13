@@ -11,8 +11,6 @@ import cv2
 from tcp_rpi import *
 import time, sched, datetime
 
-global position, destination
-
 desks = {
     1 : {'name' : 'Desk 1', 'colour' : 'purple'},
     2 : {'name' : 'Desk 2', 'colour' : 'green'},
@@ -375,10 +373,7 @@ def follow_line(current_color, next_color):
     # packet back to the RPi, allowing the next follow_line to execute
     pass
 
-def compute_path():
-    global position
-    global destination
-
+def compute_path(position, destination):
     # Debugging
     log = open("log.txt","a+")
     log.write("[" + datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') + "] ")
@@ -455,11 +450,6 @@ def compute_path():
     log.write("[" + datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') + "] ")
     log.write(debug_text + "\n")
     log.close()
-
-    # Updates location
-    position = destination
-    destination = None
-
     return [first_junction, second_junction, pos_colour, dest_colour]
 
 if __name__ == '__main__':
@@ -517,7 +507,11 @@ if __name__ == '__main__':
                     if (destination not in [1, 2, 3, 4, 5, 6, 7, 8, 9]):
                         print("Destination not valid!")
                     else:
-                        [first_junction, second_junction, pos_color, dest_color] = compute_path()
+                        [first_junction, second_junction, pos_color, dest_color] = compute_path(position, destination)
+
+                        # Updates location
+                        position = destination
+                        destination = None
                 else:
                     print("Destination is the same as current position. Skipping.")
             file.close()
