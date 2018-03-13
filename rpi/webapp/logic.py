@@ -30,7 +30,6 @@ def log_success():
 
 # noinspection PyPep8Naming
 class line_detect():
-
     def __init__(self):
         self.width = 320
         self.height = 240
@@ -49,6 +48,33 @@ class line_detect():
         self.threshold = 70
         self.FPS_limit = 10
 
+        # initialising numpy upper and lower bounds for cv2 mask
+        self.blackLower = np.array([0,0,0])
+        self.blackUpper =  np.array([180,255,75])
+
+        self.blueLower = np.array([100,170,46])
+        self.blueUpper = np.array([124,255,255])
+
+        self.redLower = np.array([156, 43, 46])
+        self.redUpper = np.array([180, 255, 255])
+
+        self.greenLower = np.array([35, 100, 46])
+        self.greenUpper = np.array([85, 255, 255])
+
+        self.yellowUpper = np.array([22.32, 39.525, 0])
+        self.yellowLower = np.array([81, 255, 255])
+
+        self.whiteLower = np.array([0, 0, 0])
+        self.whiteUpper = np.array([0, 0, 150])
+
+        self.purpleLower = np.array([125,43,46])
+        self.purpleUpper = np.array([155,255,255])
+
+        self.kernel = np.ones((5,5),np.uint8)
+
+
+
+
     # def RemoveBackground_RGB(self,image):
     #     low = 0
     #     up = 120
@@ -60,138 +86,49 @@ class line_detect():
     #     image = cv2.bitwise_and(image, image, mask = mask)
     #     return image
 
-    # this function will remove everything which is not black
 
-    def RemoveBackground_HSV_Black(self,image):
+    def RemoveBackground_HSV(self, image, lower, upper):
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-        lower = np.array([0,0,0])
-        upper = np.array([180,255,75])
-        # upper = np.array([180,255,110])
 
         mask = cv2.inRange(hsv, lower, upper)
-        kernel = np.ones((5,5),np.uint8)
-        mask = cv2.dilate(mask,kernel,iterations=5)
-        mask = cv2.erode(mask,kernel,iterations=4)
+        mask = cv2.dilate(mask, self.kernel, iterations=5)
+        mask = cv2.erode(mask, self.kernel, iterations=4)
+
         image = cv2.bitwise_and(image,image, mask=mask)
         image = cv2.bitwise_not(image,image, mask=mask)
         image = (255 - image)
+
         return image
 
-    # this function will remove everything which is not blue
+    # remove anything not black
+    def RemoveBackground_HSV_Black(self, image):
+        return self.RemoveBackground_HSV(image, self.blackLower, self.blackUpper)
+
+    # remove anything not blue
     def RemoveBackground_HSV_Blue(self, image):
-        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-        lower = np.array([100,170,46])
-        upper = np.array([124,255,255])
-
-        mask = cv2.inRange(hsv, lower, upper)
-        kernel = np.ones((5,5),np.uint8)
-        mask = cv2.dilate(mask,kernel,iterations=5)
-        mask = cv2.erode(mask,kernel,iterations=4)
-        image = cv2.bitwise_and(image, image, mask=mask)
-        image = cv2.bitwise_not(image, image, mask=mask)
-        image = (255 - image)
-        return image
+        return self.RemoveBackground_HSV(image, self.blueLower, self.blueUpper)
 
     # this function will remove everything which is not red
     def RemoveBackground_HSV_Red(self, image):
-        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-        channel1Min = 156
-        channel1Max = 180
-        channel2Min = 43
-        channel2Max = 255
-        channel3Min = 46
-        channel3Max = 255
-        lower = np.array([channel1Min,channel2Min,channel3Min])
-        # lower = self.transfer(lower)
-        upper = np.array([channel1Max,channel2Max,channel3Max])
-        # upper = self.transfer(upper)
-
-        mask = cv2.inRange(hsv, lower, upper)
-        kernel = np.ones((5,5), np.uint8)
-        mask = cv2.dilate(mask, kernel, iterations=5)
-        mask = cv2.erode(mask, kernel, iterations=4)
-        image = cv2.bitwise_and(image, image, mask=mask)
-        image = cv2.bitwise_not(image, image, mask=mask)
-        image = (255 - image)
-        return image
+        return self.RemoveBackground_HSV(image, self.redLower, self.redUpper)
 
     # this function will remove everything which is not green
-    def RemoveBackground_HSV_Green(self,image):
-        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-        channel1Min = 35
-        channel1Max = 85
-        channel2Min = 100
-        channel2Max = 255
-        channel3Min = 46
-        channel3Max = 255
-        lower = np.array([channel1Min,channel2Min,channel3Min])
-        upper = np.array([channel1Max,channel2Max,channel3Max])
-
-        mask = cv2.inRange(hsv, lower, upper)
-        kernel = np.ones((5,5),np.uint8)
-        mask = cv2.dilate(mask,kernel,iterations=5)
-        mask = cv2.erode(mask,kernel,iterations=4)
-        image = cv2.bitwise_and(image,image, mask=mask)
-        image = cv2.bitwise_not(image,image, mask=mask)
-        image = (255 - image)
-        return image
+    def RemoveBackground_HSV_Green(self, image):
+        return self.RemoveBackground_HSV(image, self.greenLower, self.greenUpper)
 
     # this function will remove everything which is not yellow
-    def RemoveBackground_HSV_Yellow(self,image):
-        # modify the ‘H’ of upper to change the captured range
-        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-        channel1Min = 0.062
-        channel1Max = 0.225
-        channel2Min = 0.155
-        channel2Max = 1.000
-        channel3Min = 0.000
-        channel3Max = 1.000
-        lower = np.array([channel1Min,channel2Min,channel3Min])
-        lower = self.transfer(lower)
-        upper = np.array([channel1Max,channel2Max,channel3Max])
-        upper = self.transfer(upper)
+    def RemoveBackground_HSV_Yellow(self, image):
+        return self.RemoveBackground_HSV(image, self.yellowLower, self.yellowUpper)
 
-        mask = cv2.inRange(hsv, lower, upper)
-        kernel = np.ones((5,5),np.uint8)
-        mask = cv2.dilate(mask,kernel,iterations=5)
-        mask = cv2.erode(mask,kernel,iterations=4)
-        image = cv2.bitwise_and(image,image, mask=mask)
-        image = cv2.bitwise_not(image,image, mask=mask)
-        image = (255 - image)
-        return image
-
-    def RemoveBackground_HSV_White(self,image):
-        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-        lower = np.array([0,0,0])
-        upper = np.array([0,0,150])
-
-        mask = cv2.inRange(hsv, lower, upper)
-        kernel = np.ones((5,5),np.uint8)
-        mask = cv2.dilate(mask,kernel,iterations=5)
-        mask = cv2.erode(mask,kernel,iterations=4)
-        image = cv2.bitwise_and(image,image, mask=mask)
-        return image
+    def RemoveBackground_HSV_White(self, image):
+        return self.RemoveBackground_HSV(image, self.whiteLower, self.whiteUpper)
 
     # this function will remove everything which is not purple
-    def RemoveBackground_HSV_Purple(self,image):
-        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-        lower = np.array([125,43,46])
-        upper = np.array([155,255,255])
-
-        mask = cv2.inRange(hsv, lower, upper)
-        image = cv2.bitwise_and(image,image, mask=mask)
-        image = cv2.bitwise_not(image,image, mask=mask)
-        image = (255 - image)
-        return image
-
-    # this function will change percentage hsv to [0-360, 0-255, 0-255]
-    def transfer(self, array):
-        array[0] = array[0]*360
-        array[1] = array[1]*255
-        array[2] = array[2]*255
-        return array
+    def RemoveBackground_HSV_Purple(self, image):
+        return self.RemoveBackground_HSV(image, self.purpleLower, self.purpleUpper)
 
     # Process the image and return the contour of line, it will change image to gray scale
+    @staticmethod
     def image_process(self, img):
         imgray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY) #Convert to Gray Scale
         element = cv2.getStructuringElement(cv2.MORPH_RECT, (15, 15))
@@ -204,6 +141,7 @@ class line_detect():
         # return thresh
 
     # get the center of contour
+    @staticmethod
     def getContourCenter(self, contour):
         M = cv2.moments(contour)
 
@@ -214,6 +152,7 @@ class line_detect():
         return [x,y]
 
     # it will delete contours which area less than a specifiy threshold
+    @staticmethod
     def contour_process(self, img, h, w):
         contour = []
         for i in range(len(img)):
@@ -225,6 +164,7 @@ class line_detect():
         return contour
 
     # it will concatenate the image in array
+    @staticmethod
     def RepackImages(self, image):
         img = image[0]
         for i in range(len(image)):
@@ -232,7 +172,6 @@ class line_detect():
                 img = np.concatenate((img, image[1]), axis=0)
             if i > 1:
                 img = np.concatenate((img, image[i]), axis=0)
-
         return img
 
     # def draw(self, img, contour):
@@ -243,6 +182,7 @@ class line_detect():
     #     cv2.circle(img, (self.contourCenterX, self.middleY), 7, (255,255,255), -1) #Draw dX circle WHITE
     #     cv2.circle(img, (self.middleX, self.middleY), 3, (0,0,255), -1) #Draw middle circle RED
 
+    @staticmethod
     def getContourExtent(self, contour):
         area = cv2.contourArea(contour)
         x,y,w,h = cv2.boundingRect(contour)
@@ -315,6 +255,7 @@ class line_detect():
         return distance[::-1]
 
     # this function will detect whether there is a circle(destination) in the robot vision
+    @staticmethod
     def circle_detect(self, img):
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1,100, param1=100, param2=30, minRadius=0, maxRadius=200)
@@ -351,13 +292,12 @@ class line_detect():
                 return [50, 50]
 
 
+    @staticmethod
     def turn_R_angle(self, dir):
         if dir == 'right':
             # for time in range(1,3):
             pass
         elif dir == 'left':
-            pass
-        elif dir == 'none':
             pass
 
 def follow_line(current_color, next_color):
@@ -448,14 +388,16 @@ def compute_path(position, destination):
 
 def main():
     global destination
+
     position = 1
     destination = None
     arrived = False
-    line = line_detect()
-    cap = cv2.VideoCapture(0)
+
     # schedule = sched.scheduler(time.time, time.sleep)
     s = Server(5005)
-    # cap = cv2.VideoCapture("test.MOV")
+
+    line = line_detect()
+    cap = cv2.VideoCapture(0)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, line.width)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, line.height)
     cap.set(cv2.CAP_PROP_FPS, line.FPS_limit)
@@ -1094,7 +1036,7 @@ def main():
 
                 s.sendMotorCommand(left_motor, right_motor)
                 print('DEBUG: left motor speed: {}'.format(left_motor))
-                print('DEBUG: right motor spped: {}'.format(right_motor))
+                print('DEBUG: right motor speed: {}'.format(right_motor))
     cap.release()
     cv2.destroyAllWindows()
 
