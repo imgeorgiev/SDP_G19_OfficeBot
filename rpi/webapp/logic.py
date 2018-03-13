@@ -107,22 +107,23 @@ class line_detect():
     def RemoveBackground_HSV_Blue(self, image):
         return self.RemoveBackground_HSV(image, self.blueLower, self.blueUpper)
 
-    # this function will remove everything which is not red
+    # remove anything not red
     def RemoveBackground_HSV_Red(self, image):
         return self.RemoveBackground_HSV(image, self.redLower, self.redUpper)
 
-    # this function will remove everything which is not green
+    # remove anything not green
     def RemoveBackground_HSV_Green(self, image):
         return self.RemoveBackground_HSV(image, self.greenLower, self.greenUpper)
 
-    # this function will remove everything which is not yellow
+    # remove anything not yellow
     def RemoveBackground_HSV_Yellow(self, image):
         return self.RemoveBackground_HSV(image, self.yellowLower, self.yellowUpper)
 
+    # remove anything not white
     def RemoveBackground_HSV_White(self, image):
         return self.RemoveBackground_HSV(image, self.whiteLower, self.whiteUpper)
 
-    # this function will remove everything which is not purple
+    # remove anything not purple
     def RemoveBackground_HSV_Purple(self, image):
         return self.RemoveBackground_HSV(image, self.purpleLower, self.purpleUpper)
 
@@ -132,8 +133,8 @@ class line_detect():
         imgray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)  # Convert to Gray Scale
         element = cv2.getStructuringElement(cv2.MORPH_RECT, (15, 15))
         dst = cv2.morphologyEx(imgray, cv2.MORPH_OPEN, element)
-        ret, thresh = cv2.threshold(dst, 100, 255, cv2.THRESH_BINARY_INV)  # Get Threshold
-        _, contours, _ = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)  # Get contour
+        _, threshold = cv2.threshold(dst, 100, 255, cv2.THRESH_BINARY_INV)  # Get Threshold
+        _, contours, _ = cv2.findContours(threshold, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)  # Get contour
         # mainContour = max(contours, key=cv2.contourArea)
         # return mainContour
         return contours
@@ -146,6 +147,7 @@ class line_detect():
 
         if M["m00"] == 0:
             return 0
+
         x = int(M["m10"] / M["m00"])
         y = int(M["m01"] / M["m00"])
         return [x, y]
@@ -184,7 +186,7 @@ class line_detect():
     @staticmethod
     def getContourExtent(contour):
         area = cv2.contourArea(contour)
-        x, y, w, h = cv2.boundingRect(contour)
+        _, _, w, h = cv2.boundingRect(contour)
         rect_area = w*h*3
         if rect_area > 0:
             return (float(area) / rect_area)
@@ -205,36 +207,42 @@ class line_detect():
                 middleh = int(h/2)
                 middlew = int(w/2) - 70
                 img = self.RemoveBackground_HSV_Black(crop_img)
+
             elif color == 'RED':
                 self.image_red.append(crop_img)
                 h, w = self.image_red[i].shape[:2]
                 middleh = int(h/2)
                 middlew = int(w/2) - 70
                 img = self.RemoveBackground_HSV_Red(crop_img)
+
             elif color == 'BLUE':
                 self.image_blue.append(crop_img)
                 h, w = self.image_blue[i].shape[:2]
                 middleh = int(h/2)
                 middlew = int(w/2) - 70
                 img = self.RemoveBackground_HSV_Blue(crop_img)
+
             elif color == 'GREEN':
                 self.image_green.append(crop_img)
                 h, w = self.image_green[i].shape[:2]
                 middleh = int(h/2)
                 middlew = int(w/2) - 70
                 img = self.RemoveBackground_HSV_Green(crop_img)
+
             elif color == 'YELLOW':
                 self.image_yellow.append(crop_img)
                 h, w = self.image_yellow[i].shape[:2]
                 middleh = int(h/2)
                 middlew = int(w/2) - 70
                 img = self.RemoveBackground_HSV_Yellow(crop_img)
+
             elif color == 'PURPLE':
                 self.image_purple.append(crop_img)
                 h, w = self.image_purple[i].shape[:2]
                 middleh = int(h/2)
                 middlew = int(w/2) - 70
                 img = self.RemoveBackground_HSV_Purple(crop_img)
+
             contours = self.image_process(img)
             contours = self.contour_process(contours, h, w)
             # print(contours)
