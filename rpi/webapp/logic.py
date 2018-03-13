@@ -32,8 +32,6 @@ def log_success():
 class line_detect():
 
     def __init__(self):
-        # self.width = 640
-        # self.height = 480
         self.width = 320
         self.height = 240
         self.image_black = []
@@ -254,7 +252,7 @@ class line_detect():
 
     # this is the main function which will return an array which contains all distance bias for every point
     def SlicePart(self, im, slice, color):
-        sl = int(self.height/slice);
+        sl = int(self.height/slice)
         distance = []
 
         for i in range(slice):
@@ -452,30 +450,23 @@ def compute_path(position, destination):
     log.close()
     return [first_junction, second_junction, pos_colour, dest_colour]
 
-if __name__ == '__main__':
 
+def main():
+    global destination
     position = 1
     destination = None
     arrived = False
-
     line = line_detect()
     cap = cv2.VideoCapture(0)
     # schedule = sched.scheduler(time.time, time.sleep)
     s = Server(5005)
     # cap = cv2.VideoCapture("test.MOV")
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH,line.width)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT,line.height)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, line.width)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, line.height)
     cap.set(cv2.CAP_PROP_FPS, line.FPS_limit)
-    prev_l = 0
-    prev_r = 0
-    # turn = False
-    # while(1):
-    #     s.sendMotorCommand(0,50)
-    #     pring('DEBUG: Test for sending (0,50) to ev3')
 
     # file ping counter
     file_ping = 0
-
     while True:
         ############################# LOGIC ##############################
         file_ping = file_ping % 100
@@ -494,9 +485,8 @@ if __name__ == '__main__':
                     file.truncate()
                     file.close()
                     print("MANUAL OVERRIDE TRIGGERED.")
-                    while(True):
-                        # TO-DO: trigger ps4 controls, and periodically check
-                        # for 200 code to remove manual override
+                    while True:
+                        # TODO: trigger ps4 controls, and periodically check for 200 code to remove manual override
                         pass
 
                 file.seek(0)
@@ -553,25 +543,25 @@ if __name__ == '__main__':
 
             ############################# assumption code #################
             # if the robot doesn't turn:
-                # if distance_Black:
-                    # if not some_color(get from webapp):
-                        # line_following(black)
-                    # elif some_color(get from webapp):
-                        # line_following(some_color):
-                # elif not distance_Black:
-                    # if not some_color(get from webapp):
-                        # turn_itself
-                    # elif some_color:
-                        # line_following(some_color)
+            # if distance_Black:
+            # if not some_color(get from webapp):
+            # line_following(black)
+            # elif some_color(get from webapp):
+            # line_following(some_color):
+            # elif not distance_Black:
+            # if not some_color(get from webapp):
+            # turn_itself
+            # elif some_color:
+            # line_following(some_color)
 
             # if the robot has already turned:
-                # if signal detected:
-                    # decide turn left or right
-                    # turn left or right, until signal at a "specific position".
-                    # reset turn
-                    # line_following(black)
-                # if not signal detected:
-                    # line_following(some_color)
+            # if signal detected:
+            # decide turn left or right
+            # turn left or right, until signal at a "specific position".
+            # reset turn
+            # line_following(black)
+            # if not signal detected:
+            # line_following(some_color)
 
             ############################# send command to ev3 ###################
             # schedule.enter(1, 1, s.sendMotorCommand, argument=(int(left_motor), int(right_motor)))
@@ -1112,3 +1102,6 @@ if __name__ == '__main__':
                 print('DEBUG: right motor spped: {}'.format(right_motor))
     cap.release()
     cv2.destroyAllWindows()
+
+if __name__ == '__main__':
+    main()
