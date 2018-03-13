@@ -315,15 +315,10 @@ class line_detect():
         return distance[::-1]
 
     # this function will detect whether there is a circle(destination) in the robot vision
-    def dest_detect(self, img):
-        decision = True
+    def circle_detect(self, img):
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1,100, param1=100, param2=30, minRadius=0, maxRadius=200)
-        try:
-            circles.any()
-        except:
-            decision = False
-        return decision
+        return (circles is not None)
 
     # through the distance bias array, we can use this function to reach line_following
     def line_following(self, distance):
@@ -521,7 +516,7 @@ def main():
             line.image_yellow = []
             line.image_white = []
             prev_dest = 'white'
-            circle = line.dest_detect(readFrame)
+            circleInFrame = line.circle_detect(readFrame)
 
             ############################# HSV TEST ##############################
             HSV_black = line.RemoveBackground_HSV_Black(readFrame)
@@ -575,9 +570,9 @@ def main():
             else:
                 if first_junction == 'none':
                     if dest_color == 'red':
-                        if distance_Red and not circle:
+                        if distance_Red and not circleInFrame:
                             line.turn_R_angle(second_junction)
-                        elif distance_Red and circle:
+                        elif distance_Red and circleInFrame:
                             prev_dest = dest_color
                             arrived = False
                             log_success()
@@ -585,9 +580,9 @@ def main():
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
                     elif dest_color == 'blue':
-                        if distance_Blue and not circle:
+                        if distance_Blue and not circleInFrame:
                             line.turn_R_angle(second_junction)
-                        elif distance_Blue and circle:
+                        elif distance_Blue and circleInFrame:
                             prev_dest = dest_color
                             arrived = False
                             log_success()
@@ -595,9 +590,9 @@ def main():
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
                     elif dest_color == 'green':
-                        if distance_Green and not circle:
+                        if distance_Green and not circleInFrame:
                             line.turn_R_angle(second_junction)
-                        elif distance_Green and circle:
+                        elif distance_Green and circleInFrame:
                             prev_dest = dest_color
                             arrived = False
                             log_success()
@@ -605,9 +600,9 @@ def main():
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
                     elif dest_color == 'yellow':
-                        if distance_Yellow and not circle:
+                        if distance_Yellow and not circleInFrame:
                             line.turn_R_angle(second_junction)
-                        elif distance_Yellow and circle:
+                        elif distance_Yellow and circleInFrame:
                             prev_dest = dest_color
                             arrived = False
                             log_success()
@@ -615,9 +610,9 @@ def main():
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
                     elif dest_color == 'purple':
-                        if distance_Purple and not circle:
+                        if distance_Purple and not circleInFrame:
                             line.turn_R_angle(second_junction)
-                        elif distance_Purple and circle:
+                        elif distance_Purple and circleInFrame:
                             prev_dest = dest_color
                             arrived = False
                             log_success()
@@ -625,9 +620,9 @@ def main():
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
                     elif dest_color == 'white':
-                        if distance_White and not circle:
+                        if distance_White and not circleInFrame:
                             line.turn_R_angle(second_junction)
-                        elif distance_White and circle:
+                        elif distance_White and circleInFrame:
                             prev_dest = dest_color
                             arrived = False
                             log_success()
@@ -639,9 +634,9 @@ def main():
                 # Only post_color is detected, then call turn_R_angle
                 elif second_junction == 'none':
                     if pos_color == 'red':
-                        if distance_Red and not circle:
+                        if distance_Red and not circleInFrame:
                             line.turn_R_angle(first_junction)
-                        elif distance_Red and circle:
+                        elif distance_Red and circleInFrame:
                             prev_dest = dest_color
                             arrived = False
                             log_success()
@@ -649,9 +644,9 @@ def main():
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
                     elif pos_color == 'blue':
-                        if distance_Blue and not circle:
+                        if distance_Blue and not circleInFrame:
                             line.turn_R_angle(first_junction)
-                        elif distance_Blue and circle:
+                        elif distance_Blue and circleInFrame:
                             prev_dest = dest_color
                             arrived = False
                             log_success()
@@ -659,9 +654,9 @@ def main():
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
                     elif pos_color == 'green':
-                        if distance_Green and not circle:
+                        if distance_Green and not circleInFrame:
                             line.turn_R_angle(first_junction)
-                        elif distance_Green and circle:
+                        elif distance_Green and circleInFrame:
                             prev_dest = dest_color
                             arrived = False
                             log_success()
@@ -669,9 +664,9 @@ def main():
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
                     elif pos_color == 'yellow':
-                        if distance_Yellow and not circle:
+                        if distance_Yellow and not circleInFrame:
                             line.turn_R_angle(first_junction)
-                        elif distance_Yellow and circle:
+                        elif distance_Yellow and circleInFrame:
                             prev_dest = dest_color
                             arrived = False
                             log_success()
@@ -679,9 +674,9 @@ def main():
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
                     elif pos_color == 'purple':
-                        if distance_Purple and not circle:
+                        if distance_Purple and not circleInFrame:
                             line.turn_R_angle(first_junction)
-                        elif distance_Purple and circle:
+                        elif distance_Purple and circleInFrame:
                             prev_dest = dest_color
                             arrived = False
                             log_success()
@@ -689,9 +684,9 @@ def main():
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
                     elif pos_color == 'white':
-                        if distance_White and not circle:
+                        if distance_White and not circleInFrame:
                             line.turn_R_angle(first_junction)
-                        elif distance_White and circle:
+                        elif distance_White and circleInFrame:
                             prev_dest = dest_color
                             arrived = False
                             log_success()
@@ -705,9 +700,9 @@ def main():
                     if pos_color == 'blue' and dest_color == 'red':
                         if distance_Blue:
                             line.turn_R_angle(first_junction)
-                        elif distance_Red and not circle:
+                        elif distance_Red and not circleInFrame:
                             line.turn_R_angle(second_junction)
-                        elif distance_Red and circle:
+                        elif distance_Red and circleInFrame:
                             prev_dest = dest_color
                             arrived = False
                             log_success()
@@ -717,9 +712,9 @@ def main():
                     elif pos_color == 'red' and dest_color == 'blue':
                         if distance_Red:
                             line.turn_R_angle(first_junction)
-                        elif distance_Blue and not circle:
+                        elif distance_Blue and not circleInFrame:
                             line.turn_R_angle(second_junction)
-                        elif distance_Blue and circle:
+                        elif distance_Blue and circleInFrame:
                             prev_dest = dest_color
                             arrived = False
                             log_success()
@@ -730,9 +725,9 @@ def main():
                     elif pos_color == 'yellow' and dest_color == 'red':
                         if distance_Yellow:
                             line.turn_R_angle(first_junction)
-                        elif distance_Red and not circle:
+                        elif distance_Red and not circleInFrame:
                             line.turn_R_angle(second_junction)
-                        elif distance_Red and circle:
+                        elif distance_Red and circleInFrame:
                             prev_dest = dest_color
                             arrived = False
                             log_success()
@@ -742,9 +737,9 @@ def main():
                     elif pos_color == 'red' and dest_color == 'yellow':
                         if distance_Red:
                             line.turn_R_angle(first_junction)
-                        elif distance_Yellow and not circle:
+                        elif distance_Yellow and not circleInFrame:
                             line.turn_R_angle(second_junction)
-                        elif distance_Yellow and circle:
+                        elif distance_Yellow and circleInFrame:
                             prev_dest = dest_color
                             arrived = False
                             log_success()
@@ -755,9 +750,9 @@ def main():
                     elif pos_color == 'green' and dest_color == 'red':
                         if distance_Green:
                             line.turn_R_angle(first_junction)
-                        elif distance_Red and not circle:
+                        elif distance_Red and not circleInFrame:
                             line.turn_R_angle(second_junction)
-                        elif distance_Red and circle:
+                        elif distance_Red and circleInFrame:
                             prev_dest = dest_color
                             arrived = False
                             log_success()
@@ -767,9 +762,9 @@ def main():
                     elif pos_color == 'red' and dest_color == 'green':
                         if distance_Red:
                             line.turn_R_angle(first_junction)
-                        elif distance_Green and not circle:
+                        elif distance_Green and not circleInFrame:
                             line.turn_R_angle(second_junction)
-                        elif distance_Green and circle:
+                        elif distance_Green and circleInFrame:
                             prev_dest = dest_color
                             arrived = False
                             log_success()
@@ -780,9 +775,9 @@ def main():
                     elif pos_color == 'green' and dest_color == 'red':
                         if distance_Green:
                             line.turn_R_angle(first_junction)
-                        elif distance_Red and not circle:
+                        elif distance_Red and not circleInFrame:
                             line.turn_R_angle(second_junction)
-                        elif distance_Red and circle:
+                        elif distance_Red and circleInFrame:
                             prev_dest = dest_color
                             arrived = False
                             log_success()
@@ -792,9 +787,9 @@ def main():
                     elif pos_color == 'red' and dest_color == 'green':
                         if distance_Red:
                             line.turn_R_angle(first_junction)
-                        elif distance_Green and not circle:
+                        elif distance_Green and not circleInFrame:
                             line.turn_R_angle(second_junction)
-                        elif distance_Green and circle:
+                        elif distance_Green and circleInFrame:
                             prev_dest = dest_color
                             arrived = False
                             log_success()
@@ -805,9 +800,9 @@ def main():
                     elif pos_color == 'purple' and dest_color == 'red':
                         if distance_Purple:
                             line.turn_R_angle(first_junction)
-                        elif distance_Red and not circle:
+                        elif distance_Red and not circleInFrame:
                             line.turn_R_angle(second_junction)
-                        elif distance_Red and circle:
+                        elif distance_Red and circleInFrame:
                             prev_dest = dest_color
                             arrived = False
                             log_success()
@@ -817,9 +812,9 @@ def main():
                     elif pos_color == 'red' and dest_color == 'purple':
                         if distance_Red:
                             line.turn_R_angle(first_junction)
-                        elif distance_Purple and not circle:
+                        elif distance_Purple and not circleInFrame:
                             line.turn_R_angle(second_junction)
-                        elif distance_Purple and circle:
+                        elif distance_Purple and circleInFrame:
                             prev_dest = dest_color
                             arrived = False
                             log_success()
@@ -830,9 +825,9 @@ def main():
                     elif pos_color == 'blue' and dest_color == 'yellow':
                         if distance_Blue:
                             line.turn_R_angle(first_junction)
-                        elif distance_Yellow and not circle:
+                        elif distance_Yellow and not circleInFrame:
                             line.turn_R_angle(second_junction)
-                        elif distance_Yellow and circle:
+                        elif distance_Yellow and circleInFrame:
                             prev_dest = dest_color
                             arrived = False
                             log_success()
@@ -842,9 +837,9 @@ def main():
                     elif pos_color == 'yellow' and dest_color == 'blue':
                         if distance_Yellow:
                             line.turn_R_angle(first_junction)
-                        elif distance_Blue and not circle:
+                        elif distance_Blue and not circleInFrame:
                             line.turn_R_angle(second_junction)
-                        elif distance_Blue and circle:
+                        elif distance_Blue and circleInFrame:
                             prev_dest = dest_color
                             arrived = False
                             log_success()
@@ -855,9 +850,9 @@ def main():
                     elif pos_color == 'blue' and dest_color == 'green':
                         if distance_Blue:
                             line.turn_R_angle(first_junction)
-                        elif distance_Green and not circle:
+                        elif distance_Green and not circleInFrame:
                             line.turn_R_angle(second_junction)
-                        elif distance_Green and circle:
+                        elif distance_Green and circleInFrame:
                             prev_dest = dest_color
                             arrived = False
                             log_success()
@@ -867,9 +862,9 @@ def main():
                     elif pos_color == 'green' and dest_color == 'blue':
                         if distance_Green:
                             line.turn_R_angle(first_junction)
-                        elif distance_Blue and not circle:
+                        elif distance_Blue and not circleInFrame:
                             line.turn_R_angle(second_junction)
-                        elif distance_Blue and circle:
+                        elif distance_Blue and circleInFrame:
                             prev_dest = dest_color
                             arrived = False
                             log_success()
@@ -880,9 +875,9 @@ def main():
                     elif pos_color == 'blue' and dest_color == 'purple':
                         if distance_Blue:
                             line.turn_R_angle(first_junction)
-                        elif distance_Purple and not circle:
+                        elif distance_Purple and not circleInFrame:
                             line.turn_R_angle(second_junction)
-                        elif distance_Purple and circle:
+                        elif distance_Purple and circleInFrame:
                             prev_dest = dest_color
                             arrived = False
                             log_success()
@@ -892,9 +887,9 @@ def main():
                     elif pos_color == 'purple' and dest_color == 'blue':
                         if distance_Purple:
                             line.turn_R_angle(first_junction)
-                        elif distance_Blue and not circle:
+                        elif distance_Blue and not circleInFrame:
                             line.turn_R_angle(second_junction)
-                        elif distance_Blue and circle:
+                        elif distance_Blue and circleInFrame:
                             prev_dest = dest_color
                             arrived = False
                             log_success()
@@ -905,9 +900,9 @@ def main():
                     elif pos_color == 'yellow' and dest_color == 'green':
                         if distance_Yellow:
                             line.turn_R_angle(first_junction)
-                        elif distance_Green and not circle:
+                        elif distance_Green and not circleInFrame:
                             line.turn_R_angle(second_junction)
-                        elif distance_Green and circle:
+                        elif distance_Green and circleInFrame:
                             prev_dest = dest_color
                             arrived = False
                             log_success()
@@ -917,9 +912,9 @@ def main():
                     elif pos_color == 'green' and dest_color == 'yellow':
                         if distance_Green:
                             line.turn_R_angle(first_junction)
-                        elif distance_Yellow and not circle:
+                        elif distance_Yellow and not circleInFrame:
                             line.turn_R_angle(second_junction)
-                        elif distance_Yellow and circle:
+                        elif distance_Yellow and circleInFrame:
                             prev_dest = dest_color
                             arrived = False
                             log_success()
@@ -930,9 +925,9 @@ def main():
                     elif pos_color == 'yellow' and dest_color == 'purple':
                         if distance_Yellow:
                             line.turn_R_angle(first_junction)
-                        elif distance_Purple and not circle:
+                        elif distance_Purple and not circleInFrame:
                             line.turn_R_angle(second_junction)
-                        elif distance_Purple and circle:
+                        elif distance_Purple and circleInFrame:
                             prev_dest = dest_color
                             arrived = False
                             log_success()
@@ -942,9 +937,9 @@ def main():
                     elif pos_color == 'purple' and dest_color == 'yellow':
                         if distance_Purple:
                             line.turn_R_angle(first_junction)
-                        elif distance_Yellow and not circle:
+                        elif distance_Yellow and not circleInFrame:
                             line.turn_R_angle(second_junction)
-                        elif distance_Yellow and circle:
+                        elif distance_Yellow and circleInFrame:
                             prev_dest = dest_color
                             arrived = False
                             log_success()
@@ -955,9 +950,9 @@ def main():
                     elif pos_color == 'green' and dest_color == 'purple':
                         if distance_Green:
                             line.turn_R_angle(first_junction)
-                        elif distance_Purple and not circle:
+                        elif distance_Purple and not circleInFrame:
                             line.turn_R_angle(second_junction)
-                        elif distance_Purple and circle:
+                        elif distance_Purple and circleInFrame:
                             prev_dest = dest_color
                             arrived = False
                             log_success()
@@ -967,9 +962,9 @@ def main():
                     elif pos_color == 'purple' and dest_color == 'green':
                         if distance_Purple:
                             line.turn_R_angle(first_junction)
-                        elif distance_Green and not circle:
+                        elif distance_Green and not circleInFrame:
                             line.turn_R_angle(second_junction)
-                        elif distance_Green and circle:
+                        elif distance_Green and circleInFrame:
                             prev_dest = dest_color
                             log_success()
                             arrived = False
@@ -979,9 +974,9 @@ def main():
                     elif pos_color == 'white' and dest_color == 'purple':
                         if distance_White:
                             line.turn_R_angle(first_junction)
-                        elif distance_Purple and not circle:
+                        elif distance_Purple and not circleInFrame:
                             line.turn_R_angle(second_junction)
-                        elif distance_Purple and circle:
+                        elif distance_Purple and circleInFrame:
                             prev_dest = dest_color
                             arrived = False
                             log_success()
@@ -991,9 +986,9 @@ def main():
                     elif pos_color == 'purple' and dest_color == 'white':
                         if distance_Purple:
                             line.turn_R_angle(first_junction)
-                        elif distance_White and not circle:
+                        elif distance_White and not circleInFrame:
                             line.turn_R_angle(second_junction)
-                        elif distance_White and circle:
+                        elif distance_White and circleInFrame:
                             prev_dest = dest_color
                             log_success()
                             arrived = False
@@ -1003,9 +998,9 @@ def main():
                     elif pos_color == 'white' and dest_color == 'red':
                         if distance_White:
                             line.turn_R_angle(first_junction)
-                        elif distance_Red and not circle:
+                        elif distance_Red and not circleInFrame:
                             line.turn_R_angle(second_junction)
-                        elif distance_Red and circle:
+                        elif distance_Red and circleInFrame:
                             prev_dest = dest_color
                             arrived = False
                             log_success()
@@ -1015,9 +1010,9 @@ def main():
                     elif pos_color == 'red' and dest_color == 'white':
                         if distance_Red:
                             line.turn_R_angle(first_junction)
-                        elif distance_White and not circle:
+                        elif distance_White and not circleInFrame:
                             line.turn_R_angle(second_junction)
-                        elif distance_White and circle:
+                        elif distance_White and circleInFrame:
                             prev_dest = dest_color
                             log_success()
                             arrived = False
@@ -1027,9 +1022,9 @@ def main():
                     elif pos_color == 'white' and dest_color == 'blue':
                         if distance_White:
                             line.turn_R_angle(first_junction)
-                        elif distance_Blue and not circle:
+                        elif distance_Blue and not circleInFrame:
                             line.turn_R_angle(second_junction)
-                        elif distance_Blue and circle:
+                        elif distance_Blue and circleInFrame:
                             prev_dest = dest_color
                             arrived = False
                             log_success()
@@ -1039,9 +1034,9 @@ def main():
                     elif pos_color == 'blue' and dest_color == 'white':
                         if distance_Blue:
                             line.turn_R_angle(first_junction)
-                        elif distance_White and not circle:
+                        elif distance_White and not circleInFrame:
                             line.turn_R_angle(second_junction)
-                        elif distance_White and circle:
+                        elif distance_White and circleInFrame:
                             prev_dest = dest_color
                             log_success()
                             arrived = False
@@ -1051,9 +1046,9 @@ def main():
                     elif pos_color == 'white' and dest_color == 'yellow':
                         if distance_White:
                             line.turn_R_angle(first_junction)
-                        elif distance_Yellow and not circle:
+                        elif distance_Yellow and not circleInFrame:
                             line.turn_R_angle(second_junction)
-                        elif distance_Yellow and circle:
+                        elif distance_Yellow and circleInFrame:
                             prev_dest = dest_color
                             arrived = False
                             log_success()
@@ -1063,9 +1058,9 @@ def main():
                     elif pos_color == 'yellow' and dest_color == 'white':
                         if distance_Yellow:
                             line.turn_R_angle(first_junction)
-                        elif distance_White and not circle:
+                        elif distance_White and not circleInFrame:
                             line.turn_R_angle(second_junction)
-                        elif distance_White and circle:
+                        elif distance_White and circleInFrame:
                             prev_dest = dest_color
                             log_success()
                             arrived = False
@@ -1075,9 +1070,9 @@ def main():
                     elif pos_color == 'white' and dest_color == 'green':
                         if distance_White:
                             line.turn_R_angle(first_junction)
-                        elif distance_Green and not circle:
+                        elif distance_Green and not circleInFrame:
                             line.turn_R_angle(second_junction)
-                        elif distance_Green and circle:
+                        elif distance_Green and circleInFrame:
                             prev_dest = dest_color
                             arrived = False
                             log_success()
@@ -1087,9 +1082,9 @@ def main():
                     elif pos_color == 'green' and dest_color == 'white':
                         if distance_Green:
                             line.turn_R_angle(first_junction)
-                        elif distance_White and not circle:
+                        elif distance_White and not circleInFrame:
                             line.turn_R_angle(second_junction)
-                        elif distance_White and circle:
+                        elif distance_White and circleInFrame:
                             prev_dest = dest_color
                             log_success()
                             arrived = False
