@@ -277,9 +277,11 @@ class line_detect():
             elif num == 4:
                 bias = [i*j for i, j in zip(distance, self.weight_4)]
                 bias = sum(bias)
+
             # bias = sum(distance)
-            print('the distance list is {}'.format(distance))
-            print('the bias is {}'.format(bias))
+            print('The distance list is {}'.format(distance))
+            print('The bias is {}'.format(bias))
+
             speed = attenuate(bias/4, -40, 40)
             if abs(bias) > self.threshold:
                 if bias > 0:
@@ -443,6 +445,7 @@ def main():
             file.close()
             # time.sleep(1) # pings file every second
         file_ping += 1
+
         ############################# CAMERA ##############################
         inputFrameExists, readFrame = cap.read()
         if not inputFrameExists:
@@ -471,7 +474,7 @@ def main():
             ############################# get distance between middle of vision and line #########################
             distance_Black = line.SlicePart(HSV_black, line.slice, 'BLACK')
             distance_Blue = line.SlicePart(HSV_blue, line.slice, 'BLUE')
-            distance_Green = line.SlicePart(readFrame, line.slice, 'GREEN')
+            distance_Green = line.SlicePart(HSV_green, line.slice, 'GREEN')
             distance_Red = line.SlicePart(HSV_red, line.slice, 'RED')
             distance_Yellow = line.SlicePart(HSV_yellow, line.slice, 'YELLOW')
             distance_Purple = line.SlicePart(HSV_purple, line.slice, 'PURPLE')
