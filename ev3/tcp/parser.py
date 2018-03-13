@@ -148,7 +148,7 @@ class CustomMotor:
         return self.motor.speed > 0
 
     def turn(self, degrees):
-        self.motor.run_to_rel_pos(degrees*GEAR_RATIO)
+        self.motor.run_to_rel_pos(position_sp=degrees*GEAR_RATIO)
 
 # turns the robot clockwise by degrees
 def turn(motors, degrees):
