@@ -27,7 +27,8 @@ def log_success():
     print("MOVED TO " + str(destination) + ". BACK TO PINGING FILE.")
     log.close()
 
-# noinspection PyPep8Naming
+
+# noinspection PyPep8Naming,PyRedundantParentheses
 class line_detect():
     def __init__(self):
         self.width = 320
@@ -127,7 +128,7 @@ class line_detect():
 
     # Process the image and return the contour of line, it will change image to gray scale
     @staticmethod
-    def image_process(self, img):
+    def image_process(img):
         imgray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)  # Convert to Gray Scale
         element = cv2.getStructuringElement(cv2.MORPH_RECT, (15, 15))
         dst = cv2.morphologyEx(imgray, cv2.MORPH_OPEN, element)
@@ -140,7 +141,7 @@ class line_detect():
 
     # get the center of contour
     @staticmethod
-    def getContourCenter(self, contour):
+    def getContourCenter(contour):
         M = cv2.moments(contour)
 
         if M["m00"] == 0:
@@ -151,7 +152,7 @@ class line_detect():
 
     # it will delete contours which area less than a specifiy threshold
     @staticmethod
-    def contour_process(self, img, h, w):
+    def contour_process(img, h, w):
         contour = []
         for i in range(len(img)):
             cnt = img[i]
@@ -163,7 +164,7 @@ class line_detect():
 
     # it will concatenate the image in array
     @staticmethod
-    def RepackImages(self, image):
+    def RepackImages(image):
         img = image[0]
         for i in range(len(image)):
             if i == 0:
@@ -181,7 +182,7 @@ class line_detect():
     #     cv2.circle(img, (self.middleX, self.middleY), 3, (0,0,255), -1) #Draw middle circle RED
 
     @staticmethod
-    def getContourExtent(self, contour):
+    def getContourExtent(contour):
         area = cv2.contourArea(contour)
         x, y, w, h = cv2.boundingRect(contour)
         rect_area = w*h*3
@@ -254,7 +255,7 @@ class line_detect():
 
     # this function will detect whether there is a circle(destination) in the robot vision
     @staticmethod
-    def circle_detect(self, img):
+    def circle_detect(img):
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, 100, param1=100, param2=30, minRadius=0, maxRadius=200)
         return (circles is not None)
@@ -291,7 +292,6 @@ class line_detect():
             else:
                 return [50, 50]
 
-    @staticmethod
     def turn_R_angle(self, dir):
         if dir == 'right':
             # for time in range(1,3):
@@ -307,6 +307,7 @@ def follow_line(current_color, next_color):
     pass
 
 
+# noinspection PyRedundantParentheses
 def compute_path(position, destination):
     # Debugging
     log = open("log.txt", "a+")
@@ -480,7 +481,7 @@ def main():
             distance_Purple = line.SlicePart(HSV_purple, line.slice, 'PURPLE')
             distance_White = line.SlicePart(HSV_white, line.slice, 'WHITE')
 
-            ############################# assumption code #################
+            ############################# pseudocode #################
             # if the robot doesn't turn:
             # if distance_Black:
             # if not some_color(get from webapp):
