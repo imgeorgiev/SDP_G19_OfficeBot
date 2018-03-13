@@ -30,7 +30,7 @@ class TimeoutThread(Thread):
         self.server = server
         self.timeout = timeout
         self.count = 0
-
+        
     def run(self):
         TCPServer.debug("TimeoutThread starting")
         self.isRunning = True
@@ -41,7 +41,7 @@ class TimeoutThread(Thread):
             if self.count == 100 * self.timeout:
                 self.isRunning = False
                 isTimeout = True
-        if isTimeout:
+        if isTimeout:        
             TCPServer.debug("TimeoutThread terminated with timeout")
             self.server.disconnect()
         else:         
@@ -65,7 +65,7 @@ class TCPServer(Thread):
     TERMINATED = "TERMINATED"
     MESSAGE = "MESSAGE"
 
-    def __init__(self, port, stateChanged, endOfBlock = '\0', isVerbose = False):
+    def __init__(self, port, stateChanged, endOfBlock = b'\0', isVerbose = False):
         '''
         Creates a TCP socket server that listens on TCP port
         for a connecting client. The server runs in its own thread, so the
@@ -145,7 +145,7 @@ class TCPServer(Thread):
             self.socketHandler = ServerHandler(self, self.endOfBlock)
             self.socketHandler.setDaemon(True)  # necessary to terminate thread at program termination
             self.socketHandler.start()
-            try: 
+            try:
                 self.stateChanged(TCPServer.CONNECTED, self.addr[0])
             except Exception as e:
                 print("Caught exception in TCPServer.CONNECTED:", e)
@@ -206,7 +206,8 @@ class TCPServer(Thread):
             TCPServer.debug("Not connected")
             return
         try:
-            self.conn.sendall((msg + self.endOfBlock).encode())
+            msg += "\0"  # Append \0
+            self.conn.sendall(msg.encode())
         except:
             TCPClient.debug("Exception in sendMessage()")
 
@@ -264,7 +265,7 @@ class TCPServer(Thread):
    
 # ---------------------- class ServerHandler ------------------------
 class ServerHandler(Thread):
-    def __init__(self, server, endOfBlock):
+    def __init__(self, server, endOfBlock=b'\0'):
         Thread.__init__(self)
         self.server = server
         self.endOfBlock = endOfBlock
@@ -282,21 +283,22 @@ class ServerHandler(Thread):
                 reply = ""
                 isRunning = True
                 while not reply[-1:] == self.endOfBlock:
-                    TCPServer.debug("Calling blocking conn.recv()")
+                    TCPServer.debug("Calling blocking conn.recv() " + str(bufSize))
                     reply = self.server.conn.recv(bufSize)
-                    TCPServer.debug("Returned from conn.recv() with " + str(reply))
+                    TCPServer.debug("Returned from conn.recv() with " + str(reply.decode()))
                     if reply == None or len(reply) == 0: # Client disconnected
                         TCPServer.debug("conn.recv() returned None")
                         isRunning = False
                         break
-                    data += reply
+                    data += reply.decode()
                 if not isRunning:
                     break
                 TCPServer.debug("Received msg: " + data + "; len: " + str(len(data)))
-                junk = data.split(self.endOfBlock)  # more than 1 message may be received if
+                junk = data.split(self.endOfBlock.decode())  # more than 1 message may be received if
                                          # transfer is fast. data: xxxx<eob>yyyyy<eol>zzz<eob>
                 for i in range(len(junk) - 1):
                     try:
+                        TCPServer.debug("Returning message to state changer")
                         self.server.stateChanged(TCPServer.MESSAGE, junk[i]) # eol is not included
                     except Exception as e:
                         print("Caught exception in TCPServer.MESSAGE:", e)
@@ -307,6 +309,7 @@ class ServerHandler(Thread):
                      return
                 if timeoutThread != None:
                     timeoutThread.reset() 
+                return
         except:  # May happen if client peer is resetted
             TCPServer.debug("Exception from blocking conn.recv(), Msg: " + str(sys.exc_info()[0]) + \
               " at line # " +  str(sys.exc_info()[-1].tb_lineno))
@@ -574,7 +577,7 @@ class HTTPServer(TCPServer):
         except:
             pass # registerStopFunction not defined (e.g. on Raspberry Pi)
     
-        TCPServer.__init__(self, port, stateChanged = self.onStateChanged, endOfBlock = '\n', isVerbose = isVerbose)
+        TCPServer.__init__(self, port, stateChanged = self.onStateChanged, endOfBlock = '\0', isVerbose = isVerbose)
         self.serverName = serverName
         self.requestHandler = requestHandler
         self.port = port
