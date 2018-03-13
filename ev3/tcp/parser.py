@@ -15,7 +15,7 @@ from tcpcom_py3 import TCPClient
 import ev3dev.auto as ev3
 from time import sleep
 
-server_ip = "10.42.0.1"
+server_ip = "169.254.23.50"
 server_port = 5005
 
 colorList = ("R", "W", "BW", "N", "BK", "BL", "G", "Y")
@@ -23,7 +23,7 @@ colorList = ("R", "W", "BW", "N", "BK", "BL", "G", "Y")
 GEAR_RATIO = 3
 
 def main():
-    global leftMotor, rightMotor, ultrasonicSensor, client, isConnected
+    global client
     # initialise motors
     leftMotor = CustomMotor("LEFT", "A")
     rightMotor = CustomMotor("RIGHT", "D")
@@ -39,9 +39,9 @@ def main():
     try:
         while True:
             sleep(0.01)
-            # print("true loop")
             if not rc:
                 print("Client:-- Connection failed")
+                rc = client.connect()
                 sleep(1)
     except KeyboardInterrupt:
         pass
@@ -96,9 +96,8 @@ def onStateChanged(state, msg):
 
         elif(msg[0:3] == "TRN"):
             turnMessage = parseMsg(msg)
-            clockwise = int(turnMessage[0])
-            degreesToTurn = int(turnMessage[1])
-            turn([leftMotor, rightMotor], clockwise, degreesToTurn)
+            degreesToTurn = int(turnMessage[0])
+            turn([leftMotor, rightMotor], degreesToTurn)
 
         else:
             print("ERROR: Message not recognised")
@@ -149,17 +148,15 @@ class CustomMotor:
         return self.motor.speed > 0
 
     def turn(self, degrees):
-            self.motor.run_to_rel_pos(degrees*GEAR_RATIO)
+        self.motor.run_to_rel_pos(degrees*GEAR_RATIO)
 
-# turns the robot by degrees, anticlockwise if clockwise is false
-def turn(motors, clockwise, degrees):
+# turns the robot clockwise by degrees
+def turn(motors, degrees):
         leftMotor = motors[0]
         rightMotor = motors[1]
-        multiplier = 1
-        if not clockwise:
-            multiplier = -1
-        leftMotor.turn(degrees*multiplier)
-        rightMotor.turn(degrees*-multiplier)
+
+        leftMotor.turn(degrees)
+        rightMotor.turn(degrees*-1)
 
 if __name__ == '__main__':
     main()
