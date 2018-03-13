@@ -330,12 +330,14 @@ class line_detect():
 
     # this function will detect whether there is a circle(destination) in the robot vision
     def dest_detect(self, img):
+        decision = True
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1,100, param1=100, param2=30, minRadius=0, maxRadius=200)
-        if circles:
-            return True
-        else:
-            return False
+        try:
+            circles.any()
+        except:
+            decision = False
+        return decision
 
 
     # through the distance bias array, we can use this function to reach line_following
@@ -1118,7 +1120,7 @@ if __name__ == '__main__':
                             pass
                         else:
                             [left_motor, right_motor] = line.line_following(distance_Black)
-                            
+
                 s.sendMotorCommand(left_motor, right_motor)
                 print('DEBUG: left motor speed: {}'.format(left_motor))
                 print('DEBUG: right motor spped: {}'.format(right_motor))
