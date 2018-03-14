@@ -67,14 +67,6 @@ class line_detect():
             "white" : []
         }
 
-        self.image_black = []
-        self.image_blue = []
-        self.image_red = []
-        self.image_purple = []
-        self.image_green = []
-        self.image_yellow = []
-        self.image_white = []
-
         # initialising numpy upper and lower bounds for cv2 mask
         self.blackLower = np.array([0, 0, 0])
         self.blackUpper = np.array([180, 255, 75])
