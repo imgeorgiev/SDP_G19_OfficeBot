@@ -202,49 +202,51 @@ class line_detect():
             # middlew = middlew - 40
             # print(middlew)
             if color == 'BLACK':
-                self.image_black = [crop_img]
+                image_blacks = [crop_img]
+
+                self.image_black.append(crop_img)
                 h, w = self.image_black[i].shape[:2]
                 middleh = int(h/2)
                 middlew = int(w/2)
                 img = self.RemoveBackground_HSV_Black(crop_img)
 
             elif color == 'RED':
-                self.image_red = [crop_img]
+                self.image_red.append(crop_img)
                 h, w = self.image_red[i].shape[:2]
                 middleh = int(h/2)
                 middlew = int(w/2)
                 img = self.RemoveBackground_HSV_Red(crop_img)
 
             elif color == 'BLUE':
-                self.image_blue = [crop_img]
+                self.image_blue.append(crop_img)
                 h, w = self.image_blue[i].shape[:2]
                 middleh = int(h/2)
                 middlew = int(w/2)
                 img = self.RemoveBackground_HSV_Blue(crop_img)
 
             elif color == 'GREEN':
-                self.image_green = [crop_img]
+                self.image_green.append(crop_img)
                 h, w = self.image_green[i].shape[:2]
                 middleh = int(h/2)
                 middlew = int(w/2)
                 img = self.RemoveBackground_HSV_Green(crop_img)
 
             elif color == 'YELLOW':
-                self.image_yellow = [crop_img]
+                self.image_yellow.append(crop_img)
                 h, w = self.image_yellow[i].shape[:2]
                 middleh = int(h/2)
                 middlew = int(w/2)
                 img = self.RemoveBackground_HSV_Yellow(crop_img)
 
             elif color == 'PURPLE':
-                self.image_purple = [crop_img]
+                self.image_purple.append(crop_img)
                 h, w = self.image_purple[i].shape[:2]
                 middleh = int(h/2)
                 middlew = int(w/2)
                 img = self.RemoveBackground_HSV_Purple(crop_img)
 
             elif color == 'WHITE':
-                self.image_white = [crop_img]
+                self.image_white.append(crop_img)
                 h, w  = self.image_white[i].shape[:2]
                 middleh = int(h/2)
                 middlew = int(w/2)
@@ -462,6 +464,14 @@ def main():
             # the main function
             prev_dest = 'white'
             isCircleInFrame = line.circle_detect(readFrame)
+
+            line.image_red = []
+            line.image_blue = []
+            line.image_black = []
+            line.image_purple = []
+            line.image_green = []
+            line.image_yellow = []
+            line.image_white = []
 
             ############################# HSV TEST ##############################
             HSV_black = line.RemoveBackground_HSV_Black(readFrame)
