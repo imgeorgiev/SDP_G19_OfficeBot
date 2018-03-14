@@ -56,9 +56,7 @@ def index():
 
 @app.route("/manual")
 def manual_toggle():
-    global manual_control
-    global written_job
-    global CURRENTLY_WRITING
+    global manual_control, written_job, CURRENTLY_WRITING
 
     # prevent race condition
     while (CURRENTLY_WRITING):
@@ -98,11 +96,7 @@ def manual_toggle():
 
 @app.route("/<int:desk>/<action>")
 def action(desk, action):
-    global CURRENTLY_WRITING
-    global currently_processing
-    global job_queue
-    global sched_alg
-    global priorities
+    global CURRENTLY_WRITING, currently_processing, job_queue, sched_alg, priorities
 
     # prevent race condition
     while (CURRENTLY_WRITING):
@@ -176,8 +170,7 @@ def action(desk, action):
     return render_template('index.html', **templateData)
 
 def calc_distances():
-    global desks_x_y
-    global distances
+    global desks_x_y, distances
 
     nr_desks = len(desks_x_y)
     distances = np.zeros((len(desks_x_y), len(desks_x_y)))
@@ -190,11 +183,7 @@ def calc_distances():
 
 # Reorders job_queue based on the sched_alg and current job
 def reorder_jobs(alg):
-    global next_job
-    global currently_processing
-    global job_queue
-    global distances
-    global priorities
+    global next_job, currently_processing, job_queue, distances, priorities
 
     # Assumption: the desk numbers reflect their absolute order
     # Eg:
@@ -237,12 +226,7 @@ def reorder_jobs(alg):
         print("REORDER_JOBS not needed for execution.")
 
 def write_job():
-    global next_job
-    global job_queue
-    global written_job
-    global currently_processing
-    global sched_alg
-    global priorities
+    global next_job, job_queue, written_job, currently_processing, sched_alg, priorities
 
     print("**WRITE_JOB**\ncurrently_processing: " + str(currently_processing) + ".")
 
@@ -284,9 +268,7 @@ def write_job():
     print("\n")
 
 def write_to_file(f):
-    global next_job
-    global written_job
-    global job_queue
+    global next_job, written_job, job_queue
 
     f.seek(0)
     f.truncate()
@@ -298,12 +280,7 @@ def write_to_file(f):
 # Checks text file periodically, and if a job has been removed then it
 # removes it from the job_queue
 def check_file():
-    global next_job
-    global written_job
-    global job_queue
-    global CURRENTLY_WRITING
-    global currently_processing
-    global sched_alg
+    global next_job, written_job, job_queue, CURRENTLY_WRITING, currently_processing, sched_alg
 
     if (CURRENTLY_WRITING == 0):
 
