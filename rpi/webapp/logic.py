@@ -451,8 +451,8 @@ def main():
             distance_White = line.computeDistanceBiases(HSV_white, line.slice, 'white')
 
             ############################# concatenate every slice ###############
-            img_black = line.RepackImages(line.image_black)
-            img_blue = line.RepackImages(line.image_blue)
+            img_black = line.RepackImages(line.listOfArraySlicesByColor['black'])
+            img_blue = line.RepackImages(line.listOfArraySlicesByColor['blue'])
 
             # output images to screen
             cv2.imshow('img_black',img_black)
