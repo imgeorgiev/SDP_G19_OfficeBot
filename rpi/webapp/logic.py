@@ -36,10 +36,12 @@ class line_detect():
         self.height = 240
         self.slice = 4
 
-        self.weight_1 = [0.9]
-        self.weight_2 = [0.45, 0.45]
-        self.weight_3 = [0.3, 0.3, 0.3]
-        self.weight_4 = [0.23, 0.23, 0.23, 0.23]
+        weight_1 = [0.9]
+        weight_2 = [0.45, 0.45]
+        weight_3 = [0.3, 0.3, 0.3]
+        weight_4 = [0.23, 0.23, 0.23, 0.23]
+
+        self.weights = [weight_1, weight_2, weight_3, weight_4]
 
         self.threshold = 70
         self.FPS_limit = 10
@@ -193,18 +195,20 @@ class line_detect():
             return (float(area) / rect_area)
 
     # this is the main function which will return an array which contains all distance bias for every point
-    def SlicePart(self, im, slice, color):
-        sl = int(self.height / slice)
+    def computeDistanceBiases(self, image, numberOfSlices, color):
+        # divide the image horizontally into numberOfSlices
+        # compute the
+
+
+        sliceHeight = int(self.height / numberOfSlices)
         distance = []
 
-        for i in range(slice):
-            part = sl*i
-            crop_img = im[part:part + sl, 0:self.width]
+        for i in range(numberOfSlices):
+            part = sliceHeight*i
+            crop_img = image[part:part + sliceHeight, 0:self.width]
             # middlew = middlew - 40
             # print(middlew)
             if color == 'black':
-                image_blacks = [crop_img]
-
                 self.image_black.append(crop_img)
                 h, w = self.image_black[i].shape[:2]
                 middleh = int(h/2)
@@ -284,24 +288,15 @@ class line_detect():
         # send command to ev3
         if distance:
             num = len(distance)
-            if num == 1:
-                bias = [i*j for i, j in zip(distance, self.weight_1)]
-                bias = sum(bias)
-            elif num == 2:
-                bias = [i*j for i, j in zip(distance, self.weight_2)]
-                bias = sum(bias)
-            elif num == 3:
-                bias = [i*j for i, j in zip(distance, self.weight_3)]
-                bias = sum(bias)
-            elif num == 4:
-                bias = [i*j for i, j in zip(distance, self.weight_4)]
-                bias = sum(bias)
+            bias = [i*j for i, j in zip(distance, self.weights[num])]
+            bias = sum(bias)
 
             # bias = sum(distance)
             print('The distance list is {}'.format(distance))
             print('The bias is {}'.format(bias))
 
             speed = attenuate(bias/6, -40, 40)
+
             if abs(bias) > self.threshold:
                 if bias > 0:
                     return [20 - speed, 20 + speed]
@@ -484,13 +479,13 @@ def main():
             HSV_white = line.RemoveBackground_HSV_White(readFrame)
 
             ############################# get distance between middle of vision and line #########################
-            distance_Black = line.SlicePart(HSV_black, line.slice, 'black')
-            distance_Blue = line.SlicePart(HSV_blue, line.slice, 'blue')
-            distance_Green = line.SlicePart(HSV_green, line.slice, 'green')
-            distance_Red = line.SlicePart(HSV_red, line.slice, 'red')
-            distance_Yellow = line.SlicePart(HSV_yellow, line.slice, 'yellow')
-            distance_Purple = line.SlicePart(HSV_purple, line.slice, 'purple')
-            distance_White = line.SlicePart(HSV_white, line.slice, 'white')
+            distance_Black = line.computeDistanceBiases(HSV_black, line.slice, 'black')
+            distance_Blue = line.computeDistanceBiases(HSV_blue, line.slice, 'blue')
+            distance_Green = line.computeDistanceBiases(HSV_green, line.slice, 'green')
+            distance_Red = line.computeDistanceBiases(HSV_red, line.slice, 'red')
+            distance_Yellow = line.computeDistanceBiases(HSV_yellow, line.slice, 'yellow')
+            distance_Purple = line.computeDistanceBiases(HSV_purple, line.slice, 'purple')
+            distance_White = line.computeDistanceBiases(HSV_white, line.slice, 'white')
 
             ############################# concatenate every slice ###############
             img_black = line.RepackImages(line.image_black)
