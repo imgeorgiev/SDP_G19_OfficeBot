@@ -46,6 +46,27 @@ class line_detect():
         self.threshold = 70
         self.FPS_limit = 10
 
+        self.listOfArraySlicesByColor = {
+            "black" : [],
+            "blue" : [],
+            "red" : [],
+            "purple" : [],
+            "green" : [],
+            "yellow" : [],
+            "white" : []
+        }
+
+        # empty array slices default
+        self.emptyArraySlices = {
+            "black" : [],
+            "blue" : [],
+            "red" : [],
+            "purple" : [],
+            "green" : [],
+            "yellow" : [],
+            "white" : []
+        }
+
         self.image_black = []
         self.image_blue = []
         self.image_red = []
@@ -197,70 +218,23 @@ class line_detect():
     # this is the main function which will return an array which contains all distance bias for every point
     def computeDistanceBiases(self, image, numberOfSlices, color):
         # divide the image horizontally into numberOfSlices
-        # compute the
-
 
         sliceHeight = int(self.height / numberOfSlices)
         distance = []
 
         for i in range(numberOfSlices):
-            part = sliceHeight*i
-            crop_img = image[part:part + sliceHeight, 0:self.width]
-            # middlew = middlew - 40
-            # print(middlew)
-            if color == 'black':
-                self.image_black.append(crop_img)
-                h, w = self.image_black[i].shape[:2]
-                middleh = int(h/2)
-                middlew = int(w/2)
-#               img = self.RemoveBackground_HSV_Black(crop_img)
+            heightOffset = sliceHeight*i
+            crop_img = image[heightOffset:heightOffset + sliceHeight, 0:self.width]
 
-            elif color == 'red':
-                self.image_red.append(crop_img)
-                h, w = self.image_red[i].shape[:2]
-                middleh = int(h/2)
-                middlew = int(w/2)
-#               img = self.RemoveBackground_HSV_Red(crop_img)
+            self.listOfArraySlicesByColor[color].append(crop_img)
 
-            elif color == 'blue':
-                self.image_blue.append(crop_img)
-                h, w = self.image_blue[i].shape[:2]
-                middleh = int(h/2)
-                middlew = int(w/2)
-#               img = self.RemoveBackground_HSV_Blue(crop_img)
+            h, w = crop_img.shape[:2]
+            middleh = int(h/2)
+            middlew = int(w/2)
 
-            elif color == 'green':
-                self.image_green.append(crop_img)
-                h, w = self.image_green[i].shape[:2]
-                middleh = int(h/2)
-                middlew = int(w/2)
-#               img = self.RemoveBackground_HSV_Green(crop_img)
-
-            elif color == 'yellow':
-                self.image_yellow.append(crop_img)
-                h, w = self.image_yellow[i].shape[:2]
-                middleh = int(h/2)
-                middlew = int(w/2)
-#               img = self.RemoveBackground_HSV_Yellow(crop_img)
-
-            elif color == 'purple':
-                self.image_purple.append(crop_img)
-                h, w = self.image_purple[i].shape[:2]
-                middleh = int(h/2)
-                middlew = int(w/2)
-#               img = self.RemoveBackground_HSV_Purple(crop_img)
-
-            elif color == 'white':
-                self.image_white.append(crop_img)
-                h, w  = self.image_white[i].shape[:2]
-                middleh = int(h/2)
-                middlew = int(w/2)
-#               img = self.RemoveBackground_HSV_White(crop_img)
-
-#           contours = self.image_process(img)
             contours = self.image_process(crop_img)
             contours = self.contour_process(contours, h, w)
-            # print(contours)
+
             cv2.drawContours(crop_img, contours,-1, (0, 255, 0), 3)
             cv2.circle(crop_img, (middlew, middleh), 7, (0, 0, 255), -1) #Draw middle circle RED
             if contours:
@@ -272,8 +246,9 @@ class line_detect():
 #               bias = int(middlew-contourCenterX) * self.getContourExtent(contours[0])
                 bias = int(middlew - contourCenterX)
 
-                # record the bias distance
                 distance.append(bias)
+
+        # return distance array reversed
         return distance[::-1]
 
     # this function will detect whether there is a circle(destination) in the robot vision
@@ -462,13 +437,8 @@ def main():
             prev_dest = 'white'
             isCircleInFrame = line.circle_detect(readFrame)
 
-            line.image_red = []
-            line.image_blue = []
-            line.image_black = []
-            line.image_purple = []
-            line.image_green = []
-            line.image_yellow = []
-            line.image_white = []
+            # reset the arrays of slices
+            line.listOfArraySlicesByColor = line.emptyArraySlices
 
             ############################# HSV TEST ##############################
             HSV_black = line.RemoveBackground_HSV_Black(readFrame)
