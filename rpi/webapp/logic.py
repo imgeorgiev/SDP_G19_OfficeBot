@@ -409,6 +409,7 @@ def main():
                         # TODO: trigger ps4 controls, and periodically check for 200 code to remove manual override
                         pass
 
+                # empty the file
                 file.seek(0)
                 file.truncate()
                 file.close()
