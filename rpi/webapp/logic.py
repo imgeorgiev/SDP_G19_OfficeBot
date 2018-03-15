@@ -278,6 +278,10 @@ def turn(direction):
     elif direction == 'left':
         server.sendTurnCommand(60)
 
+def resetDictionary(dict):
+    for key in dict:
+        dict[key] = []
+
 # noinspection PyRedundantParentheses
 def compute_path(position, destination):
     # Debugging
@@ -382,7 +386,7 @@ def main():
                     isCircleInFrame = line.circle_detect(frame)
 
                     # reset the arrays of slices
-                    line.listOfArraySlicesByColor = line.emptyArraySlices
+                    resetDictionary(line.listOfArraySlicesByColor)
 
                     # isolating colors and getting distance between centre of vision and centre of line
                     HSV_lineColor = line.RemoveBackground_HSV(frame, mainLineColor)
