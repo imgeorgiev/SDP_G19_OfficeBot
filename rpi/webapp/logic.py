@@ -263,12 +263,13 @@ class line_detect():
         # no main line is detected -> reverse
         return [-50, -50]
 
-    def turn(self, direction):
-        if direction == 'right':
-            server.sendTurnCommand(-60)
 
-        elif direction == 'left':
-            server.sendTurnCommand(60)
+def turn(self, direction):
+    if direction == 'right':
+        server.sendTurnCommand(-60)
+
+    elif direction == 'left':
+        server.sendTurnCommand(60)
 
 # noinspection PyRedundantParentheses
 def compute_path(position, destination):
@@ -317,7 +318,7 @@ def main():
         ############################# LOGIC ##############################
         if arrived:
 
-            # check if there is a new destination to go to
+            # check if there is a new destination to go to (written by app.py)
             file = open("dest.txt", "r+")
             content = file.read()
 
@@ -393,10 +394,10 @@ def main():
                             [new_left_motor_speed, new_right_motor_speed] = line.computeWheelSpeeds(distance_mainLine)
                     else:
                         if isStartingColorInFrame:
-                            line.turn(firstTurnDirection)
+                            turn(firstTurnDirection)
 
                         elif isDestinationColorInFrame and not isCircleInFrame:
-                            line.turn(secondTurnDirection)
+                            turn(secondTurnDirection)
 
                         else:
                             arrived = True
