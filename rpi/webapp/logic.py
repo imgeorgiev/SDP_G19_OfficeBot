@@ -440,6 +440,7 @@ def main():
 
         if not inputFrameExists:
             print('DEBUG: No input frames')
+            time.sleep(1)
         else:
             if not arrived:
                 prev_dest = 'white'
