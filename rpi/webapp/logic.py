@@ -3,8 +3,7 @@
 # multi-color lines detect in HSV and distance between middle of robot vision and center of line.
 
 import sys
-# TODO: modify path for when on rpi
-sys.path.append('/home/vaida/SDP_G19_OfficeBot/rpi/tcp')
+sys.path.append('../tcp')
 
 import numpy as np
 import cv2
@@ -362,7 +361,7 @@ def compute_path(position, destination):
     return [firstTurnDirection, secondTurnDirection, startingDeskColor, destinationDeskColor]
 
 def moving(startColor, endColor, firstTurnDirection, secondTurnDirection, cap):
-    inputFrameExists, readFrame = cap.read()
+    inputFrameExists, frame = cap.read()
     if not inputFrameExists:
         print('DEBUG: No input frames')
     else:
