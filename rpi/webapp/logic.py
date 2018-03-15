@@ -413,6 +413,7 @@ def main():
                 file.seek(0)
                 file.truncate()
                 file.close()
+
                 print("RECEIVED DESTINATION: " + str(destination) + ".")
                 if (destination != position):
                     if (destination not in [1, 2, 3, 4, 5, 6]):
@@ -433,7 +434,7 @@ def main():
             file.close()
 
         ############################# CAMERA ##############################
-        inputFrameExists, readFrame = cap.read()
+        inputFrameExists, frame = cap.read()
 
         # clear the buffer by grabbing any remaining captured frames
         for _ in range(10):
@@ -444,39 +445,38 @@ def main():
             time.sleep(1)
         else:
             if not arrived:
-                prev_dest = 'white'
-                isCircleInFrame = line.circle_detect(readFrame)
+                isCircleInFrame = line.circle_detect(frame)
 
                 # reset the arrays of slices
                 line.listOfArraySlicesByColor = line.emptyArraySlices
 
                 # isolating colours and getting distance between centre of vision and centre of line
 
-                HSV_black = line.RemoveBackground_HSV_Black(readFrame)  # black is always required as it is the line color
+                HSV_black = line.RemoveBackground_HSV_Black(frame)  # black is always required as it is the line color
                 distance_Black = line.computeDistanceBiases(HSV_black, line.slice, 'black')
 
                 if 'blue' in [startingDeskColor, destinationDeskColor]:
-                    HSV_blue = line.RemoveBackground_HSV_Blue(readFrame)
+                    HSV_blue = line.RemoveBackground_HSV_Blue(frame)
                     distance_Blue = line.computeDistanceBiases(HSV_blue, line.slice, 'blue')
 
                 elif 'green' in [startingDeskColor, destinationDeskColor]:
-                    HSV_green = line.RemoveBackground_HSV_Green(readFrame)
+                    HSV_green = line.RemoveBackground_HSV_Green(frame)
                     distance_Green = line.computeDistanceBiases(HSV_green, line.slice, 'green')
 
                 elif 'yellow' in [startingDeskColor, destinationDeskColor]:
-                    HSV_yellow = line.RemoveBackground_HSV_Yellow(readFrame)
+                    HSV_yellow = line.RemoveBackground_HSV_Yellow(frame)
                     distance_Yellow = line.computeDistanceBiases(HSV_yellow, line.slice, 'yellow')
 
                 elif 'purple' in [startingDeskColor, destinationDeskColor]:
-                    HSV_purple = line.RemoveBackground_HSV_Purple(readFrame)
+                    HSV_purple = line.RemoveBackground_HSV_Purple(frame)
                     distance_Purple = line.computeDistanceBiases(HSV_purple, line.slice, 'purple')
 
                 elif 'red' in [startingDeskColor, destinationDeskColor]:
-                    HSV_red = line.RemoveBackground_HSV_Red(readFrame)
+                    HSV_red = line.RemoveBackground_HSV_Red(frame)
                     distance_Red = line.computeDistanceBiases(HSV_red, line.slice, 'red')
 
                 elif 'white' in [startingDeskColor, destinationDeskColor]:
-                    HSV_white = line.RemoveBackground_HSV_White(readFrame)
+                    HSV_white = line.RemoveBackground_HSV_White(frame)
                     distance_White = line.computeDistanceBiases(HSV_white, line.slice, 'white')
 
                 printLinesToScreen(line, ['black', 'blue'])
