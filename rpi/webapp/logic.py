@@ -424,6 +424,7 @@ def main():
                         # Updates location
                         position = destination
                         destination = None
+                        arrived = False
                 else:
                     print("Destination is the same as current position. Skipping.")
             file.close()
@@ -513,7 +514,7 @@ def main():
                                 line.turn_R_angle(secondTurnDirection)
                             elif distance_Red and isCircleInFrame:
                                 prev_dest = destinationDeskColor
-                                arrived = False
+                                arrived = True
                                 log_success()
                                 pass
                             else:
@@ -523,7 +524,7 @@ def main():
                                 line.turn_R_angle(secondTurnDirection)
                             elif distance_Blue and isCircleInFrame:
                                 prev_dest = destinationDeskColor
-                                arrived = False
+                                arrived = True
                                 log_success()
                                 pass
                             else:
@@ -533,7 +534,7 @@ def main():
                                 line.turn_R_angle(secondTurnDirection)
                             elif distance_Green and isCircleInFrame:
                                 prev_dest = destinationDeskColor
-                                arrived = False
+                                arrived = True
                                 log_success()
                                 pass
                             else:
@@ -543,7 +544,7 @@ def main():
                                 line.turn_R_angle(secondTurnDirection)
                             elif distance_Yellow and isCircleInFrame:
                                 prev_dest = destinationDeskColor
-                                arrived = False
+                                arrived = True
                                 log_success()
                                 pass
                             else:
@@ -553,7 +554,7 @@ def main():
                                 line.turn_R_angle(secondTurnDirection)
                             elif distance_Purple and isCircleInFrame:
                                 prev_dest = destinationDeskColor
-                                arrived = False
+                                arrived = True
                                 log_success()
                                 pass
                             else:
@@ -563,7 +564,7 @@ def main():
                                 line.turn_R_angle(secondTurnDirection)
                             elif distance_White and isCircleInFrame:
                                 prev_dest = destinationDeskColor
-                                arrived = False
+                                arrived = True
                                 log_success()
                                 pass
                             else:
@@ -577,7 +578,7 @@ def main():
                                 line.turn_R_angle(firstTurnDirection)
                             elif distance_Red and isCircleInFrame:
                                 prev_dest = destinationDeskColor
-                                arrived = False
+                                arrived = True
                                 log_success()
                                 pass
                             else:
@@ -587,7 +588,7 @@ def main():
                                 line.turn_R_angle(firstTurnDirection)
                             elif distance_Blue and isCircleInFrame:
                                 prev_dest = destinationDeskColor
-                                arrived = False
+                                arrived = True
                                 log_success()
                                 pass
                             else:
@@ -597,7 +598,7 @@ def main():
                                 line.turn_R_angle(firstTurnDirection)
                             elif distance_Green and isCircleInFrame:
                                 prev_dest = destinationDeskColor
-                                arrived = False
+                                arrived = True
                                 log_success()
                                 pass
                             else:
@@ -607,7 +608,7 @@ def main():
                                 line.turn_R_angle(firstTurnDirection)
                             elif distance_Yellow and isCircleInFrame:
                                 prev_dest = destinationDeskColor
-                                arrived = False
+                                arrived = True
                                 log_success()
                                 pass
                             else:
@@ -617,7 +618,7 @@ def main():
                                 line.turn_R_angle(firstTurnDirection)
                             elif distance_Purple and isCircleInFrame:
                                 prev_dest = destinationDeskColor
-                                arrived = False
+                                arrived = True
                                 log_success()
                                 pass
                             else:
@@ -627,7 +628,7 @@ def main():
                                 line.turn_R_angle(firstTurnDirection)
                             elif distance_White and isCircleInFrame:
                                 prev_dest = destinationDeskColor
-                                arrived = False
+                                arrived = True
                                 log_success()
                                 pass
                             else:
@@ -643,7 +644,7 @@ def main():
                                 line.turn_R_angle(secondTurnDirection)
                             elif distance_Red and isCircleInFrame:
                                 prev_dest = destinationDeskColor
-                                arrived = False
+                                arrived = True
                                 log_success()
                                 pass
                             else:
@@ -655,7 +656,7 @@ def main():
                                 line.turn_R_angle(secondTurnDirection)
                             elif distance_Blue and isCircleInFrame:
                                 prev_dest = destinationDeskColor
-                                arrived = False
+                                arrived = True
                                 log_success()
                                 pass
                             else:
@@ -668,7 +669,7 @@ def main():
                                 line.turn_R_angle(secondTurnDirection)
                             elif distance_Red and isCircleInFrame:
                                 prev_dest = destinationDeskColor
-                                arrived = False
+                                arrived = True
                                 log_success()
                                 pass
                             else:
@@ -680,7 +681,7 @@ def main():
                                 line.turn_R_angle(secondTurnDirection)
                             elif distance_Yellow and isCircleInFrame:
                                 prev_dest = destinationDeskColor
-                                arrived = False
+                                arrived = True
                                 log_success()
                                 pass
                             else:
@@ -693,7 +694,7 @@ def main():
                                 line.turn_R_angle(secondTurnDirection)
                             elif distance_Red and isCircleInFrame:
                                 prev_dest = destinationDeskColor
-                                arrived = False
+                                arrived = True
                                 log_success()
                                 pass
                             else:
@@ -705,7 +706,7 @@ def main():
                                 line.turn_R_angle(secondTurnDirection)
                             elif distance_Green and isCircleInFrame:
                                 prev_dest = destinationDeskColor
-                                arrived = False
+                                arrived = True
                                 log_success()
                                 pass
                             else:
@@ -718,7 +719,7 @@ def main():
                                 line.turn_R_angle(secondTurnDirection)
                             elif distance_Red and isCircleInFrame:
                                 prev_dest = destinationDeskColor
-                                arrived = False
+                                arrived = True
                                 log_success()
                                 pass
                             else:
@@ -730,7 +731,7 @@ def main():
                                 line.turn_R_angle(secondTurnDirection)
                             elif distance_Green and isCircleInFrame:
                                 prev_dest = destinationDeskColor
-                                arrived = False
+                                arrived = True
                                 log_success()
                                 pass
                             else:
@@ -743,7 +744,7 @@ def main():
                                 line.turn_R_angle(secondTurnDirection)
                             elif distance_Red and isCircleInFrame:
                                 prev_dest = destinationDeskColor
-                                arrived = False
+                                arrived = True
                                 log_success()
                                 pass
                             else:
@@ -755,7 +756,7 @@ def main():
                                 line.turn_R_angle(secondTurnDirection)
                             elif distance_Purple and isCircleInFrame:
                                 prev_dest = destinationDeskColor
-                                arrived = False
+                                arrived = True
                                 log_success()
                                 pass
                             else:
@@ -768,7 +769,7 @@ def main():
                                 line.turn_R_angle(secondTurnDirection)
                             elif distance_Yellow and isCircleInFrame:
                                 prev_dest = destinationDeskColor
-                                arrived = False
+                                arrived = True
                                 log_success()
                                 pass
                             else:
@@ -780,7 +781,7 @@ def main():
                                 line.turn_R_angle(secondTurnDirection)
                             elif distance_Blue and isCircleInFrame:
                                 prev_dest = destinationDeskColor
-                                arrived = False
+                                arrived = True
                                 log_success()
                                 pass
                             else:
@@ -793,7 +794,7 @@ def main():
                                 line.turn_R_angle(secondTurnDirection)
                             elif distance_Green and isCircleInFrame:
                                 prev_dest = destinationDeskColor
-                                arrived = False
+                                arrived = True
                                 log_success()
                                 pass
                             else:
@@ -805,7 +806,7 @@ def main():
                                 line.turn_R_angle(secondTurnDirection)
                             elif distance_Blue and isCircleInFrame:
                                 prev_dest = destinationDeskColor
-                                arrived = False
+                                arrived = True
                                 log_success()
                                 pass
                             else:
@@ -818,7 +819,7 @@ def main():
                                 line.turn_R_angle(secondTurnDirection)
                             elif distance_Purple and isCircleInFrame:
                                 prev_dest = destinationDeskColor
-                                arrived = False
+                                arrived = True
                                 log_success()
                                 pass
                             else:
@@ -830,7 +831,7 @@ def main():
                                 line.turn_R_angle(secondTurnDirection)
                             elif distance_Blue and isCircleInFrame:
                                 prev_dest = destinationDeskColor
-                                arrived = False
+                                arrived = True
                                 log_success()
                                 pass
                             else:
@@ -843,7 +844,7 @@ def main():
                                 line.turn_R_angle(secondTurnDirection)
                             elif distance_Green and isCircleInFrame:
                                 prev_dest = destinationDeskColor
-                                arrived = False
+                                arrived = True
                                 log_success()
                                 pass
                             else:
@@ -855,7 +856,7 @@ def main():
                                 line.turn_R_angle(secondTurnDirection)
                             elif distance_Yellow and isCircleInFrame:
                                 prev_dest = destinationDeskColor
-                                arrived = False
+                                arrived = True
                                 log_success()
                                 pass
                             else:
@@ -868,7 +869,7 @@ def main():
                                 line.turn_R_angle(secondTurnDirection)
                             elif distance_Purple and isCircleInFrame:
                                 prev_dest = destinationDeskColor
-                                arrived = False
+                                arrived = True
                                 log_success()
                                 pass
                             else:
@@ -880,7 +881,7 @@ def main():
                                 line.turn_R_angle(secondTurnDirection)
                             elif distance_Yellow and isCircleInFrame:
                                 prev_dest = destinationDeskColor
-                                arrived = False
+                                arrived = True
                                 log_success()
                                 pass
                             else:
@@ -893,7 +894,7 @@ def main():
                                 line.turn_R_angle(secondTurnDirection)
                             elif distance_Purple and isCircleInFrame:
                                 prev_dest = destinationDeskColor
-                                arrived = False
+                                arrived = True
                                 log_success()
                                 pass
                             else:
@@ -906,7 +907,7 @@ def main():
                             elif distance_Green and isCircleInFrame:
                                 prev_dest = destinationDeskColor
                                 log_success()
-                                arrived = False
+                                arrived = True
                                 pass
                             else:
                                 [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
@@ -917,7 +918,7 @@ def main():
                                 line.turn_R_angle(secondTurnDirection)
                             elif distance_Purple and isCircleInFrame:
                                 prev_dest = destinationDeskColor
-                                arrived = False
+                                arrived = True
                                 log_success()
                                 pass
                             else:
@@ -930,7 +931,7 @@ def main():
                             elif distance_White and isCircleInFrame:
                                 prev_dest = destinationDeskColor
                                 log_success()
-                                arrived = False
+                                arrived = True
                                 pass
                             else:
                                 [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
@@ -941,7 +942,7 @@ def main():
                                 line.turn_R_angle(secondTurnDirection)
                             elif distance_Red and isCircleInFrame:
                                 prev_dest = destinationDeskColor
-                                arrived = False
+                                arrived = True
                                 log_success()
                                 pass
                             else:
@@ -954,7 +955,7 @@ def main():
                             elif distance_White and isCircleInFrame:
                                 prev_dest = destinationDeskColor
                                 log_success()
-                                arrived = False
+                                arrived = True
                                 pass
                             else:
                                 [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
@@ -965,7 +966,7 @@ def main():
                                 line.turn_R_angle(secondTurnDirection)
                             elif distance_Blue and isCircleInFrame:
                                 prev_dest = destinationDeskColor
-                                arrived = False
+                                arrived = True
                                 log_success()
                                 pass
                             else:
@@ -978,7 +979,7 @@ def main():
                             elif distance_White and isCircleInFrame:
                                 prev_dest = destinationDeskColor
                                 log_success()
-                                arrived = False
+                                arrived = True
                                 pass
                             else:
                                 [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
@@ -989,7 +990,7 @@ def main():
                                 line.turn_R_angle(secondTurnDirection)
                             elif distance_Yellow and isCircleInFrame:
                                 prev_dest = destinationDeskColor
-                                arrived = False
+                                arrived = True
                                 log_success()
                                 pass
                             else:
@@ -1002,7 +1003,7 @@ def main():
                             elif distance_White and isCircleInFrame:
                                 prev_dest = destinationDeskColor
                                 log_success()
-                                arrived = False
+                                arrived = True
                                 pass
                             else:
                                 [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
@@ -1013,7 +1014,7 @@ def main():
                                 line.turn_R_angle(secondTurnDirection)
                             elif distance_Green and isCircleInFrame:
                                 prev_dest = destinationDeskColor
-                                arrived = False
+                                arrived = True
                                 log_success()
                                 pass
                             else:
@@ -1026,7 +1027,7 @@ def main():
                             elif distance_White and isCircleInFrame:
                                 prev_dest = destinationDeskColor
                                 log_success()
-                                arrived = False
+                                arrived = True
                                 pass
                             else:
                                 [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
