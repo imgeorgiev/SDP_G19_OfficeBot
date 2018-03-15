@@ -275,10 +275,10 @@ class line_detect():
 
     def turn_R_angle(self, dir):
         if dir == 'right':
-            s.sendTurnCommand(-60)
+            server.sendTurnCommand(-60)
 
         elif dir == 'left':
-            s.sendTurnCommand(60)
+            server.sendTurnCommand(60)
 
 # noinspection PyRedundantParentheses
 def compute_path(position, destination):
@@ -371,14 +371,14 @@ def moving(startColor, endColor, firstTurnDirection, secondTurnDirection, cap):
         distance_Black = line.computeDistanceBiases(HSV_black, line.slice, 'black')
 
 def main():
-    global destination, s
+    global destination, server
 
-    position = 1
+    position = None
     destination = None
     arrived = True
 
     # schedule = sched.scheduler(time.time, time.sleep)
-    s = Server(5005)
+    server = Server(5005)
 
     line = line_detect()
     cap = cv2.VideoCapture(1)
@@ -387,12 +387,9 @@ def main():
     cap.set(cv2.CAP_PROP_FPS, line.FPS_limit)
 
     # file ping counter
-    file_ping = 0
     while True:
         ############################# LOGIC ##############################
-        file_ping = file_ping % 100
-
-        if arrived and (file_ping == 0):
+        if arrived:
             file = open("dest.txt", "r+")
             content = file.read()
             print("File content: " + content)
@@ -415,7 +412,7 @@ def main():
                 file.close()
                 print("RECEIVED DESTINATION: " + str(destination) + ".")
                 if (destination != position):
-                    if (destination not in [1, 2, 3, 4, 5, 6, 7, 8, 9]):
+                    if (destination not in [1, 2, 3, 4, 5, 6]):
                         print("Destination not valid!")
                     else:
                         [firstTurnDirection, secondTurnDirection, startingDeskColor, destinationDeskColor] = compute_path(position, destination)
@@ -426,9 +423,11 @@ def main():
                         arrived = False
                 else:
                     print("Destination is the same as current position. Skipping.")
+            else:
+                print("File was empty, waiting 1 second and checking again")
+                time.sleep(1)
+
             file.close()
-            # time.sleep(1) # pings file every second
-        file_ping += 1
 
         ############################# CAMERA ##############################
         inputFrameExists, readFrame = cap.read()
@@ -1040,7 +1039,7 @@ def main():
                     print('DEBUG: left motor speed: {}'.format(new_left_motor_speed))
                     print('DEBUG: right motor speed: {}'.format(new_right_motor_speed))
 
-                    s.sendMotorCommand(new_left_motor_speed, new_right_motor_speed)
+                    server.sendMotorCommand(new_left_motor_speed, new_right_motor_speed)
     cap.release()
     cv2.destroyAllWindows()
 
