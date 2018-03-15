@@ -238,16 +238,16 @@ class line_detect():
         return (circles is not None)
 
     # through the distance bias array, we can use this function to reach line_following
-    def line_following(self, distance):
+    def computeWheelSpeeds(self, distanceBiasArray):
         # threshold of corner
         # send command to ev3
-        if distance:
-            num = len(distance)
-            bias = [i*j for i, j in zip(distance, self.weights[num])]
+        if distanceBiasArray is not None:
+            num = len(distanceBiasArray)
+            bias = [i*j for i, j in zip(distanceBiasArray, self.weights[num])]
             bias = sum(bias)
 
             # bias = sum(distance)
-            print('The distance list is {}'.format(distance))
+            print('The distance list is {}'.format(distanceBiasArray))
             print('The bias is {}'.format(bias))
 
             speed = attenuate(bias/6, -40, 40)
@@ -259,6 +259,9 @@ class line_detect():
                     return [20 + abs(speed), 20 - abs(speed)]
             else:
                 return [50, 50]
+
+        # no main line is detected -> reverse
+        return [-50, -50]
 
     def turn(self, direction):
         if direction == 'right':
@@ -387,13 +390,14 @@ def main():
                     printLinesToScreen(line, ['black', startingDeskColor, destinationDeskColor])
 
                     if not (isStartingColorInFrame or isDestinationColorInFrame or isCircleInFrame):
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_mainLine)
+                            [new_left_motor_speed, new_right_motor_speed] = line.computeWheelSpeeds(distance_mainLine)
                     else:
                         if isStartingColorInFrame:
                             line.turn(firstTurnDirection)
 
                         elif isDestinationColorInFrame and not isCircleInFrame:
                             line.turn(secondTurnDirection)
+
                         else:
                             arrived = True
                             position = destination
