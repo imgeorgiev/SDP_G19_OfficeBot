@@ -33,7 +33,7 @@ class line_detect():
     def __init__(self):
         self.width = 320
         self.height = 240
-        self.slice = 4
+        self.numSlices = 4
 
         weight_1 = [0.9]
         weight_2 = [0.45, 0.45]
@@ -90,6 +90,16 @@ class line_detect():
 
         self.kernel = np.ones((5, 5), np.uint8)
 
+        self.colorToMask = {
+            "black": (self.blackLower, self.blackUpper),
+            "blue": (self.blueLower, self.blueUpper),
+            "red": (self.redLower, self.redUpper),
+            "green": (self.greenLower, self.greenUpper),
+            "yellow": (self.yellowLower, self.yellowUpper),
+            "white": (self.whiteLower, self.whiteUpper),
+            "purple": (self.purpleLower, self.purpleUpper),
+        }
+
     # def RemoveBackground_RGB(self,image):
     #     low = 0
     #     up = 120
@@ -101,7 +111,11 @@ class line_detect():
     #     image = cv2.bitwise_and(image, image, mask = mask)
     #     return image
 
-    def RemoveBackground_HSV(self, image, lower, upper):
+    def RemoveBackground_HSV(self, image, color):
+        maskUpperAndLower = self.colorToMask[color]
+        lower = color[0]
+        upper = color[1]
+
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
         mask = cv2.inRange(hsv, lower, upper)
@@ -386,6 +400,8 @@ def main():
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, line.height)
     cap.set(cv2.CAP_PROP_FPS, line.FPS_limit)
 
+    mainLineColor = 'black'
+
     # file ping counter
     while True:
         ############################# LOGIC ##############################
@@ -445,543 +461,39 @@ def main():
             time.sleep(1)
         else:
             if not arrived:
-                isCircleInFrame = line.circle_detect(frame)
-
-                # reset the arrays of slices
-                line.listOfArraySlicesByColor = line.emptyArraySlices
-
-                # isolating colours and getting distance between centre of vision and centre of line
-
-                HSV_black = line.RemoveBackground_HSV_Black(frame)  # black is always required as it is the line color
-                distance_Black = line.computeDistanceBiases(HSV_black, line.slice, 'black')
-
-                if 'blue' in [startingDeskColor, destinationDeskColor]:
-                    HSV_blue = line.RemoveBackground_HSV_Blue(frame)
-                    distance_Blue = line.computeDistanceBiases(HSV_blue, line.slice, 'blue')
-
-                elif 'green' in [startingDeskColor, destinationDeskColor]:
-                    HSV_green = line.RemoveBackground_HSV_Green(frame)
-                    distance_Green = line.computeDistanceBiases(HSV_green, line.slice, 'green')
-
-                elif 'yellow' in [startingDeskColor, destinationDeskColor]:
-                    HSV_yellow = line.RemoveBackground_HSV_Yellow(frame)
-                    distance_Yellow = line.computeDistanceBiases(HSV_yellow, line.slice, 'yellow')
-
-                elif 'purple' in [startingDeskColor, destinationDeskColor]:
-                    HSV_purple = line.RemoveBackground_HSV_Purple(frame)
-                    distance_Purple = line.computeDistanceBiases(HSV_purple, line.slice, 'purple')
-
-                elif 'red' in [startingDeskColor, destinationDeskColor]:
-                    HSV_red = line.RemoveBackground_HSV_Red(frame)
-                    distance_Red = line.computeDistanceBiases(HSV_red, line.slice, 'red')
-
-                elif 'white' in [startingDeskColor, destinationDeskColor]:
-                    HSV_white = line.RemoveBackground_HSV_White(frame)
-                    distance_White = line.computeDistanceBiases(HSV_white, line.slice, 'white')
-
-                printLinesToScreen(line, ['black', 'blue'])
-
-                ############################# pseudocode #################
-                # if the robot doesn't turn:
-                # if distance_Black:
-                # if not some_color(get from webapp):
-                # line_following(black)
-                # elif some_color(get from webapp):
-                # line_following(some_color):
-                # elif not distance_Black:
-                # if not some_color(get from webapp):
-                # turn_itself
-                # elif some_color:
-                # line_following(some_color)
-
-                # if the robot has already turned:
-                # if signal detected:
-                # decide turn left or right
-                # turn left or right, until signal at a "specific position".
-                # reset turn
-                # line_following(black)
-                # if not signal detected:
-                # line_following(some_color)
-
-                ############################# send command to ev3 ###################
-                # schedule.enter(1, 1, s.sendMotorCommand, argument=(int(left_motor), int(right_motor)))
-                # schedule.run()
-                # s.sendMotorCommand(int(left_motor), int(right_motor))
-
-                # if first junction is none, then we only need to do once turning.
-                # Only dest_color is detected, then call turn_R_angle
-
                 if startingDeskColor == destinationDeskColor:
                     print('DEBUG: Destination does not change')
                 else:
-                    if firstTurnDirection == 'none':
-                        if destinationDeskColor == 'red':
-                            if distance_Red and not isCircleInFrame:
-                                line.turn_R_angle(secondTurnDirection)
-                            elif distance_Red and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
 
-                        elif destinationDeskColor == 'blue':
-                            if distance_Blue and not isCircleInFrame:
-                                line.turn_R_angle(secondTurnDirection)
-                            elif distance_Blue and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
+                    isCircleInFrame = line.circle_detect(frame)
 
-                        elif destinationDeskColor == 'green':
-                            if distance_Green and not isCircleInFrame:
-                                line.turn_R_angle(secondTurnDirection)
-                            elif distance_Green and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
+                    # reset the arrays of slices
+                    line.listOfArraySlicesByColor = line.emptyArraySlices
 
-                        elif destinationDeskColor == 'yellow':
-                            if distance_Yellow and not isCircleInFrame:
-                                line.turn_R_angle(secondTurnDirection)
-                            elif distance_Yellow and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
 
-                        elif destinationDeskColor == 'purple':
-                            if distance_Purple and not isCircleInFrame:
-                                line.turn_R_angle(secondTurnDirection)
-                            elif distance_Purple and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
+                    # isolating colours and getting distance between centre of vision and centre of line
+                    HSV_lineColor = line.RemoveBackground_HSV(frame, mainLineColor)  # black is always required as it is the line color
+                    distance_mainLine = line.computeDistanceBiases(HSV_lineColor, line.numSlices, mainLineColor)
 
-                        elif destinationDeskColor == 'white':
-                            if distance_White and not isCircleInFrame:
-                                line.turn_R_angle(secondTurnDirection)
-                            elif distance_White and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
+                    HSV_startingColor = line.RemoveBackground_HSV(frame, startingDeskColor)
+                    isStartingColorInFrame = line.computeDistanceBiases(HSV_startingColor, line.numSlices, startingDeskColor)
 
-                    # if second junction is none, then we only need to do once turning.
-                    # Only post_color is detected, then call turn_R_angle
-                    elif secondTurnDirection == 'none':
-                        if startingDeskColor == 'red':
-                            if distance_Red and not isCircleInFrame:
-                                line.turn_R_angle(firstTurnDirection)
-                            elif distance_Red and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
+                    HSV_destinationColor = line.RemoveBackground_HSV(frame, destinationDeskColor)
+                    isDestinationColorInFrame = line.computeDistanceBiases(HSV_destinationColor, line.numSlices, destinationDeskColor)
 
-                        elif startingDeskColor == 'blue':
-                            if distance_Blue and not isCircleInFrame:
-                                line.turn_R_angle(firstTurnDirection)
-                            elif distance_Blue and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
+                    printLinesToScreen(line, ['black', startingDeskColor, destinationDeskColor])
 
-                        elif startingDeskColor == 'green':
-                            if distance_Green and not isCircleInFrame:
-                                line.turn_R_angle(firstTurnDirection)
-                            elif distance_Green and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-
-                        elif startingDeskColor == 'yellow':
-                            if distance_Yellow and not isCircleInFrame:
-                                line.turn_R_angle(firstTurnDirection)
-                            elif distance_Yellow and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-
-                        elif startingDeskColor == 'purple':
-                            if distance_Purple and not isCircleInFrame:
-                                line.turn_R_angle(firstTurnDirection)
-                            elif distance_Purple and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-
-                        elif startingDeskColor == 'white':
-                            if distance_White and not isCircleInFrame:
-                                line.turn_R_angle(firstTurnDirection)
-                            elif distance_White and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-
-                    # if first_junction and second_junction all have values
-                    #  we detect color combination and call function
+                    if not (isStartingColorInFrame or isDestinationColorInFrame or isCircleInFrame):
+                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_mainLine)
                     else:
-                        if startingDeskColor == 'blue' and destinationDeskColor == 'red':
-                            if distance_Blue:
-                                line.turn_R_angle(firstTurnDirection)
-                            elif distance_Red and not isCircleInFrame:
-                                line.turn_R_angle(secondTurnDirection)
-                            elif distance_Red and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
+                        if isStartingColorInFrame:
+                            line.turn_R_angle(firstTurnDirection)
 
-                        elif startingDeskColor == 'red' and destinationDeskColor == 'blue':
-                            if distance_Red:
-                                line.turn_R_angle(firstTurnDirection)
-                            elif distance_Blue and not isCircleInFrame:
-                                line.turn_R_angle(secondTurnDirection)
-                            elif distance_Blue and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-
-
-                        elif startingDeskColor == 'yellow' and destinationDeskColor == 'red':
-                            if distance_Yellow:
-                                line.turn_R_angle(firstTurnDirection)
-                            elif distance_Red and not isCircleInFrame:
-                                line.turn_R_angle(secondTurnDirection)
-                            elif distance_Red and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-
-                        elif startingDeskColor == 'red' and destinationDeskColor == 'yellow':
-                            if distance_Red:
-                                line.turn_R_angle(firstTurnDirection)
-                            elif distance_Yellow and not isCircleInFrame:
-                                line.turn_R_angle(secondTurnDirection)
-                            elif distance_Yellow and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-
-
-                        elif startingDeskColor == 'green' and destinationDeskColor == 'red':
-                            if distance_Green:
-                                line.turn_R_angle(firstTurnDirection)
-                            elif distance_Red and not isCircleInFrame:
-                                line.turn_R_angle(secondTurnDirection)
-                            elif distance_Red and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-
-                        elif startingDeskColor == 'red' and destinationDeskColor == 'green':
-                            if distance_Red:
-                                line.turn_R_angle(firstTurnDirection)
-                            elif distance_Green and not isCircleInFrame:
-                                line.turn_R_angle(secondTurnDirection)
-                            elif distance_Green and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-
-                        elif startingDeskColor == 'green' and destinationDeskColor == 'red':
-                            if distance_Green:
-                                line.turn_R_angle(firstTurnDirection)
-                            elif distance_Red and not isCircleInFrame:
-                                line.turn_R_angle(secondTurnDirection)
-                            elif distance_Red and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-
-                        elif startingDeskColor == 'red' and destinationDeskColor == 'green':
-                            if distance_Red:
-                                line.turn_R_angle(firstTurnDirection)
-                            elif distance_Green and not isCircleInFrame:
-                                line.turn_R_angle(secondTurnDirection)
-                            elif distance_Green and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-
-                        elif startingDeskColor == 'purple' and destinationDeskColor == 'red':
-                            if distance_Purple:
-                                line.turn_R_angle(firstTurnDirection)
-                            elif distance_Red and not isCircleInFrame:
-                                line.turn_R_angle(secondTurnDirection)
-                            elif distance_Red and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-
-                        elif startingDeskColor == 'red' and destinationDeskColor == 'purple':
-                            if distance_Red:
-                                line.turn_R_angle(firstTurnDirection)
-                            elif distance_Purple and not isCircleInFrame:
-                                line.turn_R_angle(secondTurnDirection)
-                            elif distance_Purple and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-
-                        elif startingDeskColor == 'blue' and destinationDeskColor == 'yellow':
-                            if distance_Blue:
-                                line.turn_R_angle(firstTurnDirection)
-                            elif distance_Yellow and not isCircleInFrame:
-                                line.turn_R_angle(secondTurnDirection)
-                            elif distance_Yellow and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-
-                        elif startingDeskColor == 'yellow' and destinationDeskColor == 'blue':
-                            if distance_Yellow:
-                                line.turn_R_angle(firstTurnDirection)
-                            elif distance_Blue and not isCircleInFrame:
-                                line.turn_R_angle(secondTurnDirection)
-                            elif distance_Blue and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-
-                        elif startingDeskColor == 'blue' and destinationDeskColor == 'green':
-                            if distance_Blue:
-                                line.turn_R_angle(firstTurnDirection)
-                            elif distance_Green and not isCircleInFrame:
-                                line.turn_R_angle(secondTurnDirection)
-                            elif distance_Green and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-
-                        elif startingDeskColor == 'green' and destinationDeskColor == 'blue':
-                            if distance_Green:
-                                line.turn_R_angle(firstTurnDirection)
-                            elif distance_Blue and not isCircleInFrame:
-                                line.turn_R_angle(secondTurnDirection)
-                            elif distance_Blue and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-
-                        elif startingDeskColor == 'blue' and destinationDeskColor == 'purple':
-                            if distance_Blue:
-                                line.turn_R_angle(firstTurnDirection)
-                            elif distance_Purple and not isCircleInFrame:
-                                line.turn_R_angle(secondTurnDirection)
-                            elif distance_Purple and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-
-                        elif startingDeskColor == 'purple' and destinationDeskColor == 'blue':
-                            if distance_Purple:
-                                line.turn_R_angle(firstTurnDirection)
-                            elif distance_Blue and not isCircleInFrame:
-                                line.turn_R_angle(secondTurnDirection)
-                            elif distance_Blue and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-
-                        elif startingDeskColor == 'yellow' and destinationDeskColor == 'green':
-                            if distance_Yellow:
-                                line.turn_R_angle(firstTurnDirection)
-                            elif distance_Green and not isCircleInFrame:
-                                line.turn_R_angle(secondTurnDirection)
-                            elif distance_Green and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-
-                        elif startingDeskColor == 'green' and destinationDeskColor == 'yellow':
-                            if distance_Green:
-                                line.turn_R_angle(firstTurnDirection)
-                            elif distance_Yellow and not isCircleInFrame:
-                                line.turn_R_angle(secondTurnDirection)
-                            elif distance_Yellow and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-
-                        elif startingDeskColor == 'yellow' and destinationDeskColor == 'purple':
-                            if distance_Yellow:
-                                line.turn_R_angle(firstTurnDirection)
-                            elif distance_Purple and not isCircleInFrame:
-                                line.turn_R_angle(secondTurnDirection)
-                            elif distance_Purple and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-
-                        elif startingDeskColor == 'purple' and destinationDeskColor == 'yellow':
-                            if distance_Purple:
-                                line.turn_R_angle(firstTurnDirection)
-                            elif distance_Yellow and not isCircleInFrame:
-                                line.turn_R_angle(secondTurnDirection)
-                            elif distance_Yellow and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-
-                        elif startingDeskColor == 'green' and destinationDeskColor == 'purple':
-                            if distance_Green:
-                                line.turn_R_angle(firstTurnDirection)
-                            elif distance_Purple and not isCircleInFrame:
-                                line.turn_R_angle(secondTurnDirection)
-                            elif distance_Purple and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-
-                        elif startingDeskColor == 'purple' and destinationDeskColor == 'green':
-                            if distance_Purple:
-                                line.turn_R_angle(firstTurnDirection)
-                            elif distance_Green and not isCircleInFrame:
-                                line.turn_R_angle(secondTurnDirection)
-                            elif distance_Green and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-
-                        elif startingDeskColor == 'white' and destinationDeskColor == 'purple':
-                            if distance_White:
-                                line.turn_R_angle(firstTurnDirection)
-                            elif distance_Purple and not isCircleInFrame:
-                                line.turn_R_angle(secondTurnDirection)
-                            elif distance_Purple and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-
-                        elif startingDeskColor == 'purple' and destinationDeskColor == 'white':
-                            if distance_Purple:
-                                line.turn_R_angle(firstTurnDirection)
-                            elif distance_White and not isCircleInFrame:
-                                line.turn_R_angle(secondTurnDirection)
-                            elif distance_White and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-
-                        elif startingDeskColor == 'white' and destinationDeskColor == 'red':
-                            if distance_White:
-                                line.turn_R_angle(firstTurnDirection)
-                            elif distance_Red and not isCircleInFrame:
-                                line.turn_R_angle(secondTurnDirection)
-                            elif distance_Red and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-
-                        elif startingDeskColor == 'red' and destinationDeskColor == 'white':
-                            if distance_Red:
-                                line.turn_R_angle(firstTurnDirection)
-                            elif distance_White and not isCircleInFrame:
-                                line.turn_R_angle(secondTurnDirection)
-                            elif distance_White and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-
-                        elif startingDeskColor == 'white' and destinationDeskColor == 'blue':
-                            if distance_White:
-                                line.turn_R_angle(firstTurnDirection)
-                            elif distance_Blue and not isCircleInFrame:
-                                line.turn_R_angle(secondTurnDirection)
-                            elif distance_Blue and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-
-                        elif startingDeskColor == 'blue' and destinationDeskColor == 'white':
-                            if distance_Blue:
-                                line.turn_R_angle(firstTurnDirection)
-                            elif distance_White and not isCircleInFrame:
-                                line.turn_R_angle(secondTurnDirection)
-                            elif distance_White and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-
-                        elif startingDeskColor == 'white' and destinationDeskColor == 'yellow':
-                            if distance_White:
-                                line.turn_R_angle(firstTurnDirection)
-                            elif distance_Yellow and not isCircleInFrame:
-                                line.turn_R_angle(secondTurnDirection)
-                            elif distance_Yellow and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-
-                        elif startingDeskColor == 'yellow' and destinationDeskColor == 'white':
-                            if distance_Yellow:
-                                line.turn_R_angle(firstTurnDirection)
-                            elif distance_White and not isCircleInFrame:
-                                line.turn_R_angle(secondTurnDirection)
-                            elif distance_White and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-
-                        elif startingDeskColor == 'white' and destinationDeskColor == 'green':
-                            if distance_White:
-                                line.turn_R_angle(firstTurnDirection)
-                            elif distance_Green and not isCircleInFrame:
-                                line.turn_R_angle(secondTurnDirection)
-                            elif distance_Green and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-
-                        elif startingDeskColor == 'green' and destinationDeskColor == 'white':
-                            if distance_Green:
-                                line.turn_R_angle(firstTurnDirection)
-                            elif distance_White and not isCircleInFrame:
-                                line.turn_R_angle(secondTurnDirection)
-                            elif distance_White and isCircleInFrame:
-                                arrived = True
-                                log_success()
-                            else:
-                                [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
+                        elif isDestinationColorInFrame and not isCircleInFrame:
+                            line.turn_R_angle(secondTurnDirection)
+                        else:
+                            arrived = True
+                            log_success()
 
                     # if prev_l != new_left_motor_speed or new_right_motor_speed != prev_r:
                     print('DEBUG: left motor speed: {}'.format(new_left_motor_speed))
