@@ -478,13 +478,7 @@ def main():
                     HSV_white = line.RemoveBackground_HSV_White(readFrame)
                     distance_White = line.computeDistanceBiases(HSV_white, line.slice, 'white')
 
-                # join slices back together
-                img_black = line.RepackImages(line.listOfArraySlicesByColor['black'])
-                img_blue = line.RepackImages(line.listOfArraySlicesByColor['blue'])
-
-                # output images to screen
-                cv2.imshow('img_black',img_black)
-                cv2.imshow('img_blue', img_blue)
+                printLinesToScreen(line, ['black', 'blue'])
 
                 ############################# pseudocode #################
                 # if the robot doesn't turn:
@@ -1050,6 +1044,17 @@ def main():
                     s.sendMotorCommand(new_left_motor_speed, new_right_motor_speed)
     cap.release()
     cv2.destroyAllWindows()
+
+
+def printLinesToScreen(line, listOfColors):
+    for color in listOfColors:
+        slices = line.listOfArraySlicesByColor[color]
+
+        # join slices back together
+        image = line.RepackImages(slices)
+
+        # output image to screen
+        cv2.imshow(color, image)
 
 
 if __name__ == '__main__':
