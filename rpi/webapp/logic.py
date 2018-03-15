@@ -179,9 +179,7 @@ class line_detect():
     def RepackImages(image):
         img = image[0]
         for i in range(len(image)):
-            if i == 0:
-                img = np.concatenate((img, image[1]), axis=0)
-            if i > 1:
+            if i != 0:
                 img = np.concatenate((img, image[i]), axis=0)
         return img
 
@@ -325,6 +323,8 @@ def main():
 
     mainLineColor = 'black'
 
+    ESCAPE_KEY = 27
+
     # file ping counter
     while True:
         ############################# LOGIC ##############################
@@ -418,6 +418,12 @@ def main():
                             arrived = True
                             position = destination
                             log_success(destination)
+
+                    # required by cv2 visualisation
+                    pressedKey = cv2.waitKey(1) & 0xff
+                    if pressedKey == ESCAPE_KEY:
+                        break
+                    time.sleep(0.05)
 
 
     cap.release()
