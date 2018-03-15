@@ -91,3 +91,62 @@
 [2018-02-19 12:31:22] Successfully moved to 6.
 [2018-02-19 12:31:23] Received command to move to 4.
 [2018-02-19 12:31:28] Successfully moved to 4.
+[2018-02-26 10:38:06] Received command to move to 3.
+[2018-02-26 10:38:06] COMPUTING ROUTE. position: 1, destination: 3, color_to_white: red, color_to_dest: blue, skip_counter: 1. MOVING.
+[2018-02-26 10:38:08] Got to color_to_dest. Decrementing skip_counter: 0.
+[2018-02-26 10:38:09] Got to color_to_dest. Decrementing skip_counter: -1.
+[2018-02-26 10:38:09] Got to needed turn.
+[2018-02-26 10:38:10] Successfully moved to 3.
+[2018-02-26 10:39:01] Received command to move to 1.
+[2018-02-26 10:39:01] COMPUTING ROUTE. position: 3, destination: 1, color_to_white: blue, color_to_dest: red, skip_counter: 1. MOVING.
+[2018-02-26 10:39:03] Got to color_to_dest. Decrementing skip_counter: 0.
+[2018-02-26 10:39:04] Got to color_to_dest. Decrementing skip_counter: -1.
+[2018-02-26 10:39:04] Got to needed turn.
+[2018-02-26 10:39:05] Successfully moved to 1.
+[2018-02-26 10:39:06] Received command to move to 3.
+[2018-02-26 10:39:06] COMPUTING ROUTE. position: 1, destination: 3, color_to_white: red, color_to_dest: blue, skip_counter: 1. MOVING.
+[2018-02-26 10:39:08] Got to color_to_dest. Decrementing skip_counter: 0.
+[2018-02-26 10:39:09] Got to color_to_dest. Decrementing skip_counter: -1.
+[2018-02-26 10:39:09] Got to needed turn.
+[2018-02-26 10:39:10] Successfully moved to 3.
+[2018-02-26 10:39:11] Received command to move to 5.
+[2018-02-26 10:39:11] COMPUTING ROUTE. position: 3, destination: 5, color_to_white: red, color_to_dest: red, skip_counter: 1. MOVING.
+[2018-02-26 10:39:13] Got to color_to_dest. Decrementing skip_counter: 0.
+[2018-02-26 10:39:14] Got to color_to_dest. Decrementing skip_counter: -1.
+[2018-02-26 10:39:14] Got to needed turn.
+[2018-02-26 10:39:15] Successfully moved to 5.
+[2018-02-26 11:15:41] Received command to move to 6.
+[2018-02-26 11:15:41] COMPUTING ROUTE. position: 1, destination: 6, color_to_white: red, color_to_dest: blue, skip_counter: 4. MOVING.
+[2018-02-26 11:15:43] Got to color_to_dest. Decrementing skip_counter: 3.
+[2018-02-26 11:15:44] Got to color_to_dest. Decrementing skip_counter: 2.
+[2018-02-26 11:15:45] Got to color_to_dest. Decrementing skip_counter: 1.
+[2018-02-26 11:15:46] Got to color_to_dest. Decrementing skip_counter: 0.
+[2018-02-26 11:15:47] Got to color_to_dest. Decrementing skip_counter: -1.
+[2018-02-26 11:15:47] Got to needed turn.
+[2018-02-26 11:15:48] Successfully moved to 6.
+[2018-02-26 11:15:49] Received command to move to 4.
+[2018-02-26 11:15:49] COMPUTING ROUTE. position: 6, destination: 4, color_to_white: blue, color_to_dest: blue, skip_counter: 1. MOVING.
+[2018-02-26 11:15:51] Got to color_to_dest. Decrementing skip_counter: 0.
+[2018-02-26 11:15:52] Got to color_to_dest. Decrementing skip_counter: -1.
+[2018-02-26 11:15:52] Got to needed turn.
+[2018-02-26 11:15:53] Successfully moved to 4.
+[2018-02-27 16:05:20] Received command to move to 4.
+[2018-02-27 16:05:20] COMPUTING ROUTE. position: 1, destination: 4, color_to_white: red, color_to_dest: red, skip_counter: 2. MOVING.
+[2018-02-27 16:05:22] Got to color_to_dest. Decrementing skip_counter: 1.
+[2018-02-27 16:05:23] Got to color_to_dest. Decrementing skip_counter: 0.
+[2018-02-27 16:05:24] Got to color_to_dest. Decrementing skip_counter: -1.
+[2018-02-27 16:05:24] Got to needed turn.
+[2018-02-27 16:05:25] Successfully moved to 4.
+[2018-02-27 16:09:34] Received command to move to 3.
+[2018-02-27 16:09:34] COMPUTING ROUTE. position: 1, destination: 3, color_to_white: red, color_to_dest: blue, skip_counter: 1. MOVING.
+[2018-02-27 16:09:36] Got to color_to_dest. Decrementing skip_counter: 0.
+[2018-02-27 16:09:37] Got to color_to_dest. Decrementing skip_counter: -1.
+[2018-02-27 16:09:37] Got to needed turn.
+[2018-02-27 16:09:38] Successfully moved to 3.
+[2018-02-27 16:09:39] Received command to move to 200.
+[2018-02-27 16:09:39] COMPUTING ROUTE. position: 3, destination: 200, color_to_white: red, color_to_dest: blue, skip_counter: 2. MOVING.
+[2018-02-27 16:09:41] Got to color_to_dest. Decrementing skip_counter: 1.
+[2018-02-27 16:09:42] Got to color_to_dest. Decrementing skip_counter: 0.
+[2018-02-27 16:09:43] Got to color_to_dest. Decrementing skip_counter: -1.
+[2018-02-27 16:09:43] Got to needed turn.
+[2018-02-27 16:09:44] Successfully moved to 200.

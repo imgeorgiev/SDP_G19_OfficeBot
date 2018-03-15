@@ -3,6 +3,8 @@
 from flask import Flask, render_template
 from apscheduler.schedulers.background import BackgroundScheduler
 import time
+import numpy as np
+import logging
 
 app = Flask(__name__)
 
@@ -15,11 +17,23 @@ desks = {
     6 : {'name' : 'Desk 6', 'colour' : 'purple'}
 }
 
+# x and y coordinates for desks
+desks_x_y = [[1, 1], [3, 2], [0, 3], [3, 3], [4, 5], [1, 6]]
+
+# matrix of distances between desks
+distances = []
+
+# for priority scheduling
+priorities = [0, 0, 0, 0, 0, 0]
+
 job_queue = []
 
 error_msg = False
 
-sched_alg = "none"
+manual_control = False
+
+# scheduling algorithm. values: simple, parameterised
+sched_alg = "parameterised"
 
 # Next job to be written to the file
 next_job = None
@@ -40,12 +54,49 @@ def index():
     }
     return render_template('index.html', **templateData)
 
+@app.route("/manual")
+def manual_toggle():
+    global manual_control, written_job, CURRENTLY_WRITING
+
+    # prevent race condition
+    while (CURRENTLY_WRITING):
+        time.sleep(0.1)
+
+    CURRENTLY_WRITING = 1
+
+    manual_control = not manual_control
+    message = " Manual override toggled."
+    error_msg = False
+
+    written_job = None
+
+    file = open("dest.txt","w")
+    file.seek(0)
+    file.truncate()
+
+    if (manual_control):
+        # Special character for manual override
+        file.write("100")
+    else:
+        file.write("200")
+    file.close()
+
+
+    templateData = {
+        'desks' : desks,
+        'message' : message,
+        'error_msg' : error_msg,
+        'manual_control' : manual_control
+    }
+
+    CURRENTLY_WRITING = 0
+
+    return render_template('index.html', **templateData)
+
 
 @app.route("/<int:desk>/<action>")
 def action(desk, action):
-    global CURRENTLY_WRITING
-    global currently_processing
-    global job_queue
+    global CURRENTLY_WRITING, currently_processing, job_queue, sched_alg, priorities
 
     # prevent race condition
     while (CURRENTLY_WRITING):
@@ -54,7 +105,7 @@ def action(desk, action):
     CURRENTLY_WRITING = 1
     # if desk provided in URL does not exist, return error page
     if desk not in desks:
-        print("\nCall to invalid desk number: " + str(desk) + "\n")
+        print("**ACTION**\nCall to invalid desk number: " + str(desk) + "\n")
         templateData = {
             'desks' : desks,
             'message' : ' Desk does not exist!',
@@ -65,15 +116,39 @@ def action(desk, action):
 
     deskName = desks[desk]['name']
 
-    if action == "call":
+    if action == "call" or action == "priority-call":
         if desk not in job_queue and desk != currently_processing:
             message = " OfficeBot has been called to " + deskName + "."
             error_msg = False
 
-            # add desk to front of job_queue
-            job_queue.insert(0, desk)
-            print("\ncall " + str(desk) + "\njob_queue is: " + str(job_queue) + "\n")
-            reorder_jobs()
+            if action == "call":
+                # add desk to end of job_queue
+                job_queue.insert(0, desk)
+            # priority call
+            else:
+                # add desk to front of job_queue, behind any other prioritised desks
+                i = 0
+                while (len(job_queue) != i and priorities[job_queue[i] - 1] != 1):
+                    # print("len(job_queue): " + str(len(job_queue)) + " priorities[job_queue[i]]: " + str(priorities[job_queue[i]]))
+                    # print("i: " + str(i) + ". incrementing i.")
+                    i += 1
+
+                if (len(job_queue) == i):
+                    job_queue.append(desk)
+                else:
+                    job_queue.insert(i, desk)
+
+                # set that desk to be a priority desk
+                priorities[desk - 1] = 1
+
+            print("**ACTION**\nCall to " + str(desk) + ".")
+            if (action == "call"):
+                print("Standard call.\n")
+            else:
+                print("Priority call.\n")
+            print("job_queue is: " + str(job_queue) + "\n")
+            print("priorities queue: " + str(priorities))
+            reorder_jobs(sched_alg)
             write_job()
             CURRENTLY_WRITING = 0
 
@@ -81,7 +156,7 @@ def action(desk, action):
         else:
             message = " OfficeBot was called to " + deskName + " already!"
             error_msg = True
-            print("\ncall void" + "\njob_queue is: " + str(job_queue) + "\n")
+            print("**ACTION**\nCall void" + "\njob_queue is: " + str(job_queue) + "\n")
             CURRENTLY_WRITING = 0
     else:
         message = " Unknown action."
@@ -94,11 +169,21 @@ def action(desk, action):
     CURRENTLY_WRITING = 0
     return render_template('index.html', **templateData)
 
+def calc_distances():
+    global desks_x_y, distances
+
+    nr_desks = len(desks_x_y)
+    distances = np.zeros((len(desks_x_y), len(desks_x_y)))
+
+    # creates a matrix of distances D(x,y): abs(x_1 - x_2) + abs(y_1 - y_2)
+    for i in range (0, nr_desks):
+        for j in range (0, nr_desks):
+            distances[i][j] = abs((desks_x_y[i][0] - desks_x_y[j][0])) + abs((desks_x_y[i][1] - desks_x_y[j][1]))
+    print("Calculated distances:\n\n" + str(distances) + "\n")
+
 # Reorders job_queue based on the sched_alg and current job
-def reorder_jobs():
-    global next_job
-    global currently_processing
-    global job_queue
+def reorder_jobs(alg):
+    global next_job, currently_processing, job_queue, distances, priorities
 
     # Assumption: the desk numbers reflect their absolute order
     # Eg:
@@ -109,22 +194,41 @@ def reorder_jobs():
     #    1 ---|
     #
 
-    # Simplest algorithm. Checks closest location to currently_processing
-    # and moves it to the front of the queue.
     if ((len(job_queue) > 1) and (currently_processing is not None)):
-        differences = [abs(currently_processing - loc) for loc in job_queue]
-        idx_smallest = differences.index(min(differences))
-        print("REORDER_JOBS. Closest to " + str(currently_processing) + " is " + str(job_queue[idx_smallest]) + ".")
-        job_queue.append(job_queue.pop(idx_smallest))
-    print("REORDER_JOBS COMPLETE. job_queue: " + str(job_queue))
+
+        # if the current front of queue is not a priority
+        if (priorities[job_queue[-1] - 1] != 1):
+            print("job_queue[-1]: " + str(job_queue[-1]) + " priorities[job_queue[-1] - 1]: " + str(priorities[job_queue[-1] - 1]))
+            print("priorities queue: " + str(priorities))
+            print("Not a priority call!\n")
+            # Simplest algorithm. Checks closest location to currently_processing
+            # and moves it to the front of the queue.
+            if (alg == "simple"):
+                differences = [abs(currently_processing - loc) for loc in job_queue]
+            # Uses distances calculated using calc_distances (x and y coordinates of desks).
+            elif (alg == "parameterised"):
+                # - 1 needed to account for 0-indexing of distances
+                differences = [distances[currently_processing - 1][loc - 1] for loc in job_queue]
+            else:
+                print("SCHEDULING ALGORITHM NOT FOUND. job_queue unchanged.")
+
+            idx_smallest = differences.index(min(differences))
+            print("**REORDER_JOBS**\nScheduling algorithm: " + str(alg) + ".")
+            print("job_queue was: " + str(job_queue))
+            print("Closest to " + str(currently_processing) + " is " + str(job_queue[idx_smallest]) + ".")
+            job_queue.append(job_queue.pop(idx_smallest))
+            print("job_queue: " + str(job_queue) + "\n")
+        else:
+            print("FRONT OF QUEUE HAS PRIORITY. REORDER_JOBS doesn't execute.")
+            print("job_queue: " + str(job_queue) + "\n")
+
+    else:
+        print("REORDER_JOBS not needed for execution.")
 
 def write_job():
-    global next_job
-    global job_queue
-    global written_job
-    global currently_processing
+    global next_job, job_queue, written_job, currently_processing, sched_alg, priorities
 
-    print("Logic is processing " + str(currently_processing) + ".")
+    print("**WRITE_JOB**\ncurrently_processing: " + str(currently_processing) + ".")
 
     # If there are jobs in the queue
     if (len(job_queue) > 0):
@@ -149,60 +253,71 @@ def write_job():
             # because we just initialised the app. skip written_job removal.
             if (written_job is not None):
                 job_queue.remove(written_job)
-                print("REMOVED " + str(written_job) + " from job queue.")
-                reorder_jobs()
-                print("job_queue: " + str(job_queue))
+                print("REMOVED " + str(written_job) + " from job_queue.")
+                reorder_jobs(sched_alg)
                 currently_processing = written_job
+                # reset priority of that desk
+                priorities[currently_processing - 1] = 0;
+                print("priorities queue: " + str(priorities))
                 written_job = None
                 next_job = job_queue[-1]
+                print("job_queue: " + str(job_queue))
 
             write_to_file(file)
 
     print("\n")
 
 def write_to_file(f):
-    global next_job
-    global written_job
-    global job_queue
+    global next_job, written_job, job_queue
 
     f.seek(0)
     f.truncate()
     f.write(str(next_job))
     f.close()
-    print("next_job: " + str(next_job))
+    print("**WRITE_TO_FILE**\nnext_job: " + str(next_job) + ", so overwrote file with " + str(next_job) + ".")
     written_job = next_job
-    print("OVERWROTE, new content: " + str(next_job) + ".")
 
 # Checks text file periodically, and if a job has been removed then it
 # removes it from the job_queue
 def check_file():
-    global next_job
-    global written_job
-    global job_queue
-    global CURRENTLY_WRITING
-    global currently_processing
+    global next_job, written_job, job_queue, CURRENTLY_WRITING, currently_processing, sched_alg
 
     if (CURRENTLY_WRITING == 0):
 
         CURRENTLY_WRITING = 1
         file = open("dest.txt","r")
         content = file.read()
-        print("File content: " + content)
+        print("**CHECK_FILE**\nFile content: " + content + "\n")
         # Initial state will have written_job = None
         if ((len(content) == 0) and written_job is not None):
+            print("Logic has processed a job. START OF CHECK_FILE UPDATING.")
             job_queue.remove(written_job)
             currently_processing = written_job
             written_job = None
-            reorder_jobs()
+            reorder_jobs(sched_alg)
             write_job()
-            print("Logic has processed a job. New job_queue: " + str(job_queue))
+            print("END OF CHECK_FILE UPDATING. New job_queue: " + str(job_queue) + "\n")
         file.close()
         CURRENTLY_WRITING = 0
 
 def main():
+    # clear dest.txt when app.py first launched
+    file = open("dest.txt","r+")
+    content = file.read()
+    file.seek(0)
+    file.truncate()
+    file.close()
+
     scheduler = BackgroundScheduler()
     job = scheduler.add_job(check_file, 'interval', seconds=2)
     scheduler.start()
+
+    if (sched_alg == "parameterised"):
+        calc_distances()
+
+    # disable Flask HTTP messages (better readability)
+    log = logging.getLogger('werkzeug')
+    log.setLevel(logging.ERROR)
 
 # redirect unknown URLs to homepage
 @app.errorhandler(404)

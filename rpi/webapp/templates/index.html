@@ -16,16 +16,28 @@
 		 </div>
 		 <h2>Where should OfficePal go?</h2>
 
+		 <!-- Manual control override -->
+		 <a href="/manual" class="btn manual_control">
+			 {% if manual_control %}
+			 <i class="fas fa-check-square"></i> Manual control is on
+		 {% else %}
+		   <i class="far fa-square"></i> Manual control is off
+		 {% endif %}
+		 </a>
+
 		 <!-- Main location selector -->
+		 {% if not manual_control %}
 		 {% for desk in desks %}
-			 <a href="/{{desk}}/call" class="btn btn-block btn-lg btn-default" role="button">Call to {{ desks[desk].name }} <i class="fas fa-desktop"></i> </a>
+		   <a href="/{{desk}}/call" class="desks btn btn-lg btn-default" role="button">Call to {{ desks[desk].name }} <i class="fas fa-desktop"></i></a>
+			 <a href="/{{desk}}/priority-call" class="priority btn btn-lg btn-default priority-color" role="button"><i class="fas fa-exclamation-circle"></i></a>
 		 {% endfor %}
+		 {% endif %}
 
 		 <!--Notifications-->
 		 {% if message and not error_msg %}
 			 <p class="notification fade distance"><i class="fas fa-check-square"></i>{{ message }}</p>
 		 {% elif message and error_msg %}
-			 <p class="notification fade distance error_color"><i class="fas fa-times"></i>{{ message }}</p>
+			 <p class="notification fade distance error-color"><i class="fas fa-times"></i>{{ message }}</p>
 		 {% else %}
 			 <p class="note notification distance">Notifications will appear here.</p>
 		 {% endif %}

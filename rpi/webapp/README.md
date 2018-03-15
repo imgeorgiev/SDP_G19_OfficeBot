@@ -1,11 +1,15 @@
-Install Flask by using: `sudo apt install pip` and then `pip install Flask`
+Install required packages using:
+```
+sudo apt install python3-pip
+sudo pip3 install flask
+sudo pip3 install numpy
+sudo pip3 install apscheduler
+sudo pip3 install opencv-python
+sudo pip3 install pygame
+```
 
-Install APScheduler by using `sudo apt install python3-pip`, then `sudo pip3 install apscheduler`
+Navigate to `webapp/` and run `sudo python3 app.py` and `python3 logic.py` in a separate terminal
 
-Make sure you have Flask installed on your system.
+Then navigate to `localhost:80` on your browser to view the app.
 
-Navigate to `webapp/` and run `python3 app.py`
-
-Then navigate to `http://0.0.0.0:5000` on your browser to view the app.
-
-The console will output some debug logs as you trigger page changes.
+The console will output some debug logs as you trigger page changes, as well as populating `log.txt`.
