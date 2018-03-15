@@ -64,17 +64,6 @@ class line_detect():
             "white": []
         }
 
-        # empty array slices default
-        self.emptyArraySlices = {
-            "black": [],
-            "blue": [],
-            "red": [],
-            "purple": [],
-            "green": [],
-            "yellow": [],
-            "white": []
-        }
-
         # initialising numpy upper and lower bounds for cv2 mask
         self.blackLower = np.array([0, 0, 0])
         self.blackUpper = np.array([180, 255, 75])
@@ -308,9 +297,9 @@ def compute_path(position, destination):
 def main():
     global server
 
-    position = None
+    position = 6
     destination = None
-    arrived = True
+    inMotion = False
 
     # schedule = sched.scheduler(time.time, time.sleep)
     server = Server(5005)
@@ -328,7 +317,7 @@ def main():
     # file ping counter
     while True:
         ############################# LOGIC ##############################
-        if arrived:
+        if not inMotion:
 
             # check if there is a new destination to go to (written by app.py)
             file = open("dest.txt", "r+")
@@ -359,7 +348,7 @@ def main():
                         print("Destination not valid!")
                     else:
                         [firstTurnDirection, secondTurnDirection, startingDeskColor, destinationDeskColor] = compute_path(position, destination)
-                        arrived = False
+                        inMotion = True
                 else:
                     print("Destination is the same as current position. Skipping.")
             else:
@@ -368,18 +357,14 @@ def main():
 
             file.close()
 
-        ############################# CAMERA ##############################
+        # get frame from camera
         inputFrameExists, frame = cap.read()
-
-        # clear the buffer by grabbing any remaining captured frames
-        for _ in range(10):
-            cap.grab()
 
         if not inputFrameExists:
             print('DEBUG: No input frames')
             time.sleep(1)
         else:
-            if not arrived:
+            if inMotion:
                 if startingDeskColor == destinationDeskColor:
                     print('DEBUG: Destination does not change')
                 else:
@@ -415,7 +400,7 @@ def main():
                             turn(secondTurnDirection)
 
                         else:
-                            arrived = True
+                            inMotion = False
                             position = destination
                             log_success(destination)
 
