@@ -12,12 +12,12 @@ import time, sched, datetime
 
 
 desks = {
-    1: {'name': 'Desk 1', 'colour': 'purple'},
-    2: {'name': 'Desk 2', 'colour': 'green'},
-    3: {'name': 'Desk 3', 'colour': 'yellow'},
-    4: {'name': 'Desk 4', 'colour': 'blue'},
-    5: {'name': 'Desk 5', 'colour': 'red'},
-    6: {'name': 'Desk 6', 'colour': 'white'}
+    1: {'name': 'Desk 1', 'color': 'purple'},
+    2: {'name': 'Desk 2', 'color': 'green'},
+    3: {'name': 'Desk 3', 'color': 'yellow'},
+    4: {'name': 'Desk 4', 'color': 'blue'},
+    5: {'name': 'Desk 5', 'color': 'red'},
+    6: {'name': 'Desk 6', 'color': 'white'}
 }
 
 directionsToTurnArray = [
@@ -29,7 +29,7 @@ directionsToTurnArray = [
     [("right", "left"), ("right", "right"), ("right", "left"), ("right", "right"), ("right", "left"), (None, None)]
 ]
 
-def log_success():
+def log_success(destination):
     log = open("log.txt", "a+")
     log.write("[" + datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') + "] ")
     log.write("Successfully moved to " + str(destination) + ".\n")
@@ -65,7 +65,15 @@ class line_detect():
         }
 
         # empty array slices default
-        self.emptyArraySlices = self.listOfArraySlicesByColor
+        self.emptyArraySlices = {
+            "black": [],
+            "blue": [],
+            "red": [],
+            "purple": [],
+            "green": [],
+            "yellow": [],
+            "white": []
+        }
 
         # initialising numpy upper and lower bounds for cv2 mask
         self.blackLower = np.array([0, 0, 0])
@@ -113,9 +121,9 @@ class line_detect():
     #     return image
 
     def RemoveBackground_HSV(self, image, color):
-        maskUpperAndLower = self.colorToMask[color]
-        lower = color[0]
-        upper = color[1]
+        maskLowerAndUpper = self.colorToMask[color]
+        lower = maskLowerAndUpper[0]
+        upper = maskLowerAndUpper[1]
 
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
@@ -263,8 +271,7 @@ class line_detect():
         # no main line is detected -> reverse
         return [-50, -50]
 
-
-def turn(self, direction):
+def turn(direction):
     if direction == 'right':
         server.sendTurnCommand(-60)
 
@@ -278,10 +285,11 @@ def compute_path(position, destination):
     log.write("[" + datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') + "] ")
     log.write("Received command to move to " + str(destination) + ".\n")
 
-    destinationDeskColor = desks[destination]['colour']
-    startingDeskColor = desks[position]['colour']
+    destinationDeskColor = desks[destination]['color']
+    startingDeskColor = desks[position]['color']
 
     route = directionsToTurnArray[position-1][destination-1]  # -1 because desks are 1 indexed, array is 0 indexed
+
     firstTurnDirection = route[0]
     secondTurnDirection = route[1]
 
@@ -296,7 +304,7 @@ def compute_path(position, destination):
     return [firstTurnDirection, secondTurnDirection, startingDeskColor, destinationDeskColor]
 
 def main():
-    global destination, server
+    global server
 
     position = None
     destination = None
@@ -376,7 +384,7 @@ def main():
                     # reset the arrays of slices
                     line.listOfArraySlicesByColor = line.emptyArraySlices
 
-                    # isolating colours and getting distance between centre of vision and centre of line
+                    # isolating colors and getting distance between centre of vision and centre of line
                     HSV_lineColor = line.RemoveBackground_HSV(frame, mainLineColor)
                     distance_mainLine = line.computeDistanceBiases(HSV_lineColor, line.numSlices, mainLineColor)
 
@@ -388,10 +396,13 @@ def main():
                     isDestinationColorInFrame = \
                         (line.computeDistanceBiases(HSV_destinationColor, line.numSlices, destinationDeskColor) is not None)
 
-                    printLinesToScreen(line, ['black', startingDeskColor, destinationDeskColor])
+                    printLinesToScreen(line, [mainLineColor, startingDeskColor, destinationDeskColor])
 
                     if not (isStartingColorInFrame or isDestinationColorInFrame or isCircleInFrame):
                             [new_left_motor_speed, new_right_motor_speed] = line.computeWheelSpeeds(distance_mainLine)
+                            print('DEBUG: left motor speed: {}'.format(new_left_motor_speed))
+                            print('DEBUG: right motor speed: {}'.format(new_right_motor_speed))
+                            server.sendMotorCommand(new_left_motor_speed, new_right_motor_speed)
                     else:
                         if isStartingColorInFrame:
                             turn(firstTurnDirection)
@@ -402,13 +413,9 @@ def main():
                         else:
                             arrived = True
                             position = destination
-                            log_success()
+                            log_success(destination)
 
-                    # if prev_l != new_left_motor_speed or new_right_motor_speed != prev_r:
-                    print('DEBUG: left motor speed: {}'.format(new_left_motor_speed))
-                    print('DEBUG: right motor speed: {}'.format(new_right_motor_speed))
 
-                    server.sendMotorCommand(new_left_motor_speed, new_right_motor_speed)
     cap.release()
     cv2.destroyAllWindows()
 
