@@ -29,7 +29,7 @@ directionsToTurnArray = [
     [("right", "left"), ("right", "right"), ("right", "left"), ("right", "right"), ("right", "left"), (None, None)]
 ]
 
-def log_success(destination):
+def log_arrived_at(destination):
     log = open("log.txt", "a+")
     log.write("[" + datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') + "] ")
     log.write("Successfully moved to " + str(destination) + ".\n")
@@ -379,14 +379,15 @@ def main():
 
                     HSV_startingColor = line.RemoveBackground_HSV(frame, startingDeskColor)
                     isStartingColorInFrame = \
-                        (line.computeDistanceBiases(HSV_startingColor, line.numSlices, startingDeskColor) is not None)
+                        line.computeDistanceBiases(HSV_startingColor, line.numSlices, startingDeskColor)
 
                     HSV_destinationColor = line.RemoveBackground_HSV(frame, destinationDeskColor)
                     isDestinationColorInFrame = \
-                        (line.computeDistanceBiases(HSV_destinationColor, line.numSlices, destinationDeskColor) is not None)
+                        line.computeDistanceBiases(HSV_destinationColor, line.numSlices, destinationDeskColor)
 
                     printLinesToScreen(line, [mainLineColor, startingDeskColor, destinationDeskColor])
 
+                    # if camera doesn't detect the first or second junctions, or the destination
                     if not (isStartingColorInFrame or isDestinationColorInFrame or isCircleInFrame):
                             [new_left_motor_speed, new_right_motor_speed] = line.computeWheelSpeeds(distance_mainLine)
                             print('DEBUG: left motor speed: {}'.format(new_left_motor_speed))
@@ -402,7 +403,7 @@ def main():
                         else:
                             inMotion = False
                             position = destination
-                            log_success(destination)
+                            log_arrived_at(destination)
 
                     # required by cv2 visualisation
                     pressedKey = cv2.waitKey(1) & 0xff
