@@ -2,13 +2,11 @@
 
 # multi-color lines detect in HSV and distance between middle of robot vision and center of line.
 
-import sys
-sys.path.append('../tcp')
-
 import numpy as np
 import cv2
-from tcp_rpi import *
-import time, sched, datetime
+from ..tcp.tcp_rpi import *
+import time
+import datetime
 
 
 desks = {
@@ -28,6 +26,7 @@ directionsToTurnArray = [
     [("left", "left"), ("left", "right"), ("left", "left"), ("left", "right"), (None, None), ("right", "left")],
     [("right", "left"), ("right", "right"), ("right", "left"), ("right", "right"), ("right", "left"), (None, None)]
 ]
+
 
 def log_arrived_at(destination):
     log = open("log.txt", "a+")
@@ -209,17 +208,15 @@ class line_detect():
             contours = self.image_process(crop_img)
             contours = self.contour_process(contours, h, w)
 
-            cv2.drawContours(crop_img, contours,-1, (0, 255, 0), 3)
+            cv2.drawContours(crop_img, contours, -1, (0, 255, 0), 3)
             cv2.circle(crop_img, (middlew, middleh), 7, (0, 0, 255), -1)  # Draw middle circle RED
             if contours:
                 contourCenterX = self.getContourCenter(contours[0])[0]
                 cv2.circle(crop_img, (contourCenterX, middleh), 7, (255, 255, 255), -1)  # Draw dX circle WHITE
                 font = cv2.FONT_HERSHEY_SIMPLEX
-                cv2.putText(crop_img,str(middlew - contourCenterX),(contourCenterX + 20, middleh), font, 1,(200,0,200),2,cv2.LINE_AA)
-#               cv2.putText(crop_img,"Weight:%.3f"%self.getContourExtent(contours[0]),(contourCenterX+20, middleh+35), font, 0.5,(200,0,200),1,cv2.LINE_AA)
-#               bias = int(middlew-contourCenterX) * self.getContourExtent(contours[0])
-                bias = int(middlew - contourCenterX)
+                cv2.putText(crop_img, str(middlew - contourCenterX), (contourCenterX + 20, middleh), font, 1, (200, 0, 200), 2, cv2.LINE_AA)
 
+                bias = int(middlew - contourCenterX)
                 distance.append(bias)
 
         # return distance array reversed
@@ -259,6 +256,7 @@ class line_detect():
         # no main line is detected -> reverse
         return [-50, -50]
 
+
 def turn(direction):
     if direction == 'right':
         server.sendTurnCommand(-60)
@@ -266,9 +264,11 @@ def turn(direction):
     elif direction == 'left':
         server.sendTurnCommand(60)
 
-def resetDictionary(dict):
-    for key in dict:
-        dict[key] = []
+
+def resetDictionary(d):
+    for key in d:
+        d[key] = []
+
 
 # noinspection PyRedundantParentheses
 def compute_path(position, destination):
@@ -294,6 +294,7 @@ def compute_path(position, destination):
     log.write(debug_text + "\n")
     log.close()
     return [firstTurnDirection, secondTurnDirection, startingDeskColor, destinationDeskColor]
+
 
 def main():
     global server
@@ -413,7 +414,6 @@ def main():
                         break
                     time.sleep(0.05)
 
-
     cap.release()
     cv2.destroyAllWindows()
 
@@ -427,6 +427,7 @@ def printLinesToScreen(line, listOfColors):
 
         # output image to screen
         cv2.imshow(color, image)
+
 
 if __name__ == '__main__':
     main()
