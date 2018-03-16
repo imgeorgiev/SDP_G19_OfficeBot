@@ -237,7 +237,7 @@ class line_detect():
         # threshold of corner
         # send command to ev3
         if distanceBiasArray is not None:
-            num = len(distanceBiasArray)
+            num = len(distanceBiasArray) - 1
             bias = [i*j for i, j in zip(distanceBiasArray, self.weights[num])]
             bias = sum(bias)
 
@@ -245,7 +245,8 @@ class line_detect():
             print('The distance list is {}'.format(distanceBiasArray))
             print('The bias is {}'.format(bias))
 
-            speed = attenuate(bias/6, -40, 40)
+            # attenuate ensures speed will be between -40 and 40   -  parser requires speed to be an integer
+            speed = int(attenuate(bias/6, -40, 40))
 
             if abs(bias) > self.threshold:
                 if bias > 0:
