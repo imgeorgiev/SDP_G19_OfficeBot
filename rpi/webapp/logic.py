@@ -405,6 +405,7 @@ def main():
                             inMotion = False
                             position = destination
                             log_arrived_at(destination)
+                            server.sendMotorCommand(0, 0)
 
                     # required by cv2 visualisation
                     pressedKey = cv2.waitKey(1) & 0xff
