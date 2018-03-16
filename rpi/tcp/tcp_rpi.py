@@ -79,23 +79,8 @@ class Server:
         self._server.sendMessage(sendMsg)
         # print("DEBUG: Server : Sending ", sendMsg)
 
-    # Sends a command to follow a line as Alex wanted
-    # arguments should be self explanatory
-    # current color to follow
-    # next color to follow
-    # on which side to look for the junction
-    # num of junctions to skip before turning
-    def sendLineFollow(self, currentColor, nextColor, side, numJunctionsToIgnote):
-        if(currentColor not in self._colorList):
-            raise Exception("ERROR: Invalid currentColor input")
-        if(nextColor not in self._colorList):
-            raise Exception("ERROR: Invalid nextColor input")
-        side = side.upper()[0]
-        if(not (side == "L" or side == "R")):
-            raise Exception("ERROR: Invalid side input")
-
-        sendMsg = "LFW:" + currentColor + "," + nextColor + "," + side + "," + str(numJunctionsToIgnote)
-
+    def sendTurnCommand(self, degrees):
+        sendMsg = "TRN:" + str(degrees)
         self._server.sendMessage(sendMsg)
 
     def terminate(self):
