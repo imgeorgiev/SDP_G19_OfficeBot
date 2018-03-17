@@ -293,17 +293,14 @@ def compute_path(position, destination):
     log.write("[" + datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') + "] ")
     log.write(debug_text + "\n")
     log.close()
-    return [firstTurnDirection, secondTurnDirection, startingDeskColor, destinationDeskColor]
+    return (firstTurnDirection, secondTurnDirection, startingDeskColor, destinationDeskColor)
 
 
 def main():
-    global server
+    global server, ESCAPE_KEY, cap, line, mainLineColor
 
-    position = 6
-    destination = None
-    inMotion = False
+    position = 1
 
-    # schedule = sched.scheduler(time.time, time.sleep)
     server = Server(5005)
 
     line = line_detect()
@@ -318,104 +315,116 @@ def main():
 
     # file ping counter
     while True:
-        ############################# LOGIC ##############################
-        if not inMotion:
+        destination = getDestinationFromFile()
+        if destination is not None:
+            if destination == position:
+                print("Destination is the same as current position. Skipping.")
 
-            # check if there is a new destination to go to (written by app.py)
-            file = open("dest.txt", "r+")
-            content = file.read()
+            elif destination == 100 or destination == 200:
+                handleManualOverride()
 
-            if len(content) > 0:
-                print("File content: " + content)
-                destination = int(content)
-
-                # Manual override
-                if destination == 100 or destination == 200:
-                    file.seek(0)
-                    file.truncate()
-                    file.close()
-                    print("MANUAL OVERRIDE TRIGGERED.")
-                    while True:
-                        # TODO: trigger ps4 controls, and periodically check for 200 code to remove manual override
-                        pass
-
-                # empty the file
-                file.seek(0)
-                file.truncate()
-                file.close()
-
-                print("RECEIVED DESTINATION: " + str(destination) + ".")
-                if (destination != position):
-                    if (destination not in [1, 2, 3, 4, 5, 6]):
-                        print("Destination not valid!")
-                    else:
-                        [firstTurnDirection, secondTurnDirection, startingDeskColor, destinationDeskColor] = compute_path(position, destination)
-                        inMotion = True
-                else:
-                    print("Destination is the same as current position. Skipping.")
             else:
-                print("File was empty, waiting 1 second and checking again")
-                time.sleep(1)
+                if destination not in [1, 2, 3, 4, 5, 6]:
+                    print("Destination not valid!")
+                else:
+                    path = compute_path(position, destination)
 
-            file.close()
+                    # follow the computed path, return when completed or escaped
+                    arrivedAtDestination = followPath(path)
 
+                    if arrivedAtDestination:
+                        position = destination
+                        log_arrived_at(destination)
+                    else:
+                        # Escape key was pressed
+                        break
+        else:
+            print("File was empty.")
+            time.sleep(1)
+
+
+def handleManualOverride():
+    print("MANUAL OVERRIDE TRIGGERED.")
+    while True:
+        # TODO: trigger ps4 controls, and periodically check for 200 code to remove manual override
+        pass
+
+
+# checks if there is a new destination to go to (written by app.py)
+def getDestinationFromFile():
+    file = open("dest.txt", "r+")
+    content = file.read()
+    if len(content) > 0:
+        print("File content: " + content)
+        destination = int(content)
+
+        # empty the file
+        file.seek(0)
+        file.truncate()
+        file.close()
+
+        return destination
+    else:
+        file.close()
+        return None
+
+
+# follows the given path until a circle marking the end of path is detected
+def followPath(path):
+    (firstTurnDirection, secondTurnDirection, startingDeskColor, destinationDeskColor) = path
+
+    while True:
         # get frame from camera
         inputFrameExists, frame = cap.read()
-
         if not inputFrameExists:
             print('DEBUG: No input frames')
             time.sleep(1)
         else:
-            if inMotion:
-                if startingDeskColor == destinationDeskColor:
-                    print('DEBUG: Destination does not change')
+            isCircleInFrame = line.circle_detect(frame)
+
+            # reset the arrays of slices
+            resetDictionary(line.listOfArraySlicesByColor)
+
+            # isolating colors and getting distance between centre of vision and centre of line
+            HSV_lineColor = line.RemoveBackground_HSV(frame, mainLineColor)
+            distance_mainLine = line.computeDistanceBiases(HSV_lineColor, line.numSlices, mainLineColor)
+
+            HSV_startingColor = line.RemoveBackground_HSV(frame, startingDeskColor)
+            isFirstTurnColorInFrame = line.computeDistanceBiases(HSV_startingColor, line.numSlices, startingDeskColor)
+
+            HSV_destinationColor = line.RemoveBackground_HSV(frame, destinationDeskColor)
+            isSecondTurnColorInFrame = line.computeDistanceBiases(HSV_destinationColor, line.numSlices, destinationDeskColor)
+
+            printLinesToScreen(line, [mainLineColor, startingDeskColor, destinationDeskColor])
+
+            # if camera doesn't detect the first or second junctions, or the destination
+            if not (isFirstTurnColorInFrame or isSecondTurnColorInFrame or isCircleInFrame):
+                [new_left_motor_speed, new_right_motor_speed] = line.computeWheelSpeeds(distance_mainLine)
+
+                print('DEBUG: left motor speed: {}'.format(new_left_motor_speed))
+                print('DEBUG: right motor speed: {}'.format(new_right_motor_speed))
+                server.sendMotorCommand(new_left_motor_speed, new_right_motor_speed)
+
+            else:
+                if isFirstTurnColorInFrame:
+                    turn(firstTurnDirection)
+
+                elif isSecondTurnColorInFrame and not isCircleInFrame:
+                    turn(secondTurnDirection)
+
                 else:
-                    isCircleInFrame = line.circle_detect(frame)
+                    # arrived at destination, stop motors and return
+                    server.sendMotorCommand(0, 0)
+                    return True
 
-                    # reset the arrays of slices
-                    resetDictionary(line.listOfArraySlicesByColor)
+            # required when printing lines to the screen
+            pressedKey = cv2.waitKey(1) & 0xff
+            if pressedKey == ESCAPE_KEY:
+                cap.release()
+                cv2.destroyAllWindows()
+                return False
 
-                    # isolating colors and getting distance between centre of vision and centre of line
-                    HSV_lineColor = line.RemoveBackground_HSV(frame, mainLineColor)
-                    distance_mainLine = line.computeDistanceBiases(HSV_lineColor, line.numSlices, mainLineColor)
-
-                    HSV_startingColor = line.RemoveBackground_HSV(frame, startingDeskColor)
-                    isStartingColorInFrame = \
-                        line.computeDistanceBiases(HSV_startingColor, line.numSlices, startingDeskColor)
-
-                    HSV_destinationColor = line.RemoveBackground_HSV(frame, destinationDeskColor)
-                    isDestinationColorInFrame = \
-                        line.computeDistanceBiases(HSV_destinationColor, line.numSlices, destinationDeskColor)
-
-                    printLinesToScreen(line, [mainLineColor, startingDeskColor, destinationDeskColor])
-
-                    # if camera doesn't detect the first or second junctions, or the destination
-                    if not (isStartingColorInFrame or isDestinationColorInFrame or isCircleInFrame):
-                            [new_left_motor_speed, new_right_motor_speed] = line.computeWheelSpeeds(distance_mainLine)
-                            print('DEBUG: left motor speed: {}'.format(new_left_motor_speed))
-                            print('DEBUG: right motor speed: {}'.format(new_right_motor_speed))
-                            server.sendMotorCommand(new_left_motor_speed, new_right_motor_speed)
-                    else:
-                        if isStartingColorInFrame:
-                            turn(firstTurnDirection)
-
-                        elif isDestinationColorInFrame and not isCircleInFrame:
-                            turn(secondTurnDirection)
-
-                        else:
-                            inMotion = False
-                            position = destination
-                            log_arrived_at(destination)
-                            server.sendMotorCommand(0, 0)
-
-                    # required by cv2 visualisation
-                    pressedKey = cv2.waitKey(1) & 0xff
-                    if pressedKey == ESCAPE_KEY:
-                        break
-                    time.sleep(0.05)
-
-    cap.release()
-    cv2.destroyAllWindows()
+            time.sleep(0.05)
 
 
 def printLinesToScreen(line, listOfColors):
