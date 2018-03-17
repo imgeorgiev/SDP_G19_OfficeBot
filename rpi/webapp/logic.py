@@ -53,7 +53,7 @@ class line_detect():
         self.threshold = 70
         self.FPS_limit = 10
 
-        self.listOfArraySlicesByColor = {
+        self.slicesByColor = {
             "black": [],
             "blue": [],
             "red": [],
@@ -197,7 +197,7 @@ class line_detect():
             heightOffset = sliceHeight*i
             crop_img = image[heightOffset:heightOffset + sliceHeight, 0:self.width]
 
-            self.listOfArraySlicesByColor[color].append(crop_img)
+            self.slicesByColor[color].append(crop_img)
 
             h, w = crop_img.shape[:2]
             middleh = int(h/2)
@@ -324,14 +324,17 @@ def main():
                     path = compute_path(position, destination)
 
                     # follow the computed path, return when completed or escaped
-                    arrivedAtDestination = followPath(path)
-
-                    if arrivedAtDestination:
+                    try:
+                        followPath(path)
                         position = destination
                         log_arrived_at(destination)
-                    else:
+                    except KeyboardInterrupt:
                         # Escape key was pressed
+                        server.sendMotorCommand(0, 0)
+                        cap.release()
+                        cv2.destroyAllWindows()
                         break
+
         else:
             print("File was empty.")
             time.sleep(1)
@@ -365,7 +368,56 @@ def getDestinationFromFile():
 
 # follows the given path until a circle marking the end of path is detected
 def followPath(path):
-    (firstTurnDirection, secondTurnDirection, startingDeskColor, destinationDeskColor) = path
+    (firstTurnDirection, secondTurnDirection, firstJunctionColor, secondJunctionColor) = path
+
+    followTillJunction(firstJunctionColor, firstTurnDirection)
+    followTillJunction(secondJunctionColor, secondTurnDirection)
+    followTillEnd()
+
+
+def followTillJunction(junctionColor, turnDirection):
+    previousSpeeds = (0, 0)
+
+    while True:
+        # get frame from camera
+        inputFrameExists, frame = cap.read()
+
+        if not inputFrameExists:
+            print('DEBUG: No input frames')
+            time.sleep(1)
+        else:
+            # reset the arrays of slices
+            line.slicesByColor[mainLineColor] = []
+            line.slicesByColor[junctionColor] = []
+
+            # isolating colors and getting distance between centre of vision and centre of line
+            HSV_lineColor = line.RemoveBackground_HSV(frame, mainLineColor)
+            mainLineDistanceBiases = line.computeDistanceBiases(HSV_lineColor, line.numSlices, mainLineColor)
+
+            HSV_startingColor = line.RemoveBackground_HSV(frame, junctionColor)
+            isTurnColorInFrame = line.computeDistanceBiases(HSV_startingColor, line.numSlices, junctionColor)
+
+            if isTurnColorInFrame:
+                turn(turnDirection)
+                return
+            else:
+                (new_left_motor_speed, new_right_motor_speed) = line.computeWheelSpeeds(mainLineDistanceBiases)
+
+                print('DEBUG: left motor speed: {}'.format(new_left_motor_speed))
+                print('DEBUG: right motor speed: {}'.format(new_right_motor_speed))
+
+                if (new_left_motor_speed, new_right_motor_speed) != previousSpeeds:
+                    server.sendMotorCommand(new_left_motor_speed, new_right_motor_speed)
+                    previousSpeeds = (new_left_motor_speed, new_right_motor_speed)
+
+            printLinesToScreen(line, mainLineColor, junctionColor)
+
+            # required when printing lines to the screen
+            pressedKey = cv2.waitKey(1) & 0xff
+            if pressedKey == ESCAPE_KEY:
+                raise KeyboardInterrupt('Exit key was pressed')
+
+def followTillEnd():
     previousSpeeds = (0, 0)
 
     while True:
@@ -375,25 +427,21 @@ def followPath(path):
             print('DEBUG: No input frames')
             time.sleep(1)
         else:
-            isCircleInFrame = line.circle_detect(frame)
 
-            # reset the arrays of slices
-            resetDictionary(line.listOfArraySlicesByColor)
+            # reset the array of slices
+            line.slicesByColor[mainLineColor] = []
 
             # isolating colors and getting distance between centre of vision and centre of line
             HSV_lineColor = line.RemoveBackground_HSV(frame, mainLineColor)
             mainLineDistanceBiases = line.computeDistanceBiases(HSV_lineColor, line.numSlices, mainLineColor)
 
-            HSV_startingColor = line.RemoveBackground_HSV(frame, startingDeskColor)
-            isFirstTurnColorInFrame = line.computeDistanceBiases(HSV_startingColor, line.numSlices, startingDeskColor)
+            isCircleInFrame = line.circle_detect(frame)
 
-            HSV_destinationColor = line.RemoveBackground_HSV(frame, destinationDeskColor)
-            isSecondTurnColorInFrame = line.computeDistanceBiases(HSV_destinationColor, line.numSlices, destinationDeskColor)
-
-            printLinesToScreen(line, (mainLineColor, startingDeskColor, destinationDeskColor))
-
-            # if camera doesn't detect the first or second junctions, or the destination
-            if not (isFirstTurnColorInFrame or isSecondTurnColorInFrame or isCircleInFrame):
+            if isCircleInFrame:
+                # arrived at destination, stop motors and return
+                server.sendMotorCommand(0, 0)
+                return
+            else:
                 (new_left_motor_speed, new_right_motor_speed) = line.computeWheelSpeeds(mainLineDistanceBiases)
 
                 print('DEBUG: left motor speed: {}'.format(new_left_motor_speed))
@@ -401,30 +449,17 @@ def followPath(path):
 
                 if (new_left_motor_speed, new_right_motor_speed) != previousSpeeds:
                     server.sendMotorCommand(new_left_motor_speed, new_right_motor_speed)
+                    previousSpeeds = (new_left_motor_speed, new_right_motor_speed)
 
-            else:
-                if isFirstTurnColorInFrame:
-                    turn(firstTurnDirection)
-
-                elif isSecondTurnColorInFrame and not isCircleInFrame:
-                    turn(secondTurnDirection)
-
-                else:
-                    # arrived at destination, stop motors and return
-                    server.sendMotorCommand(0, 0)
-                    return True
+            printLinesToScreen(line, mainLineColor)
 
             # required when printing lines to the screen
             pressedKey = cv2.waitKey(1) & 0xff
             if pressedKey == ESCAPE_KEY:
-                cap.release()
-                cv2.destroyAllWindows()
-                return False
-
-            time.sleep(0.05)
+                raise KeyboardInterrupt('Exit key was pressed')
 
 
-def printLinesToScreen(line, listOfColors):
+def printLinesToScreen(line, *listOfColors):
     for color in listOfColors:
         slices = line.listOfArraySlicesByColor[color]
 
