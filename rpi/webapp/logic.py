@@ -50,7 +50,7 @@ class line_detect():
 
         self.weights = (weight_1, weight_2, weight_3, weight_4)
 
-        self.threshold = 70
+        self.threshold = 70/0.9
         self.FPS_limit = 10
 
         self.slicesByColor = {
@@ -229,12 +229,8 @@ class line_detect():
 
     # through the distance bias array, we can use this function to reach line_following
     def computeWheelSpeeds(self, distanceBiasArray):
-        # threshold of corner
-        # send command to ev3
-        if distanceBiasArray is not None:
-            num = len(distanceBiasArray) - 1
-            bias = [i*j for i, j in zip(distanceBiasArray, self.weights[num])]
-            bias = sum(bias)
+        if len(distanceBiasArray) > 0:
+            bias = sum(distanceBiasArray)
 
             # bias = sum(distance)
             print('The distance list is {}'.format(distanceBiasArray))
