@@ -43,12 +43,12 @@ class line_detect():
         self.height = 240
         self.numSlices = 4
 
-        weight_1 = [0.9]
-        weight_2 = [0.45, 0.45]
-        weight_3 = [0.3, 0.3, 0.3]
-        weight_4 = [0.23, 0.23, 0.23, 0.23]
+        weight_1 = (0.9)
+        weight_2 = (0.45, 0.45)
+        weight_3 = (0.3, 0.3, 0.3)
+        weight_4 = (0.23, 0.23, 0.23, 0.23)
 
-        self.weights = [weight_1, weight_2, weight_3, weight_4]
+        self.weights = (weight_1, weight_2, weight_3, weight_4)
 
         self.threshold = 70
         self.FPS_limit = 10
@@ -64,37 +64,37 @@ class line_detect():
         }
 
         # initialising numpy upper and lower bounds for cv2 mask
-        self.blackLower = np.array([0, 0, 0])
-        self.blackUpper = np.array([180, 255, 75])
+        blackLower = np.array([0, 0, 0])
+        blackUpper = np.array([180, 255, 75])
 
-        self.blueLower = np.array([100, 170, 46])
-        self.blueUpper = np.array([124, 255, 255])
+        blueLower = np.array([100, 170, 46])
+        blueUpper = np.array([124, 255, 255])
 
-        self.redLower = np.array([156, 43, 46])
-        self.redUpper = np.array([180, 255, 255])
+        redLower = np.array([156, 43, 46])
+        redUpper = np.array([180, 255, 255])
 
-        self.greenLower = np.array([35, 100, 46])
-        self.greenUpper = np.array([85, 255, 255])
+        greenLower = np.array([35, 100, 46])
+        greenUpper = np.array([85, 255, 255])
 
-        self.yellowUpper = np.array([22, 40, 0])
-        self.yellowLower = np.array([81, 255, 255])
+        yellowUpper = np.array([22, 40, 0])
+        yellowLower = np.array([81, 255, 255])
 
-        self.whiteLower = np.array([0, 0, 0])
-        self.whiteUpper = np.array([0, 0, 150])
+        whiteLower = np.array([0, 0, 0])
+        whiteUpper = np.array([0, 0, 150])
 
-        self.purpleLower = np.array([125, 43, 46])
-        self.purpleUpper = np.array([155, 255, 255])
+        purpleLower = np.array([125, 43, 46])
+        purpleUpper = np.array([155, 255, 255])
 
         self.kernel = np.ones((5, 5), np.uint8)
 
         self.colorToMask = {
-            "black": (self.blackLower, self.blackUpper),
-            "blue": (self.blueLower, self.blueUpper),
-            "red": (self.redLower, self.redUpper),
-            "green": (self.greenLower, self.greenUpper),
-            "yellow": (self.yellowLower, self.yellowUpper),
-            "white": (self.whiteLower, self.whiteUpper),
-            "purple": (self.purpleLower, self.purpleUpper),
+            "black": (blackLower, blackUpper),
+            "blue": (blueLower, blueUpper),
+            "red": (redLower, redUpper),
+            "green": (greenLower, greenUpper),
+            "yellow": (yellowLower, yellowUpper),
+            "white": (whiteLower, whiteUpper),
+            "purple": (purpleLower, purpleUpper),
         }
 
     # def RemoveBackground_RGB(self,image):
@@ -109,9 +109,7 @@ class line_detect():
     #     return image
 
     def RemoveBackground_HSV(self, image, color):
-        maskLowerAndUpper = self.colorToMask[color]
-        lower = maskLowerAndUpper[0]
-        upper = maskLowerAndUpper[1]
+        (lower, upper) = self.colorToMask[color]
 
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
@@ -148,7 +146,7 @@ class line_detect():
 
         x = int(M["m10"] / M["m00"])
         y = int(M["m01"] / M["m00"])
-        return [x, y]
+        return (x, y)
 
     # it will delete contours which area less than a specifiy threshold
     @staticmethod
@@ -247,14 +245,14 @@ class line_detect():
 
             if abs(bias) > self.threshold:
                 if bias > 0:
-                    return [20 - speed, 20 + speed]
+                    return (20 - speed, 20 + speed)
                 else:
-                    return [20 + abs(speed), 20 - abs(speed)]
+                    return (20 + abs(speed), 20 - abs(speed))
             else:
-                return [50, 50]
+                return (50, 50)
 
         # no main line is detected -> reverse
-        return [-50, -50]
+        return (-50, -50)
 
 
 def turn(direction):
@@ -280,10 +278,7 @@ def compute_path(position, destination):
     destinationDeskColor = desks[destination]['color']
     startingDeskColor = desks[position]['color']
 
-    route = directionsToTurnArray[position-1][destination-1]  # -1 because desks are 1 indexed, array is 0 indexed
-
-    firstTurnDirection = route[0]
-    secondTurnDirection = route[1]
+    (firstTurnDirection, secondTurnDirection) = directionsToTurnArray[position-1][destination-1]  # -1 because desks are 1 indexed, array is 0 indexed
 
     # Debugging
     debug_text = "COMPUTING ROUTE." + " position: " + str(position) + ", destination: " + \
@@ -395,7 +390,7 @@ def followPath(path):
             HSV_destinationColor = line.RemoveBackground_HSV(frame, destinationDeskColor)
             isSecondTurnColorInFrame = line.computeDistanceBiases(HSV_destinationColor, line.numSlices, destinationDeskColor)
 
-            printLinesToScreen(line, [mainLineColor, startingDeskColor, destinationDeskColor])
+            printLinesToScreen(line, (mainLineColor, startingDeskColor, destinationDeskColor))
 
             # if camera doesn't detect the first or second junctions, or the destination
             if not (isFirstTurnColorInFrame or isSecondTurnColorInFrame or isCircleInFrame):
