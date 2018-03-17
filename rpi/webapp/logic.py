@@ -427,8 +427,8 @@ def followTillEnd():
         if not inputFrameExists:
             print('DEBUG: No input frames')
             time.sleep(1)
-        else:
 
+        else:
             # reset the array of slices
             line.slicesByColor[mainLineColor] = []
 
