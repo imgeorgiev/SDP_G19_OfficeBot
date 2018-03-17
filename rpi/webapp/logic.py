@@ -313,7 +313,6 @@ def main():
 
     ESCAPE_KEY = 27
 
-    # file ping counter
     while True:
         destination = getDestinationFromFile()
         if destination is not None:
@@ -372,6 +371,7 @@ def getDestinationFromFile():
 # follows the given path until a circle marking the end of path is detected
 def followPath(path):
     (firstTurnDirection, secondTurnDirection, startingDeskColor, destinationDeskColor) = path
+    previousSpeeds = (0, 0)
 
     while True:
         # get frame from camera
@@ -387,7 +387,7 @@ def followPath(path):
 
             # isolating colors and getting distance between centre of vision and centre of line
             HSV_lineColor = line.RemoveBackground_HSV(frame, mainLineColor)
-            distance_mainLine = line.computeDistanceBiases(HSV_lineColor, line.numSlices, mainLineColor)
+            mainLineDistanceBiases = line.computeDistanceBiases(HSV_lineColor, line.numSlices, mainLineColor)
 
             HSV_startingColor = line.RemoveBackground_HSV(frame, startingDeskColor)
             isFirstTurnColorInFrame = line.computeDistanceBiases(HSV_startingColor, line.numSlices, startingDeskColor)
@@ -399,11 +399,13 @@ def followPath(path):
 
             # if camera doesn't detect the first or second junctions, or the destination
             if not (isFirstTurnColorInFrame or isSecondTurnColorInFrame or isCircleInFrame):
-                [new_left_motor_speed, new_right_motor_speed] = line.computeWheelSpeeds(distance_mainLine)
+                (new_left_motor_speed, new_right_motor_speed) = line.computeWheelSpeeds(mainLineDistanceBiases)
 
                 print('DEBUG: left motor speed: {}'.format(new_left_motor_speed))
                 print('DEBUG: right motor speed: {}'.format(new_right_motor_speed))
-                server.sendMotorCommand(new_left_motor_speed, new_right_motor_speed)
+
+                if (new_left_motor_speed, new_right_motor_speed) != previousSpeeds:
+                    server.sendMotorCommand(new_left_motor_speed, new_right_motor_speed)
 
             else:
                 if isFirstTurnColorInFrame:
