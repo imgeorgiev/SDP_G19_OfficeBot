@@ -269,14 +269,15 @@ def resetDictionary(d):
 
 
 # noinspection PyRedundantParentheses
+# returns a list of turns
 def compute_path(position, destination):
     # Debugging
     log = open("log.txt", "a+")
     log.write("[" + datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') + "] ")
     log.write("Received command to move to " + str(destination) + ".\n")
 
-    destinationDeskColor = desks[destination]['color']
-    startingDeskColor = desks[position]['color']
+    firstTurnColor = desks[position]['color']
+    secondTurnColor = desks[destination]['color']
 
     (firstTurnDirection, secondTurnDirection) = directionsToTurnArray[position-1][destination-1]  # -1 because desks are 1 indexed, array is 0 indexed
 
@@ -288,7 +289,7 @@ def compute_path(position, destination):
     log.write("[" + datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') + "] ")
     log.write(debug_text + "\n")
     log.close()
-    return (firstTurnDirection, secondTurnDirection, startingDeskColor, destinationDeskColor)
+    return ((firstTurnColor, firstTurnDirection), (secondTurnColor, secondTurnDirection))
 
 
 def main():
@@ -368,16 +369,15 @@ def getDestinationFromFile():
 
 # follows the given path until a circle marking the end of path is detected
 def followPath(path):
-    (firstTurnDirection, secondTurnDirection, firstJunctionColor, secondJunctionColor) = path
-
-    followTillJunction(firstJunctionColor, firstTurnDirection)
-    followTillJunction(secondJunctionColor, secondTurnDirection)
+    for junction in path:
+        followTillJunction(junction)
     followTillEnd()
 
 
-def followTillJunction(junctionColor, turnDirection):
-    previousSpeeds = (0, 0)
+def followTillJunction(junction):
+    (junctionColor, turnDirection) = junction
 
+    previousSpeeds = (0, 0)
     while True:
         # get frame from camera
         inputFrameExists, frame = cap.read()
@@ -410,12 +410,13 @@ def followTillJunction(junctionColor, turnDirection):
                     server.sendMotorCommand(new_left_motor_speed, new_right_motor_speed)
                     previousSpeeds = (new_left_motor_speed, new_right_motor_speed)
 
-            printLinesToScreen(line, mainLineColor, junctionColor)
+            printLinesToScreen(mainLineColor, junctionColor)
 
             # required when printing lines to the screen
             pressedKey = cv2.waitKey(1) & 0xff
             if pressedKey == ESCAPE_KEY:
                 raise KeyboardInterrupt('Exit key was pressed')
+
 
 def followTillEnd():
     previousSpeeds = (0, 0)
@@ -451,7 +452,7 @@ def followTillEnd():
                     server.sendMotorCommand(new_left_motor_speed, new_right_motor_speed)
                     previousSpeeds = (new_left_motor_speed, new_right_motor_speed)
 
-            printLinesToScreen(line, mainLineColor)
+            printLinesToScreen(mainLineColor)
 
             # required when printing lines to the screen
             pressedKey = cv2.waitKey(1) & 0xff
@@ -459,9 +460,9 @@ def followTillEnd():
                 raise KeyboardInterrupt('Exit key was pressed')
 
 
-def printLinesToScreen(line, *listOfColors):
+def printLinesToScreen(*listOfColors):
     for color in listOfColors:
-        slices = line.listOfArraySlicesByColor[color]
+        slices = line.slicesByColor[color]
 
         # join slices back together
         image = line.RepackImages(slices)
