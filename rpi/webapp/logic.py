@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 
 # multi-color lines detect in HSV and distance between middle of robot vision and center of line.
+import sys
+sys.path.append("../tcp/")
 
 import numpy as np
 import cv2
-from ..tcp.tcp_rpi import *
+from tcp_rpi import *
 import time
 import datetime
 
@@ -250,7 +252,8 @@ class line_detect():
                 return (50, 50)
 
         # no main line is detected -> reverse
-        return -self.previousSpeeds
+        left, right = self.previousSpeeds
+        return (-left, -right)
 
 
 def turn(direction):
@@ -379,6 +382,7 @@ def followTillJunction(junction):
         cap.read()
     while True:
         # get frame from camera
+
         inputFrameExists, frame = cap.read()
 
         if not inputFrameExists:
@@ -390,8 +394,8 @@ def followTillJunction(junction):
             line.slicesByColor[junctionColor] = []
 
             # isolating colors and getting distance between centre of vision and centre of line
-            HSV_lineColor = line.RemoveBackground_HSV(frame, mainLineColor)
-            mainLineDistanceBiases = line.computeDistanceBiases(HSV_lineColor, line.numSlices, mainLineColor)
+            frameWithoutBackground = line.RemoveBackground_HSV(frame, mainLineColor)
+            mainLineDistanceBiases = line.computeDistanceBiases(frameWithoutBackground, line.numSlices, mainLineColor)
 
             HSV_startingColor = line.RemoveBackground_HSV(frame, junctionColor)
             isTurnColorInFrame = line.computeDistanceBiases(HSV_startingColor, line.numSlices, junctionColor)
