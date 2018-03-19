@@ -374,6 +374,8 @@ def followTillJunction(junction):
     (junctionColor, turnDirection) = junction
 
     previousSpeeds = (0, 0)
+    for i in range(20):
+        cap.read()
     while True:
         # get frame from camera
         inputFrameExists, frame = cap.read()
