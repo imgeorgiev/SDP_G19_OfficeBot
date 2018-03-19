@@ -76,8 +76,8 @@ class line_detect():
         greenLower = np.array([35, 100, 46])
         greenUpper = np.array([85, 255, 255])
 
-        yellowUpper = np.array([22, 40, 0])
-        yellowLower = np.array([81, 255, 255])
+        yellowLower = np.array([22, 40, 0])
+        yellowUpper = np.array([81, 255, 255])
 
         whiteLower = np.array([0, 0, 0])
         whiteUpper = np.array([0, 0, 150])
