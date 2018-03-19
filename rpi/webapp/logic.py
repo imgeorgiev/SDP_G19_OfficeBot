@@ -97,6 +97,8 @@ class line_detect():
             "purple": (purpleLower, purpleUpper),
         }
 
+        self.previousSpeeds = (0, 0)
+
     # def RemoveBackground_RGB(self,image):
     #     low = 0
     #     up = 120
@@ -248,7 +250,7 @@ class line_detect():
                 return (50, 50)
 
         # no main line is detected -> reverse
-        return (-50, -50)
+        return -self.previousSpeeds
 
 
 def turn(direction):
@@ -373,7 +375,6 @@ def followPath(path):
 def followTillJunction(junction):
     (junctionColor, turnDirection) = junction
 
-    previousSpeeds = (0, 0)
     for i in range(20):
         cap.read()
     while True:
@@ -404,9 +405,9 @@ def followTillJunction(junction):
                 print('DEBUG: left motor speed: {}'.format(new_left_motor_speed))
                 print('DEBUG: right motor speed: {}'.format(new_right_motor_speed))
 
-                if (new_left_motor_speed, new_right_motor_speed) != previousSpeeds:
+                if (new_left_motor_speed, new_right_motor_speed) != line.previousSpeeds:
                     server.sendMotorCommand(new_left_motor_speed, new_right_motor_speed)
-                    previousSpeeds = (new_left_motor_speed, new_right_motor_speed)
+                    line.previousSpeeds = (new_left_motor_speed, new_right_motor_speed)
 
             printLinesToScreen(mainLineColor, junctionColor)
 
@@ -447,9 +448,9 @@ def followTillEnd():
                 print('DEBUG: left motor speed: {}'.format(new_left_motor_speed))
                 print('DEBUG: right motor speed: {}'.format(new_right_motor_speed))
 
-                if (new_left_motor_speed, new_right_motor_speed) != previousSpeeds:
+                if (new_left_motor_speed, new_right_motor_speed) != line.previousSpeeds:
                     server.sendMotorCommand(new_left_motor_speed, new_right_motor_speed)
-                    previousSpeeds = (new_left_motor_speed, new_right_motor_speed)
+                    line.previousSpeeds = (new_left_motor_speed, new_right_motor_speed)
 
             printLinesToScreen(mainLineColor)
 
