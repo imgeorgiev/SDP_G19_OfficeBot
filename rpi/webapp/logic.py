@@ -387,100 +387,92 @@ def followTillJunction(junction):
     (junctionColor, turnDirection) = junction
 
     rawCapture = picamera.array.PiRGBArray(camera, size=resolution)
+    startTime = time.time()
+    # Capture images, opencv uses bgr format, not using video port is faster but takes lower quality images
+    for _ in camera.capture_continuous(rawCapture, format='bgr', use_video_port=False):
+        print(time.time() - startTime)
 
-    while True:
-        # Capture image, opencv uses bgr format, not using video port is faster but takes lower quality images
-        camera.capture(rawCapture, format="bgr", use_video_port=False)
+        rawCapture.truncate(0)  # clear the rawCapture array
 
-        if rawCapture is None:
-            print('DEBUG: No input frames')
-            time.sleep(1)
+        frame = rawCapture.array
+
+        # reset the arrays of slices
+        line.slicesByColor[mainLineColor] = []
+        line.slicesByColor[junctionColor] = []
+
+        # isolating colors and getting distance between centre of vision and centre of line
+        frameWithoutBackground = line.RemoveBackground_HSV(frame, mainLineColor)
+        mainLineDistanceBiases = line.computeDistanceBiases(frameWithoutBackground, line.numSlices, mainLineColor)
+
+        HSV_startingColor = line.RemoveBackground_HSV(frame, junctionColor)
+        isTurnColorInFrame = line.computeDistanceBiases(HSV_startingColor, line.numSlices, junctionColor)
+
+        if isTurnColorInFrame:
+            turn(turnDirection)
+            return
         else:
+            (new_left_motor_speed, new_right_motor_speed) = line.computeWheelSpeeds(mainLineDistanceBiases)
 
-            frame = rawCapture.array
+            print('DEBUG: left motor speed: {}'.format(new_left_motor_speed))
+            print('DEBUG: right motor speed: {}'.format(new_right_motor_speed))
 
-            # reset the arrays of slices
-            line.slicesByColor[mainLineColor] = []
-            line.slicesByColor[junctionColor] = []
+            if (new_left_motor_speed, new_right_motor_speed) != line.previousSpeeds:
+                server.sendMotorCommand(new_left_motor_speed, new_right_motor_speed)
+                line.previousSpeeds = (new_left_motor_speed, new_right_motor_speed)
 
-            # isolating colors and getting distance between centre of vision and centre of line
-            frameWithoutBackground = line.RemoveBackground_HSV(frame, mainLineColor)
-            mainLineDistanceBiases = line.computeDistanceBiases(frameWithoutBackground, line.numSlices, mainLineColor)
-
-            HSV_startingColor = line.RemoveBackground_HSV(frame, junctionColor)
-            isTurnColorInFrame = line.computeDistanceBiases(HSV_startingColor, line.numSlices, junctionColor)
-
-            if isTurnColorInFrame:
-                turn(turnDirection)
-                return
-            else:
-                (new_left_motor_speed, new_right_motor_speed) = line.computeWheelSpeeds(mainLineDistanceBiases)
-
-                print('DEBUG: left motor speed: {}'.format(new_left_motor_speed))
-                print('DEBUG: right motor speed: {}'.format(new_right_motor_speed))
-
-                if (new_left_motor_speed, new_right_motor_speed) != line.previousSpeeds:
-                    server.sendMotorCommand(new_left_motor_speed, new_right_motor_speed)
-                    line.previousSpeeds = (new_left_motor_speed, new_right_motor_speed)
-
-            printLinesToScreen(mainLineColor, junctionColor)
+#            printLinesToScreen(mainLineColor, junctionColor)
 
             # required when printing lines to the screen
-            pressedKey = cv2.waitKey(1) & 0xff
-            if pressedKey == ESCAPE_KEY:
-                raise KeyboardInterrupt('Exit key was pressed')
+#            pressedKey = cv2.waitKey(1) & 0xff
+#            if pressedKey == ESCAPE_KEY:
+#                raise KeyboardInterrupt('Exit key was pressed')
+        startTime = time.time()
 
 
 def followTillEnd():
 
     rawCapture = picamera.array.PiRGBArray(camera, size=resolution)
 
-    while True:
-        # Capture image, opencv uses bgr format, not using video port is faster but takes lower quality images
-        camera.capture(rawCapture, format="bgr", use_video_port=False)
+    # Capture images, opencv uses bgr format, not using video port is faster but takes lower quality images
+    for _ in camera.capture_continuous(rawCapture, format='bgr', use_video_port=False):
+        rawCapture.truncate(0)  # clear the rawCapture array
 
-        if rawCapture is None:
-            print('DEBUG: No input frames')
-            time.sleep(1)
+        frame = rawCapture.array
 
+        # reset the array of slices
+        line.slicesByColor[mainLineColor] = []
+
+        # isolating colors and getting distance between centre of vision and centre of line
+        HSV_lineColor = line.RemoveBackground_HSV(frame, mainLineColor)
+        mainLineDistanceBiases = line.computeDistanceBiases(HSV_lineColor, line.numSlices, mainLineColor)
+
+        isCircleInFrame = line.circle_detect(frame)
+
+        if isCircleInFrame:
+            # arrived at destination, turn around, stop motors and return
+            server.sendTurnCommand(200) # 200 degrees instead of 180 because a slight overturning is fine
+
+            time.sleep(2)
+
+            server.sendMotorCommand(0, 0)
+            return
         else:
+            (new_left_motor_speed, new_right_motor_speed) = line.computeWheelSpeeds(mainLineDistanceBiases)
 
-            frame = rawCapture.array
+            print('DEBUG: left motor speed: {}'.format(new_left_motor_speed))
+            print('DEBUG: right motor speed: {}'.format(new_right_motor_speed))
 
-            # reset the array of slices
-            line.slicesByColor[mainLineColor] = []
+            if (new_left_motor_speed, new_right_motor_speed) != line.previousSpeeds:
+                server.sendMotorCommand(new_left_motor_speed, new_right_motor_speed)
+                if not (new_left_motor_speed < 0 and new_right_motor_speed < 0):
+                    line.previousSpeeds = (new_left_motor_speed, new_right_motor_speed)
 
-            # isolating colors and getting distance between centre of vision and centre of line
-            HSV_lineColor = line.RemoveBackground_HSV(frame, mainLineColor)
-            mainLineDistanceBiases = line.computeDistanceBiases(HSV_lineColor, line.numSlices, mainLineColor)
+#        printLinesToScreen(mainLineColor)
 
-            isCircleInFrame = line.circle_detect(frame)
-
-            if isCircleInFrame:
-                # arrived at destination, turn around, stop motors and return
-                server.sendTurnCommand(200) # 200 degrees instead of 180 because a slight overturning is fine
-
-                time.sleep(2)
-
-                server.sendMotorCommand(0, 0)
-                return
-            else:
-                (new_left_motor_speed, new_right_motor_speed) = line.computeWheelSpeeds(mainLineDistanceBiases)
-
-                print('DEBUG: left motor speed: {}'.format(new_left_motor_speed))
-                print('DEBUG: right motor speed: {}'.format(new_right_motor_speed))
-
-                if (new_left_motor_speed, new_right_motor_speed) != line.previousSpeeds:
-                    server.sendMotorCommand(new_left_motor_speed, new_right_motor_speed)
-                    if not (new_left_motor_speed < 0 and new_right_motor_speed < 0):
-                        line.previousSpeeds = (new_left_motor_speed, new_right_motor_speed)
-
-            printLinesToScreen(mainLineColor)
-
-            # required when printing lines to the screen
-            pressedKey = cv2.waitKey(1) & 0xff
-            if pressedKey == ESCAPE_KEY:
-                raise KeyboardInterrupt('Exit key was pressed')
+        # required when printing lines to the screen
+#        pressedKey = cv2.waitKey(1) & 0xff
+#        if pressedKey == ESCAPE_KEY:
+#            raise KeyboardInterrupt('Exit key was pressed')
 
 
 def printLinesToScreen(*listOfColors):
