@@ -306,8 +306,9 @@ def main():
 
     camera = picamera.PiCamera(resolution=resolution, framerate=60)
 
-    # flip the image vertically (because the camera is upside down)
+    # flip the image vertically and horizontally (because the camera is upside down)
     camera.vflip = True
+    camera.hflip = True
 
     # required for the camera to 'warm up'
     time.sleep(0.1)
