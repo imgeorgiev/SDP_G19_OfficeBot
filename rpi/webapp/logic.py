@@ -9,6 +9,8 @@ import cv2
 from tcp_rpi import *
 import time
 import datetime
+import picamera
+import picamera.array
 
 
 desks = {
@@ -52,7 +54,7 @@ class line_detect():
 
         self.weights = (weight_1, weight_2, weight_3, weight_4)
 
-        self.threshold = 70/0.9
+        self.threshold = 80
         self.FPS_limit = 10
 
         self.slicesByColor = {
@@ -294,17 +296,23 @@ def compute_path(position, destination):
 
 
 def main():
-    global server, ESCAPE_KEY, cap, line, mainLineColor
+    global server, ESCAPE_KEY, camera, line, mainLineColor, resolution
 
     position = 1
 
     server = Server(5005)
 
+    resolution = (320, 240)
+
+    camera = picamera.PiCamera(resolution=resolution, framerate=20)
+
+    # flip the image vertically (because the camera is upside down)
+    camera.vflip = True
+
+    # required for the camera to 'warm up'
+    time.sleep(0.1)
+
     line = line_detect()
-    cap = cv2.VideoCapture(0)
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, line.width)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, line.height)
-    cap.set(cv2.CAP_PROP_FPS, line.FPS_limit)
 
     mainLineColor = 'black'
 
@@ -333,7 +341,7 @@ def main():
                     except KeyboardInterrupt:
                         # Escape key was pressed
                         server.sendMotorCommand(0, 0)
-                        cap.release()
+                        camera.close()
                         cv2.destroyAllWindows()
                         break
 
@@ -378,17 +386,19 @@ def followPath(path):
 def followTillJunction(junction):
     (junctionColor, turnDirection) = junction
 
-    for i in range(20):
-        cap.read()
+    rawCapture = picamera.array.PiRGBArray(camera, size=resolution)
+
     while True:
-        # get frame from camera
+        # Capture image, opencv uses bgr format, not using video port is faster but takes lower quality images
+        camera.capture(rawCapture, format="bgr", use_video_port=False)
 
-        inputFrameExists, frame = cap.read()
-
-        if not inputFrameExists:
+        if rawCapture is None:
             print('DEBUG: No input frames')
             time.sleep(1)
         else:
+
+            frame = rawCapture.array
+
             # reset the arrays of slices
             line.slicesByColor[mainLineColor] = []
             line.slicesByColor[junctionColor] = []
@@ -422,17 +432,21 @@ def followTillJunction(junction):
 
 
 def followTillEnd():
-    previousSpeeds = (0, 0)
-    for i in range(20):
-        cap.read()
+
+    rawCapture = picamera.array.PiRGBArray(camera, size=resolution)
+
     while True:
-        # get frame from camera
-        inputFrameExists, frame = cap.read()
-        if not inputFrameExists:
+        # Capture image, opencv uses bgr format, not using video port is faster but takes lower quality images
+        camera.capture(rawCapture, format="bgr", use_video_port=False)
+
+        if rawCapture is None:
             print('DEBUG: No input frames')
             time.sleep(1)
 
         else:
+
+            frame = rawCapture.array
+
             # reset the array of slices
             line.slicesByColor[mainLineColor] = []
 
@@ -443,7 +457,11 @@ def followTillEnd():
             isCircleInFrame = line.circle_detect(frame)
 
             if isCircleInFrame:
-                # arrived at destination, stop motors and return
+                # arrived at destination, turn around, stop motors and return
+                server.sendTurnCommand(200) # 200 degrees instead of 180 because a slight overturning is fine
+
+                time.sleep(2)
+
                 server.sendMotorCommand(0, 0)
                 return
             else:
@@ -454,7 +472,8 @@ def followTillEnd():
 
                 if (new_left_motor_speed, new_right_motor_speed) != line.previousSpeeds:
                     server.sendMotorCommand(new_left_motor_speed, new_right_motor_speed)
-                    line.previousSpeeds = (new_left_motor_speed, new_right_motor_speed)
+                    if not (new_left_motor_speed < 0 and new_right_motor_speed < 0):
+                        line.previousSpeeds = (new_left_motor_speed, new_right_motor_speed)
 
             printLinesToScreen(mainLineColor)
 
