@@ -304,7 +304,7 @@ def main():
 
     resolution = (320, 240)
 
-    camera = picamera.PiCamera(resolution=resolution, framerate=20)
+    camera = picamera.PiCamera(resolution=resolution, framerate=60)
 
     # flip the image vertically (because the camera is upside down)
     camera.vflip = True
@@ -388,8 +388,8 @@ def followTillJunction(junction):
 
     rawCapture = picamera.array.PiRGBArray(camera, size=resolution)
     startTime = time.time()
-    # Capture images, opencv uses bgr format, not using video port is faster but takes lower quality images
-    for _ in camera.capture_continuous(rawCapture, format='bgr', use_video_port=False):
+    # Capture images, opencv uses bgr format, using video port is faster but takes lower quality images
+    for _ in camera.capture_continuous(rawCapture, format='bgr', use_video_port=True):
         print(time.time() - startTime)
 
         rawCapture.truncate(0)  # clear the rawCapture array
@@ -433,8 +433,8 @@ def followTillEnd():
 
     rawCapture = picamera.array.PiRGBArray(camera, size=resolution)
 
-    # Capture images, opencv uses bgr format, not using video port is faster but takes lower quality images
-    for _ in camera.capture_continuous(rawCapture, format='bgr', use_video_port=False):
+    # Capture images, opencv uses bgr format, using video port is faster but takes lower quality images
+    for _ in camera.capture_continuous(rawCapture, format='bgr', use_video_port=True):
         rawCapture.truncate(0)  # clear the rawCapture array
 
         frame = rawCapture.array
