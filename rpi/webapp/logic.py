@@ -264,15 +264,18 @@ class line_detect():
 
             if abs(bias) > self.threshold:
                 if bias > 0:
+                    self.previousSpeeds = (20 - speed, 20 + speed)
                     return (20 - speed, 20 + speed)
                 else:
+                    self.previousSpeeds = (20 + abs(speed), 20 - abs(speed))
                     return (20 + abs(speed), 20 - abs(speed))
             else:
                 return (50, 50)
 
         # no main line is detected -> reverse
-        left, right = self.previousSpeeds
-        return (-left, -right)
+        else:
+            left, right = self.previousSpeeds
+            return (-left, -right)
 
 
 def turn(direction):
