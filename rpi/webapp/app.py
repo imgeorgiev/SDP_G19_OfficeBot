@@ -28,7 +28,7 @@ priorities = [0, 0, 0, 0, 0, 0]
 
 # starvation cut-off (number of priorities that can pass ahead
 # before a normal call is turned into a priority one)
-starvation_cutoff = -5
+starvation_cutoff = -4
 
 job_queue = []
 
@@ -193,23 +193,24 @@ def calc_distances():
 
 # Updates priority list to prevent starvation
 def update_priorities():
-    pass
-    # global priorities, job_queue, starvation_cutoff
-    # for i in range(0, len(priorities)):
-    #     # skip if priority
-    #     if priorities[i] != 1:
-    #         # make the standard call a priority call
-    #         if priorities[i] == starvation_cutoff:
-    #             print("Updating priority of " + str(i) + ".\n")
-    #             job_queue.remove(i)
-    #             # prioritise, move ahead
-    #             # TODO: any kind of problem with written_job/currently_processing?
-    #             # what if no priorities left, issue?
-    #             add_priority(i)
-    #         # update all other desks
-    #         else:
-    #             priorities[i] = priorities[i] - 1
-    # print("UPDATE_PRIORITIES done. priorities queue: " + str(priorities) + "\n")
+    global priorities, job_queue, starvation_cutoff
+    for i in range(0, len(priorities)):
+        # do not update priority of desks that are not in job_queue right now
+        if ((i + 1) in job_queue):
+            # skip if priority
+            if priorities[i] != 1:
+                # make the standard call a priority call
+                if priorities[i] == starvation_cutoff:
+                    print("Updating priority of " + str(i + 1) + ".\n")
+                    job_queue.remove(i + 1)
+                    # prioritise, move ahead
+                    # TODO: any kind of problem with written_job/currently_processing?
+                    # what if no priorities left, issue?
+                    add_priority(i + 1)
+                # update all other desks
+                else:
+                    priorities[i] = priorities[i] - 1
+    print("UPDATE_PRIORITIES done. priorities queue: " + str(priorities) + " job_queue: " + str(job_queue) + "\n")
 
 
 
@@ -252,7 +253,7 @@ def reorder_jobs(alg):
             print("job_queue: " + str(job_queue) + "\n")
         else:
             # To make standard calls into priority ones if needed
-            # update_priorities()
+            update_priorities()
             print("FRONT OF QUEUE HAS PRIORITY. REORDER_JOBS doesn't execute.")
             print("job_queue: " + str(job_queue) + "\n")
 
