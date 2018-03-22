@@ -144,7 +144,7 @@ class line_detect():
         color_Range[0] = int(color_Range[0]*180)
         color_Range[1] = int(color_Range[1]*255)
         color_Range[2] = int(color_Range[2]*255)
-        return np.array(color_Range[0],color_Range[1],color_Range[2])
+        return np.array([color_Range[0], color_Range[1], color_Range[2]])
 
     # Process the image and return the contour of line, it will change image to gray scale
     @staticmethod
