@@ -14,21 +14,21 @@ import picamera.array
 
 
 desks = {
-    1: {'name': 'Desk 1', 'color': 'purple'},
+    1: {'name': 'Desk 1', 'color': 'orange'},
     2: {'name': 'Desk 2', 'color': 'green'},
-    3: {'name': 'Desk 3', 'color': 'yellow'},
-    4: {'name': 'Desk 4', 'color': 'blue'},
+    3: {'name': 'Desk 3', 'color': 'purple'},
+    4: {'name': 'Desk 4', 'color': 'yellow'},
     5: {'name': 'Desk 5', 'color': 'red'},
-    6: {'name': 'Desk 6', 'color': 'white'}
+    6: {'name': 'Desk 6', 'color': 'blue'}
 }
 
 directionsToTurnArray = [
-    [(None, None), ("right", "left"), ("right", "right"), ("right", "left"), ("right", "right"), ("right", "left")],
-    [("right", "left"), (None, None), ("left", "right"), ("left", "left"), ("left", "right"), ("left", "left")],
-    [("left", "left"), ("left", "right"), (None, None), ("right", "left"), ("right", "right"), ("right", "left")],
-    [("right", "left"), ("right", "right"), ("right", "left"), (None, None), ("left", "right"), ("left", "left")],
-    [("left", "left"), ("left", "right"), ("left", "left"), ("left", "right"), (None, None), ("right", "left")],
-    [("right", "left"), ("right", "right"), ("right", "left"), ("right", "right"), ("right", "left"), (None, None)]
+    [(None, None), ("left", "left"), ("left", "right"), ("left", "right"), ("left", "left"), ("left", "right")],
+    [("right", "right"), (None, None), ("left", "right"), ("left", "right"), ("left", "left"), ("left", "right")],
+    [("left", "right"), ("left", "right"), (None, None), ("right", "right"), ("right", "left"), ("right", "right")],
+    [("left", "right"), ("left", "right"), ("left", "left"), (None, None), ("right", "left"), ("right", "right")],
+    [("right", "right"), ("right", "right"), ("right", "left"), ("right", "left"), (None, None), ("left", "right")],
+    [("left", "right"), ("left", "right"), ("left", "left"), ("left", "left"), ("left", "right"), (None, None)]
 ]
 
 
