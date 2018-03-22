@@ -57,6 +57,8 @@ class line_detect():
         self.threshold = 80
         self.FPS_limit = 10
 
+        self.previousSpeeds = (0, 0)
+
         self.slicesByColor = {
             "black": [],
             "blue": [],
@@ -72,49 +74,6 @@ class line_detect():
         }
 
         # initialising numpy upper and lower bounds for cv2 mask
-        # blackLower = np.array([0, 0, 0])
-        # blackUpper = np.array([50, 255, 75])
-        #
-        # blueLower = np.array([100, 170, 46])
-        # blueUpper = np.array([124, 255, 255])
-        #
-        # redLower = np.array([156, 43, 46])
-        # redUpper = np.array([180, 255, 255])
-        #
-        # # greenLower = np.array([35, 100, 46])
-        # # greenUpper = np.array([85, 255, 255])
-        #
-        # # yellowLower = np.array([22, 40, 0])
-        # # yellowUpper = np.array([81, 255, 255])
-        #
-        # whiteLower = np.array([0, 0, 0])
-        # whiteUpper = np.array([0, 0, 150])
-        #
-        # # purpleLower = np.array([125, 43, 46])
-        # # purpleUpper = np.array([155, 255, 255])
-        #
-        # pinkLower = np.array([0.93, 0.556, 0.432])
-        # pinkUpper = np.array([0.996, 1, 0.723])
-        #
-        # brownLower = np.array([0.035, 0.485, 0.411])
-        # brownUpper = np.array([0.123, 1, 0.813])
-        #
-        # # no sure with this range
-        # grayLower = np.array([0.211, 0, 0.236])
-        # grayUpper = np.array([0.717, 0.253, 0.552])
-        #
-        # greenLower = np.array([0.483, 0.391, 0.412])
-        # greenUpper = np.array([0.536, 1, 1])
-        #
-        # orangeLower = np.array([0, 0.549, 0.893])
-        # orangeUpper = np.array([0.054, 1, 0.893])
-        #
-        # purpleLower = np.array([0.785, 0.475, 0.283])
-        # purpleUpper = np.array([0.885, 1, 0.813])
-        #
-        # yellowLower = np.array([0.07, 0.437, 0.283])
-        # yellowUpper = np.array([0.18, 0.84, 0.867])
-
         blackLower = [0, 0, 0]
         blackUpper = [0.278, 1, 0.294]
 
@@ -124,17 +83,8 @@ class line_detect():
         redLower = [0.8, 0.17, 0.18]
         redUpper = [1, 1, 1]
 
-        # greenLower = [35, 100, 46]
-        # greenUpper = [85, 255, 255]
-
-        # yellowLower = [22, 40, 0]
-        # yellowUpper = [81, 255, 255]
-
         whiteLower = [0, 0, 0]
         whiteUpper = [0, 0, 0.589]
-
-        # purpleLower = [125, 43, 46]
-        # purpleUpper = [155, 255, 255]
 
         pinkLower = [0.93, 0.556, 0.432]
         pinkUpper = [0.996, 1, 0.723]
@@ -142,7 +92,7 @@ class line_detect():
         brownLower = [0.035, 0.485, 0.411]
         brownUpper = [0.123, 1, 0.813]
 
-        # no sure with this range
+        # not sure with this range
         grayLower = [0.211, 0, 0.236]
         grayUpper = [0.717, 0.253, 0.552]
 
@@ -174,21 +124,12 @@ class line_detect():
             "orange": (orangeLower, orangeUpper),
         }
 
-        self.previousSpeeds = (0, 0)
-
-    # def RemoveBackground_RGB(self,image):
-    #     low = 0
-    #     up = 120
-    #     # create NumPy arrays from the boundaries
-    #     lower = np.array([low, low, low], dtype = "uint8")
-    #     upper = np.array([up, up, up], dtype = "uint8")
-    #     #----------------COLOR SELECTION-------------- (Remove any area that is whiter than 'upper')
-    #     mask = cv2.inRange(image, lower, upper)
-    #     image = cv2.bitwise_and(image, image, mask = mask)
-    #     return image
 
     def RemoveBackground_HSV(self, image, color):
-        (self.transfer(lower), self.transfer(upper)) = self.colorToMask[color]
+        (lower, upper) = self.colorToMask[color]
+
+        lower = self.transfer(lower)
+        upper = self.transfer(upper)
 
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
