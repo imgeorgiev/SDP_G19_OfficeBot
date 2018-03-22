@@ -64,7 +64,11 @@ class line_detect():
             "purple": [],
             "green": [],
             "yellow": [],
-            "white": []
+            "white": [],
+            "pink" : [],
+            "brown": [],
+            "gray": [],
+            "orange": [],
         }
 
         # initialising numpy upper and lower bounds for cv2 mask
@@ -164,10 +168,10 @@ class line_detect():
             "yellow": (yellowLower, yellowUpper),
             "white": (whiteLower, whiteUpper),
             "purple": (purpleLower, purpleUpper),
-            "pink" : (pinkLower, pinkUpper)
-            "brown": (brownLower, brownUpper)
-            "gray": (grayLower, grayUpper)
-            "orange": (orangeLower, orangeUpper)
+            "pink" : (pinkLower, pinkUpper),
+            "brown": (brownLower, brownUpper),
+            "gray": (grayLower, grayUpper),
+            "orange": (orangeLower, orangeUpper),
         }
 
         self.previousSpeeds = (0, 0)
