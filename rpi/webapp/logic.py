@@ -77,36 +77,36 @@ class line_detect():
         blackLower = self.transfer([0, 0, 0])
         blackUpper = self.transfer([0.278, 1, 0.294])
 
-        blueLower = self.transfer([0.56, 0.67, 0.18])
-        blueUpper = self.transfer([0.69, 1, 1])
+        blueLower = self.transfer([0.583, 0.709, 0.309])
+        blueUpper = self.transfer([0.625, 1, 0.765])
 
-        redLower = self.transfer([0.8, 0.17, 0.18])
-        redUpper = self.transfer([1, 1, 1])
+        redLower = self.transfer([-0.017, 0.581, 0.304])
+        redUpper = self.transfer([0.050, 0.941, 0.787])
 
         whiteLower = self.transfer([0, 0, 0])
         whiteUpper = self.transfer([0, 0, 0.589])
 
-        pinkLower = self.transfer([0.93, 0.556, 0.432])
-        pinkUpper = self.transfer([0.996, 1, 0.723])
+        pinkLower = self.transfer([0.943, 0.736, 0.283])
+        pinkUpper = self.transfer([0.993, 1, 0.739])
 
         brownLower = self.transfer([0.035, 0.485, 0.411])
         brownUpper = self.transfer([0.123, 1, 0.813])
 
         # not sure with this range
-        grayLower = self.transfer([0.211, 0, 0.236])
+        grayLower = self.transfer([0., 0, 0.236])
         grayUpper = self.transfer([0.717, 0.253, 0.552])
 
-        greenLower = self.transfer([0.483, 0.391, 0.412])
-        greenUpper = self.transfer([0.536, 1, 1])
+        greenLower = self.transfer([0.479, 0.853, 0.197])
+        greenUpper = self.transfer([0.553, 1, 0.776])
 
-        orangeLower = self.transfer([0, 0.549, 0.893])
-        orangeUpper = self.transfer([0.054, 1, 0.893])
+        orangeLower = self.transfer([0.046, 0.757, 0.357])
+        orangeUpper = self.transfer([0.102, 1, 1])
 
-        purpleLower = self.transfer([0.785, 0.475, 0.283])
-        purpleUpper = self.transfer([0.885, 1, 0.813])
+        purpleLower = self.transfer([0.766, 0.464, 0.240])
+        purpleUpper = self.transfer([0.848, 0.749, 0.787])
 
-        yellowLower = self.transfer([0.07, 0.437, 0.283])
-        yellowUpper = self.transfer([0.18, 0.84, 0.867])
+        yellowLower = self.transfer([0.105, 0.480, 0.309])
+        yellowUpper = self.transfer([0.182, 1, 0.807])
 
         self.kernel = np.ones((5, 5), np.uint8)
 
