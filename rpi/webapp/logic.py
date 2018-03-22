@@ -68,26 +68,91 @@ class line_detect():
         }
 
         # initialising numpy upper and lower bounds for cv2 mask
-        blackLower = np.array([0, 0, 0])
-        blackUpper = np.array([180, 255, 75])
+        # blackLower = np.array([0, 0, 0])
+        # blackUpper = np.array([50, 255, 75])
+        #
+        # blueLower = np.array([100, 170, 46])
+        # blueUpper = np.array([124, 255, 255])
+        #
+        # redLower = np.array([156, 43, 46])
+        # redUpper = np.array([180, 255, 255])
+        #
+        # # greenLower = np.array([35, 100, 46])
+        # # greenUpper = np.array([85, 255, 255])
+        #
+        # # yellowLower = np.array([22, 40, 0])
+        # # yellowUpper = np.array([81, 255, 255])
+        #
+        # whiteLower = np.array([0, 0, 0])
+        # whiteUpper = np.array([0, 0, 150])
+        #
+        # # purpleLower = np.array([125, 43, 46])
+        # # purpleUpper = np.array([155, 255, 255])
+        #
+        # pinkLower = np.array([0.93, 0.556, 0.432])
+        # pinkUpper = np.array([0.996, 1, 0.723])
+        #
+        # brownLower = np.array([0.035, 0.485, 0.411])
+        # brownUpper = np.array([0.123, 1, 0.813])
+        #
+        # # no sure with this range
+        # grayLower = np.array([0.211, 0, 0.236])
+        # grayUpper = np.array([0.717, 0.253, 0.552])
+        #
+        # greenLower = np.array([0.483, 0.391, 0.412])
+        # greenUpper = np.array([0.536, 1, 1])
+        #
+        # orangeLower = np.array([0, 0.549, 0.893])
+        # orangeUpper = np.array([0.054, 1, 0.893])
+        #
+        # purpleLower = np.array([0.785, 0.475, 0.283])
+        # purpleUpper = np.array([0.885, 1, 0.813])
+        #
+        # yellowLower = np.array([0.07, 0.437, 0.283])
+        # yellowUpper = np.array([0.18, 0.84, 0.867])
 
-        blueLower = np.array([100, 170, 46])
-        blueUpper = np.array([124, 255, 255])
+        blackLower = [0, 0, 0]
+        blackUpper = [50, 255, 75]
 
-        redLower = np.array([156, 43, 46])
-        redUpper = np.array([180, 255, 255])
+        blueLower = [100, 170, 46]
+        blueUpper = [124, 255, 255]
 
-        greenLower = np.array([35, 100, 46])
-        greenUpper = np.array([85, 255, 255])
+        redLower = [156, 43, 46]
+        redUpper = [180, 255, 255]
 
-        yellowLower = np.array([22, 40, 0])
-        yellowUpper = np.array([81, 255, 255])
+        # greenLower = [35, 100, 46]
+        # greenUpper = [85, 255, 255]
 
-        whiteLower = np.array([0, 0, 0])
-        whiteUpper = np.array([0, 0, 150])
+        # yellowLower = [22, 40, 0]
+        # yellowUpper = [81, 255, 255]
 
-        purpleLower = np.array([125, 43, 46])
-        purpleUpper = np.array([155, 255, 255])
+        whiteLower = [0, 0, 0]
+        whiteUpper = [0, 0, 150]
+
+        # purpleLower = [125, 43, 46]
+        # purpleUpper = [155, 255, 255]
+
+        pinkLower = [0.93, 0.556, 0.432]
+        pinkUpper = [0.996, 1, 0.723]
+
+        brownLower = [0.035, 0.485, 0.411]
+        brownUpper = [0.123, 1, 0.813]
+
+        # no sure with this range
+        grayLower = [0.211, 0, 0.236]
+        grayUpper = [0.717, 0.253, 0.552]
+
+        greenLower = [0.483, 0.391, 0.412]
+        greenUpper = [0.536, 1, 1]
+
+        orangeLower = [0, 0.549, 0.893]
+        orangeUpper = [0.054, 1, 0.893]
+
+        purpleLower = [0.785, 0.475, 0.283]
+        purpleUpper = [0.885, 1, 0.813]
+
+        yellowLower = [0.07, 0.437, 0.283]
+        yellowUpper = [0.18, 0.84, 0.867]
 
         self.kernel = np.ones((5, 5), np.uint8)
 
@@ -99,6 +164,10 @@ class line_detect():
             "yellow": (yellowLower, yellowUpper),
             "white": (whiteLower, whiteUpper),
             "purple": (purpleLower, purpleUpper),
+            "pink" : (pinkLower, pinkUpper)
+            "brown": (brownLower, brownUpper)
+            "gray": (grayLower, grayUpper)
+            "orange": (orangeLower, orangeUpper)
         }
 
         self.previousSpeeds = (0, 0)
@@ -115,7 +184,7 @@ class line_detect():
     #     return image
 
     def RemoveBackground_HSV(self, image, color):
-        (lower, upper) = self.colorToMask[color]
+        (self.transfer(lower), self.transfer(upper)) = self.colorToMask[color]
 
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
@@ -128,6 +197,12 @@ class line_detect():
         image = (255 - image)
 
         return image
+
+    def transfer(self, color_Range):
+        color_Range[0] = color_Range[0]*180
+        color_Range[1] = color_Range[1]*255
+        color_Range[2] = color_Range[2]*255
+        return np.array([color_Range[0],color_Range[1],color_Range[2]])
 
     # Process the image and return the contour of line, it will change image to gray scale
     @staticmethod
