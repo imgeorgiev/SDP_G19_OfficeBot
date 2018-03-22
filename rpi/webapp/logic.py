@@ -429,6 +429,7 @@ def followTillJunction(junction):
         isTurnColorInFrame = line.computeDistanceBiases(HSV_startingColor, line.numSlices, junctionColor)
 
         if isTurnColorInFrame:
+            print("Turning " + turnDirection)
             turn(turnDirection)
             return
         else:
