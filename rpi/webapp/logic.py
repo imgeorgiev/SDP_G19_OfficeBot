@@ -144,7 +144,7 @@ class line_detect():
         color_Range[0] = int(color_Range[0]*180)
         color_Range[1] = int(color_Range[1]*255)
         color_Range[2] = int(color_Range[2]*255)
-        return np.array([color_Range[0],color_Range[1],color_Range[2]])
+        return np.array(color_Range[0],color_Range[1],color_Range[2])
 
     # Process the image and return the contour of line, it will change image to gray scale
     @staticmethod
@@ -408,7 +408,6 @@ def followTillJunction(junction):
     startTime = time.time()
     # Capture images, opencv uses bgr format, using video port is faster but takes lower quality images
     for _ in camera.capture_continuous(rawCapture, format='bgr', use_video_port=True):
-        print(time.time() - startTime)
 
         rawCapture.truncate(0)  # clear the rawCapture array
 
@@ -445,12 +444,14 @@ def followTillJunction(junction):
 #            pressedKey = cv2.waitKey(1) & 0xff
 #            if pressedKey == ESCAPE_KEY:
 #                raise KeyboardInterrupt('Exit key was pressed')
+        print(time.time() - startTime)
         startTime = time.time()
 
 
 def followTillEnd():
 
     rawCapture = picamera.array.PiRGBArray(camera, size=resolution)
+    startTime = time.time()
 
     # Capture images, opencv uses bgr format, using video port is faster but takes lower quality images
     for _ in camera.capture_continuous(rawCapture, format='bgr', use_video_port=True):
@@ -485,6 +486,9 @@ def followTillEnd():
                 server.sendMotorCommand(new_left_motor_speed, new_right_motor_speed)
                 if not (new_left_motor_speed < 0 and new_right_motor_speed < 0):
                     line.previousSpeeds = (new_left_motor_speed, new_right_motor_speed)
+
+        print(time.time() - startTime)
+        startTime = time.time()
 
 #        printLinesToScreen(mainLineColor)
 
