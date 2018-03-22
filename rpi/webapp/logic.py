@@ -74,39 +74,39 @@ class line_detect():
         }
 
         # initialising numpy upper and lower bounds for cv2 mask
-        blackLower = [0, 0, 0]
-        blackUpper = [0.278, 1, 0.294]
+        blackLower = self.transfer([0, 0, 0])
+        blackUpper = self.transfer([0.278, 1, 0.294])
 
-        blueLower = [0.56, 0.67, 0.18]
-        blueUpper = [0.69, 1, 1]
+        blueLower = self.transfer([0.56, 0.67, 0.18])
+        blueUpper = self.transfer([0.69, 1, 1])
 
-        redLower = [0.8, 0.17, 0.18]
-        redUpper = [1, 1, 1]
+        redLower = self.transfer([0.8, 0.17, 0.18])
+        redUpper = self.transfer([1, 1, 1])
 
-        whiteLower = [0, 0, 0]
-        whiteUpper = [0, 0, 0.589]
+        whiteLower = self.transfer([0, 0, 0])
+        whiteUpper = self.transfer([0, 0, 0.589])
 
-        pinkLower = [0.93, 0.556, 0.432]
-        pinkUpper = [0.996, 1, 0.723]
+        pinkLower = self.transfer([0.93, 0.556, 0.432])
+        pinkUpper = self.transfer([0.996, 1, 0.723])
 
-        brownLower = [0.035, 0.485, 0.411]
-        brownUpper = [0.123, 1, 0.813]
+        brownLower = self.transfer([0.035, 0.485, 0.411])
+        brownUpper = self.transfer([0.123, 1, 0.813])
 
         # not sure with this range
-        grayLower = [0.211, 0, 0.236]
-        grayUpper = [0.717, 0.253, 0.552]
+        grayLower = self.transfer([0.211, 0, 0.236])
+        grayUpper = self.transfer([0.717, 0.253, 0.552])
 
-        greenLower = [0.483, 0.391, 0.412]
-        greenUpper = [0.536, 1, 1]
+        greenLower = self.transfer([0.483, 0.391, 0.412])
+        greenUpper = self.transfer([0.536, 1, 1])
 
-        orangeLower = [0, 0.549, 0.893]
-        orangeUpper = [0.054, 1, 0.893]
+        orangeLower = self.transfer([0, 0.549, 0.893])
+        orangeUpper = self.transfer([0.054, 1, 0.893])
 
-        purpleLower = [0.785, 0.475, 0.283]
-        purpleUpper = [0.885, 1, 0.813]
+        purpleLower = self.transfer([0.785, 0.475, 0.283])
+        purpleUpper = self.transfer([0.885, 1, 0.813])
 
-        yellowLower = [0.07, 0.437, 0.283]
-        yellowUpper = [0.18, 0.84, 0.867]
+        yellowLower = self.transfer([0.07, 0.437, 0.283])
+        yellowUpper = self.transfer([0.18, 0.84, 0.867])
 
         self.kernel = np.ones((5, 5), np.uint8)
 
@@ -127,9 +127,6 @@ class line_detect():
 
     def RemoveBackground_HSV(self, image, color):
         (lower, upper) = self.colorToMask[color]
-
-        lower = self.transfer(lower)
-        upper = self.transfer(upper)
 
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
