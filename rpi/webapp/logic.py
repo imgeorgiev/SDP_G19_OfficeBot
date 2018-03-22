@@ -112,13 +112,13 @@ class line_detect():
         # yellowUpper = np.array([0.18, 0.84, 0.867])
 
         blackLower = [0, 0, 0]
-        blackUpper = [50, 255, 75]
+        blackUpper = [0.278, 1, 0.294]
 
-        blueLower = [100, 170, 46]
-        blueUpper = [124, 255, 255]
+        blueLower = [0.56, 0.67, 0.18]
+        blueUpper = [0.69, 1, 1]
 
-        redLower = [156, 43, 46]
-        redUpper = [180, 255, 255]
+        redLower = [0.8, 0.17, 0.18]
+        redUpper = [1, 1, 1]
 
         # greenLower = [35, 100, 46]
         # greenUpper = [85, 255, 255]
@@ -127,7 +127,7 @@ class line_detect():
         # yellowUpper = [81, 255, 255]
 
         whiteLower = [0, 0, 0]
-        whiteUpper = [0, 0, 150]
+        whiteUpper = [0, 0, 0.589]
 
         # purpleLower = [125, 43, 46]
         # purpleUpper = [155, 255, 255]
