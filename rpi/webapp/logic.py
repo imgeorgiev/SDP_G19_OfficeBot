@@ -359,6 +359,8 @@ def main():
                         followPath(path)
                         position = destination
                         log_arrived_at(destination)
+                        # wait 5 secs when it reaches destination
+                        time.sleep(5)
                     except KeyboardInterrupt:
                         # Escape key was pressed
                         server.sendMotorCommand(0, 0)
