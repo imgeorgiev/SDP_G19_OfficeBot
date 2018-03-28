@@ -148,16 +148,20 @@ class line_detect():
 
     # Process the image and return the contour of line, it will change image to gray scale
     @staticmethod
-    def image_process(img):
-        imgray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)  # Convert to Gray Scale
+    def getContours(img):
         element = cv2.getStructuringElement(cv2.MORPH_RECT, (15, 15))
+
+        imgray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)  # Convert to Gray Scale
+
+        # remove noise from image, such that only 15x15 pixel blocks exist
         dst = cv2.morphologyEx(imgray, cv2.MORPH_OPEN, element)
-        _, threshold = cv2.threshold(dst, 100, 255, cv2.THRESH_BINARY_INV)  # Get Threshold
-        _, contours, _ = cv2.findContours(threshold, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)  # Get contour
-        # mainContour = max(contours, key=cv2.contourArea)
-        # return mainContour
+
+        # ignore any pixels with values greater than 100 (only want the darker pixels)
+        _, threshold = cv2.threshold(dst, 100, 255, cv2.THRESH_BINARY_INV)
+
+        _, contours, _ = cv2.findContours(threshold, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
         return contours
-        # return thresh
 
     # get the center of contour
     @staticmethod
@@ -171,26 +175,30 @@ class line_detect():
         y = int(M["m01"] / M["m00"])
         return (x, y)
 
-    # it will delete contours which area less than a specifiy threshold
+    # return contours greater than requiredPercentageSize% of the image area
     @staticmethod
-    def contour_process(img, h, w):
+    def thresholdContourSize(img, requiredPercentageSize=20):
+        height, width = img.shape[:2]
+        totalImageArea = height * width;
         contour = []
         for i in range(len(img)):
             cnt = img[i]
             area = cv2.contourArea(cnt)
-            # this is the threshold
-            if (area >= (h/20 * w/20)):
+
+            # if contour takes up 20% or more of the total area
+            if (area >= totalImageArea/requiredPercentageSize):
                 contour.append(cnt)
+
         return contour
 
     # it will concatenate the image in array
     @staticmethod
-    def RepackImages(image):
-        img = image[0]
-        for i in range(len(image)):
+    def repackSlices(slices):
+        image = slices[0]
+        for i in range(len(slices)):
             if i != 0:
-                img = np.concatenate((img, image[i]), axis=0)
-        return img
+                image = np.concatenate((image, slices[i]), axis=0)
+        return image
 
     # def draw(self, img, contour):
     #     if self.getContourCenter(contour) != 0:
@@ -216,18 +224,21 @@ class line_detect():
         sliceHeight = int(self.height / numberOfSlices)
         distance = []
 
+        # ignore the 20% of each side of the image
+        widthOffset = self.width*0.2
+
         for i in range(numberOfSlices):
             heightOffset = sliceHeight*i
-            crop_img = image[heightOffset:heightOffset + sliceHeight, 0:self.width]
+            crop_img = image[heightOffset:heightOffset + sliceHeight, widthOffset:self.width-widthOffset]
 
             self.slicesByColor[color].append(crop_img)
 
-            h, w = crop_img.shape[:2]
-            middleh = int(h/2)
-            middlew = int(w/2)
+            height, width = crop_img.shape[:2]
+            middleh = int(height/2)
+            middlew = int(width/2)
 
-            contours = self.image_process(crop_img)
-            contours = self.contour_process(contours, h, w)
+            contours = self.getContours(crop_img)
+            contours = self.thresholdContourSize(contours)
 
             cv2.drawContours(crop_img, contours, -1, (0, 255, 0), 3)
             cv2.circle(crop_img, (middlew, middleh), 7, (0, 0, 255), -1)  # Draw middle circle RED
@@ -242,6 +253,14 @@ class line_detect():
 
         # return distance array reversed
         return distance[::-1]
+
+    def isColorInFrame(self, image):
+        # get contours of image
+        contours = self.getContours(image)
+
+        # get contours larger than 10% of image area
+        contours = self.thresholdContourSize(contours, 10)
+        return contours is not None
 
     # this function will detect whether there is a circle(destination) in the robot vision
     @staticmethod
@@ -426,8 +445,8 @@ def followTillJunction(junction):
         frameWithoutBackground = line.RemoveBackground_HSV(frame, mainLineColor)
         mainLineDistanceBiases = line.computeDistanceBiases(frameWithoutBackground, line.numSlices, mainLineColor)
 
-        HSV_startingColor = line.RemoveBackground_HSV(frame, junctionColor)
-        isTurnColorInFrame = line.computeDistanceBiases(HSV_startingColor, line.numSlices, junctionColor)
+        HSV_turnColor = line.RemoveBackground_HSV(frame, junctionColor)
+        isTurnColorInFrame = line.isColorInFrame(HSV_turnColor)
 
         if isTurnColorInFrame:
             print("Turning " + turnDirection)
@@ -508,7 +527,7 @@ def printLinesToScreen(*listOfColors):
         slices = line.slicesByColor[color]
 
         # join slices back together
-        image = line.RepackImages(slices)
+        image = line.repackSlices(slices)
 
         # output image to screen
         cv2.imshow(color, image)
