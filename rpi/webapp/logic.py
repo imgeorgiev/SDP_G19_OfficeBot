@@ -325,13 +325,15 @@ def compute_path(position, destination):
     (firstTurnDirection, secondTurnDirection) = directionsToTurnArray[position-1][destination-1]  # -1 because desks are 1 indexed, array is 0 indexed
 
     # Debugging
-    debug_text = "COMPUTING ROUTE." + " position: " + str(position) + ", destination: " + \
-                 str(destination) + " first_junction: " + str(firstTurnDirection) + \
-                 " second_junction: " + str(secondTurnDirection) + ". MOVING."
+    debug_text = "COMPUTING ROUTE.\n" \
+                 "Position: {} ({})\tDestination: {} ({})\n" \
+                 "First Junction: {}\tSecond Junction: {}\n" \
+                 "MOVING.".format(position, firstTurnColor, destination, secondTurnColor, firstTurnDirection, secondTurnDirection)
     print(debug_text)
     log.write("[" + datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') + "] ")
     log.write(debug_text + "\n")
     log.close()
+
     return ((firstTurnColor, firstTurnDirection), (secondTurnColor, secondTurnDirection))
 
 
