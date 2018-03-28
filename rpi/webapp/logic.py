@@ -177,8 +177,7 @@ class line_detect():
 
     # return contours greater than requiredPercentageSize% of the image area
     @staticmethod
-    def thresholdContourSize(img, requiredPercentageSize=20):
-        height, width = img.shape[:2]
+    def thresholdContourSize(img, height, width, requiredPercentageSize=20):
         totalImageArea = height * width;
         contour = []
         for i in range(len(img)):
@@ -225,7 +224,7 @@ class line_detect():
         distance = []
 
         # ignore the 20% of each side of the image
-        widthOffset = self.width*0.2
+        widthOffset = int(self.width*0.2)
 
         for i in range(numberOfSlices):
             heightOffset = sliceHeight*i
@@ -238,7 +237,7 @@ class line_detect():
             middlew = int(width/2)
 
             contours = self.getContours(crop_img)
-            contours = self.thresholdContourSize(contours)
+            contours = self.thresholdContourSize(contours, height, width)
 
             cv2.drawContours(crop_img, contours, -1, (0, 255, 0), 3)
             cv2.circle(crop_img, (middlew, middleh), 7, (0, 0, 255), -1)  # Draw middle circle RED
@@ -255,11 +254,13 @@ class line_detect():
         return distance[::-1]
 
     def isColorInFrame(self, image):
+        height, width = image.shape[:2]
+
         # get contours of image
         contours = self.getContours(image)
 
         # get contours larger than 10% of image area
-        contours = self.thresholdContourSize(contours, 10)
+        contours = self.thresholdContourSize(contours, height, width, 10)
         return contours is not None
 
     # this function will detect whether there is a circle(destination) in the robot vision
