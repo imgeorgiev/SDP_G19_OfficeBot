@@ -451,6 +451,7 @@ def followTillJunction(junction):
         if isTurnColorInFrame:
             print("Turning " + turnDirection)
             turn(turnDirection)
+            time.sleep(3)
             return
         else:
             (new_left_motor_speed, new_right_motor_speed) = line.computeWheelSpeeds(mainLineDistanceBiases)
