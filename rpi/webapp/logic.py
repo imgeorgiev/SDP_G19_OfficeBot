@@ -261,7 +261,7 @@ class line_detect():
 
         # get contours larger than 10% of image area
         contours = self.thresholdContourSize(contours, height, width, 10)
-        return contours is not None
+        return len(contours) > 0
 
     # this function will detect whether there is a circle(destination) in the robot vision
     @staticmethod
