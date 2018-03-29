@@ -44,19 +44,7 @@ class Server:
             isConnected = True
             print("DEBUG: Server: Connected to ", msg)
         elif state == "MESSAGE":
-            # print("DEBUG: Server: Message received: " + str(msg))
-            if(msg[0:2] == "SNR"):
-                reqSensorReceived = True
-                sensorData = msg
-                print("DEBUG: Server: Sensor message received: ", str(sensorData))
-
-    # Returns designedtaed sensor values from the EV3.
-    # Currently returns [int Ultrasonic, string Left color sensor, string Right color sensor]
-    def getSensors(self):
-        self._server.sendMessage("RQT")
-        while(not reqSensorReceived):
-            pass
-        return sensorData
+            print("DEBUG: Server: Message received: " + str(msg))
 
     # Sends a command mapped to a motor. Params:
     # Must input commands for both left and right motor
@@ -77,29 +65,17 @@ class Server:
 
         sendMsg = "CMD:" + str(l_motor) + "," + str(r_motor)
         self._server.sendMessage(sendMsg)
-        # print("DEBUG: Server : Sending ", sendMsg)
-
-    # Sends a command to follow a line as Alex wanted
-    # arguments should be self explanatory
-    # current color to follow
-    # next color to follow
-    # on which side to look for the junction
-    # num of junctions to skip before turning
-    def sendLineFollow(self, currentColor, nextColor, side, numJunctionsToIgnote):
-        if(currentColor not in self._colorList):
-            raise Exception("ERROR: Invalid currentColor input")
-        if(nextColor not in self._colorList):
-            raise Exception("ERROR: Invalid nextColor input")
-        side = side.upper()[0]
-        if(not (side == "L" or side == "R")):
-            raise Exception("ERROR: Invalid side input")
-
-        sendMsg = "LFW:" + currentColor + "," + nextColor + "," + side + "," + str(numJunctionsToIgnote)
-
-        self._server.sendMessage(sendMsg)
 
     def terminate(self):
         self._server.terminate()
+
+    def sendTurnCommand(self, degrees):
+        sendMsg = "TRN:" + str(degrees)
+        self._server.sendMessage(sendMsg)
+
+    def speak(self, string):
+        sendMsg = "SPK:" + str(string)
+        self._server.sendMessage(sendMsg)
 
 
 # transform joystick inputs to motor outputs
