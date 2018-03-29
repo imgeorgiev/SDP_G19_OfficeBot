@@ -103,6 +103,14 @@ class Server:
     def terminate(self):
         self._server.terminate()
 
+    def sendTurnCommand(self, degrees):
+        sendMsg = "TRN:" + str(degrees)
+        self._server.sendMessage(sendMsg)
+
+    def speak(self, string):
+        sendMsg = "SPK:" + str(string)
+        self._server.sendMessage(sendMsg)
+
 
 # transform joystick inputs to motor outputs
 def scale_stick(value):
@@ -141,12 +149,13 @@ def main():
             elif (command == "q"):
                 s.sendMotorCommand(25, 25)
             elif (command == "e"):
-                print(str(s.getSensors()))
+                s.speak("bullshit")
             elif (command == "s"):
                 s.sendMotorCommand(-25, -25)
-            # elif (command == "a"):
-
-            # elif (command == "d"):
+            elif (command == "a"):
+                s.sendTurnCommand(90)
+            elif (command == "d"):
+                s.sendTurnCommand(-90)
 
     except KeyboardInterrupt:
         # CTRL+C exit, disable all drives
