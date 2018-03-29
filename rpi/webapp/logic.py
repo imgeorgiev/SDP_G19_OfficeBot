@@ -11,6 +11,7 @@ import time
 import datetime
 import picamera
 import picamera.array
+# import joystick
 
 
 desks = {
@@ -367,7 +368,7 @@ def main():
             if destination == position:
                 print("Destination is the same as current position. Skipping.")
 
-            elif destination == 100 or destination == 200:
+            elif destination == 100:
                 handleManualOverride()
 
             else:
@@ -396,10 +397,11 @@ def main():
 
 
 def handleManualOverride():
-    print("MANUAL OVERRIDE TRIGGERED.")
-    while True:
-        # TODO: trigger ps4 controls, and periodically check for 200 code to remove manual override
-        pass
+    print("MANUAL OVERRIDE ENABLED.")
+    # run ps4 controller loop
+    # clear out webapp queue, reset location on both web-app and logic
+    # will have to write to file so that web-app is aware of it
+    print("MANUAL OVERRIDE DISABLED.")
 
 
 # checks if there is a new destination to go to (written by app.py)
