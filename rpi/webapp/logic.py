@@ -1,26 +1,41 @@
 #!/usr/bin/env python3
 
 # multi-color lines detect in HSV and distance between middle of robot vision and center of line.
-
 import sys
-# TODO: modify path for when on rpi
-sys.path.append('/home/vaida/SDP_G19_OfficeBot/rpi/tcp')
+sys.path.append("../tcp/")
+sys.path.append("../")
 
 import numpy as np
 import cv2
 from tcp_rpi import *
-import time, sched, datetime
+import time
+import datetime
+import picamera
+import picamera.array
+import ir_reader
+# import joystick
+
 
 desks = {
-    1: {'name': 'Desk 1', 'colour': 'purple'},
-    2: {'name': 'Desk 2', 'colour': 'green'},
-    3: {'name': 'Desk 3', 'colour': 'yellow'},
-    4: {'name': 'Desk 4', 'colour': 'blue'},
-    5: {'name': 'Desk 5', 'colour': 'red'},
-    6: {'name': 'Desk 6', 'colour': 'white'}
+    1: {'name': 'Desk 1', 'color': 'orange'},
+    2: {'name': 'Desk 2', 'color': 'green'},
+    3: {'name': 'Desk 3', 'color': 'purple'},
+    4: {'name': 'Desk 4', 'color': 'yellow'},
+    5: {'name': 'Desk 5', 'color': 'red'},
+    6: {'name': 'Desk 6', 'color': 'blue'}
 }
 
-def log_success():
+directionsToTurnArray = [
+    [(None, None), ("left", "left"), ("left", "right"), ("left", "right"), ("left", "left"), ("left", "right")],
+    [("right", "right"), (None, None), ("left", "right"), ("left", "right"), ("left", "left"), ("left", "right")],
+    [("left", "right"), ("left", "right"), (None, None), ("right", "right"), ("right", "left"), ("right", "right")],
+    [("left", "right"), ("left", "right"), ("left", "left"), (None, None), ("right", "left"), ("right", "right")],
+    [("right", "right"), ("right", "right"), ("right", "left"), ("right", "left"), (None, None), ("left", "right")],
+    [("left", "right"), ("left", "right"), ("left", "left"), ("left", "left"), ("left", "right"), (None, None)]
+]
+
+
+def log_arrived_at(destination):
     log = open("log.txt", "a+")
     log.write("[" + datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') + "] ")
     log.write("Successfully moved to " + str(destination) + ".\n")
@@ -33,60 +48,89 @@ class line_detect():
     def __init__(self):
         self.width = 320
         self.height = 240
-        self.slice = 4
+        self.numSlices = 4
 
-        self.weight_1 = [0.9]
-        self.weight_2 = [0.45, 0.45]
-        self.weight_3 = [0.3, 0.3, 0.3]
-        self.weight_4 = [0.23, 0.23, 0.23, 0.23]
+        weight_1 = (0.9)
+        weight_2 = (0.45, 0.45)
+        weight_3 = (0.3, 0.3, 0.3)
+        weight_4 = (0.23, 0.23, 0.23, 0.23)
 
-        self.threshold = 70
+        self.weights = (weight_1, weight_2, weight_3, weight_4)
+
+        self.threshold = 80
         self.FPS_limit = 10
 
-        self.image_black = []
-        self.image_blue = []
-        self.image_red = []
-        self.image_purple = []
-        self.image_green = []
-        self.image_yellow = []
-        self.image_white = []
+        self.previousSpeeds = (0, 0)
+
+        self.slicesByColor = {
+            "black": [],
+            "blue": [],
+            "red": [],
+            "purple": [],
+            "green": [],
+            "yellow": [],
+            "white": [],
+            "pink" : [],
+            "brown": [],
+            "gray": [],
+            "orange": [],
+        }
 
         # initialising numpy upper and lower bounds for cv2 mask
-        self.blackLower = np.array([0, 0, 0])
-        self.blackUpper = np.array([180, 255, 75])
+        blackLower = self.transfer([0, 0, 0])
+        blackUpper = self.transfer([0.278, 1, 0.294])
 
-        self.blueLower = np.array([100, 170, 46])
-        self.blueUpper = np.array([124, 255, 255])
+        blueLower = self.transfer([0.583, 0.709, 0.309])
+        blueUpper = self.transfer([0.625, 1, 0.765])
 
-        self.redLower = np.array([156, 43, 46])
-        self.redUpper = np.array([180, 255, 255])
+        redLower = self.transfer([-0.017, 0.581, 0.304])
+        redUpper = self.transfer([0.050, 0.941, 0.787])
 
-        self.greenLower = np.array([35, 100, 46])
-        self.greenUpper = np.array([85, 255, 255])
+        whiteLower = self.transfer([0, 0, 0])
+        whiteUpper = self.transfer([0, 0, 0.589])
 
-        self.yellowUpper = np.array([22.32, 39.525, 0])
-        self.yellowLower = np.array([81, 255, 255])
+        pinkLower = self.transfer([0.943, 0.736, 0.283])
+        pinkUpper = self.transfer([0.993, 1, 0.739])
 
-        self.whiteLower = np.array([0, 0, 0])
-        self.whiteUpper = np.array([0, 0, 150])
+        brownLower = self.transfer([0.035, 0.485, 0.411])
+        brownUpper = self.transfer([0.123, 1, 0.813])
 
-        self.purpleLower = np.array([125, 43, 46])
-        self.purpleUpper = np.array([155, 255, 255])
+        # not sure with this range
+        grayLower = self.transfer([0., 0, 0.236])
+        grayUpper = self.transfer([0.717, 0.253, 0.552])
+
+        greenLower = self.transfer([0.479, 0.853, 0.197])
+        greenUpper = self.transfer([0.553, 1, 0.776])
+
+        orangeLower = self.transfer([0.046, 0.757, 0.357])
+        orangeUpper = self.transfer([0.102, 1, 1])
+
+        purpleLower = self.transfer([0.766, 0.464, 0.240])
+        purpleUpper = self.transfer([0.848, 0.749, 0.787])
+
+        yellowLower = self.transfer([0.105, 0.480, 0.309])
+        yellowUpper = self.transfer([0.182, 1, 0.807])
 
         self.kernel = np.ones((5, 5), np.uint8)
 
-    # def RemoveBackground_RGB(self,image):
-    #     low = 0
-    #     up = 120
-    #     # create NumPy arrays from the boundaries
-    #     lower = np.array([low, low, low], dtype = "uint8")
-    #     upper = np.array([up, up, up], dtype = "uint8")
-    #     #----------------COLOR SELECTION-------------- (Remove any area that is whiter than 'upper')
-    #     mask = cv2.inRange(image, lower, upper)
-    #     image = cv2.bitwise_and(image, image, mask = mask)
-    #     return image
+        self.colorToMask = {
+            "black": (blackLower, blackUpper),
+            "blue": (blueLower, blueUpper),
+            "red": (redLower, redUpper),
+            "green": (greenLower, greenUpper),
+            "yellow": (yellowLower, yellowUpper),
+            "white": (whiteLower, whiteUpper),
+            "purple": (purpleLower, purpleUpper),
+            "pink" : (pinkLower, pinkUpper),
+            "brown": (brownLower, brownUpper),
+            "gray": (grayLower, grayUpper),
+            "orange": (orangeLower, orangeUpper),
+        }
 
-    def RemoveBackground_HSV(self, image, lower, upper):
+
+    def RemoveBackground_HSV(self, image, color):
+        (lower, upper) = self.colorToMask[color]
+
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
         mask = cv2.inRange(hsv, lower, upper)
@@ -99,46 +143,28 @@ class line_detect():
 
         return image
 
-    # remove anything not black
-    def RemoveBackground_HSV_Black(self, image):
-        return self.RemoveBackground_HSV(image, self.blackLower, self.blackUpper)
-
-    # remove anything not blue
-    def RemoveBackground_HSV_Blue(self, image):
-        return self.RemoveBackground_HSV(image, self.blueLower, self.blueUpper)
-
-    # remove anything not red
-    def RemoveBackground_HSV_Red(self, image):
-        return self.RemoveBackground_HSV(image, self.redLower, self.redUpper)
-
-    # remove anything not green
-    def RemoveBackground_HSV_Green(self, image):
-        return self.RemoveBackground_HSV(image, self.greenLower, self.greenUpper)
-
-    # remove anything not yellow
-    def RemoveBackground_HSV_Yellow(self, image):
-        return self.RemoveBackground_HSV(image, self.yellowLower, self.yellowUpper)
-
-    # remove anything not white
-    def RemoveBackground_HSV_White(self, image):
-        return self.RemoveBackground_HSV(image, self.whiteLower, self.whiteUpper)
-
-    # remove anything not purple
-    def RemoveBackground_HSV_Purple(self, image):
-        return self.RemoveBackground_HSV(image, self.purpleLower, self.purpleUpper)
+    def transfer(self, color_Range):
+        color_Range[0] = int(color_Range[0]*180)
+        color_Range[1] = int(color_Range[1]*255)
+        color_Range[2] = int(color_Range[2]*255)
+        return np.array([color_Range[0], color_Range[1], color_Range[2]])
 
     # Process the image and return the contour of line, it will change image to gray scale
     @staticmethod
-    def image_process(img):
-        imgray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)  # Convert to Gray Scale
+    def getContours(img):
         element = cv2.getStructuringElement(cv2.MORPH_RECT, (15, 15))
+
+        imgray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)  # Convert to Gray Scale
+
+        # remove noise from image, such that only 15x15 pixel blocks exist
         dst = cv2.morphologyEx(imgray, cv2.MORPH_OPEN, element)
-        _, threshold = cv2.threshold(dst, 100, 255, cv2.THRESH_BINARY_INV)  # Get Threshold
-        _, contours, _ = cv2.findContours(threshold, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)  # Get contour
-        # mainContour = max(contours, key=cv2.contourArea)
-        # return mainContour
+
+        # ignore any pixels with values greater than 100 (only want the darker pixels)
+        _, threshold = cv2.threshold(dst, 100, 255, cv2.THRESH_BINARY_INV)
+
+        _, contours, _ = cv2.findContours(threshold, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
         return contours
-        # return thresh
 
     # get the center of contour
     @staticmethod
@@ -150,30 +176,31 @@ class line_detect():
 
         x = int(M["m10"] / M["m00"])
         y = int(M["m01"] / M["m00"])
-        return [x, y]
+        return (x, y)
 
-    # it will delete contours which area less than a specifiy threshold
+    # return contours greater than requiredPercentageSize% of the image area
     @staticmethod
-    def contour_process(img, h, w):
+    def thresholdContourSize(img, height, width, requiredPercentageSize=20):
+        totalImageArea = height * width;
         contour = []
         for i in range(len(img)):
             cnt = img[i]
             area = cv2.contourArea(cnt)
-            # this is the threshold
-            if (area >= (h/20 * w/20)):
+
+            # if contour takes up 20% or more of the total area
+            if (area >= totalImageArea/requiredPercentageSize):
                 contour.append(cnt)
+
         return contour
 
     # it will concatenate the image in array
     @staticmethod
-    def RepackImages(image):
-        img = image[0]
-        for i in range(len(image)):
-            if i == 0:
-                img = np.concatenate((img, image[1]), axis=0)
-            if i > 1:
-                img = np.concatenate((img, image[i]), axis=0)
-        return img
+    def repackSlices(slices):
+        image = slices[0]
+        for i in range(len(slices)):
+            if i != 0:
+                image = np.concatenate((image, slices[i]), axis=0)
+        return image
 
     # def draw(self, img, contour):
     #     if self.getContourCenter(contour) != 0:
@@ -192,81 +219,52 @@ class line_detect():
             return (float(area) / rect_area)
 
     # this is the main function which will return an array which contains all distance bias for every point
-    def SlicePart(self, im, slice, color):
-        sl = int(self.height / slice)
+    def computeDistanceBiases(self, image, numberOfSlices, color):
+        # divide the image horizontally into numberOfSlices
+        # find contours of slice
+
+        sliceHeight = int(self.height / numberOfSlices)
         distance = []
 
-        for i in range(slice):
-            part = sl*i
-            crop_img = im[part:part + sl, 0:self.width]
-            # middlew = middlew - 40
-            # print(middlew)
-            if color == 'BLACK':
-                self.image_black = [crop_img]
-                h, w = self.image_black[i].shape[:2]
-                middleh = int(h/2)
-                middlew = int(w/2)
-                img = self.RemoveBackground_HSV_Black(crop_img)
+        # ignore the 20% of each side of the image
+        widthOffset = int(self.width*0.2)
 
-            elif color == 'RED':
-                self.image_red = [crop_img]
-                h, w = self.image_red[i].shape[:2]
-                middleh = int(h/2)
-                middlew = int(w/2)
-                img = self.RemoveBackground_HSV_Red(crop_img)
+        for i in range(numberOfSlices):
+            heightOffset = sliceHeight*i
+            crop_img = image[heightOffset:heightOffset + sliceHeight, widthOffset:self.width-widthOffset]
 
-            elif color == 'BLUE':
-                self.image_blue = [crop_img]
-                h, w = self.image_blue[i].shape[:2]
-                middleh = int(h/2)
-                middlew = int(w/2)
-                img = self.RemoveBackground_HSV_Blue(crop_img)
+            self.slicesByColor[color].append(crop_img)
 
-            elif color == 'GREEN':
-                self.image_green = [crop_img]
-                h, w = self.image_green[i].shape[:2]
-                middleh = int(h/2)
-                middlew = int(w/2)
-                img = self.RemoveBackground_HSV_Green(crop_img)
+            height, width = crop_img.shape[:2]
+            middleh = int(height/2)
+            middlew = int(width/2)
 
-            elif color == 'YELLOW':
-                self.image_yellow = [crop_img]
-                h, w = self.image_yellow[i].shape[:2]
-                middleh = int(h/2)
-                middlew = int(w/2)
-                img = self.RemoveBackground_HSV_Yellow(crop_img)
+            contours = self.getContours(crop_img)
+            contours = self.thresholdContourSize(contours, height, width)
 
-            elif color == 'PURPLE':
-                self.image_purple = [crop_img]
-                h, w = self.image_purple[i].shape[:2]
-                middleh = int(h/2)
-                middlew = int(w/2)
-                img = self.RemoveBackground_HSV_Purple(crop_img)
-
-            elif color == 'WHITE':
-                self.image_white = [crop_img]
-                h, w  = self.image_white[i].shape[:2]
-                middleh = int(h/2)
-                middlew = int(w/2)
-                img = self.RemoveBackground_HSV_White(crop_img)
-
-            contours = self.image_process(img)
-            contours = self.contour_process(contours, h, w)
-            # print(contours)
-            cv2.drawContours(crop_img, contours,-1, (0, 255, 0), 3)
-            cv2.circle(crop_img, (middlew, middleh), 7, (0, 0, 255), -1) #Draw middle circle RED
+            cv2.drawContours(crop_img, contours, -1, (0, 255, 0), 3)
+            cv2.circle(crop_img, (middlew, middleh), 7, (0, 0, 255), -1)  # Draw middle circle RED
             if contours:
                 contourCenterX = self.getContourCenter(contours[0])[0]
-                cv2.circle(crop_img, (contourCenterX, middleh), 7, (255, 255, 255), -1) #Draw dX circle WHITE
+                cv2.circle(crop_img, (contourCenterX, middleh), 7, (255, 255, 255), -1)  # Draw dX circle WHITE
                 font = cv2.FONT_HERSHEY_SIMPLEX
-                cv2.putText(crop_img,str(middlew - contourCenterX),(contourCenterX + 20, middleh), font, 1,(200,0,200),2,cv2.LINE_AA)
-#               cv2.putText(crop_img,"Weight:%.3f"%self.getContourExtent(contours[0]),(contourCenterX+20, middleh+35), font, 0.5,(200,0,200),1,cv2.LINE_AA)
-#               bias = int(middlew-contourCenterX) * self.getContourExtent(contours[0])
-                bias = int(middlew - contourCenterX)
+                cv2.putText(crop_img, str(middlew - contourCenterX), (contourCenterX + 20, middleh), font, 1, (200, 0, 200), 2, cv2.LINE_AA)
 
-                # record the bias distance
+                bias = int(middlew - contourCenterX)
                 distance.append(bias)
+
+        # return distance array reversed
         return distance[::-1]
+
+    def isColorInFrame(self, image):
+        height, width = image.shape[:2]
+
+        # get contours of image
+        contours = self.getContours(image)
+
+        # get contours larger than 10% of image area
+        contours = self.thresholdContourSize(contours, height, width, 10)
+        return len(contours) > 0
 
     # this function will detect whether there is a circle(destination) in the robot vision
     @staticmethod
@@ -276,783 +274,281 @@ class line_detect():
         return (circles is not None)
 
     # through the distance bias array, we can use this function to reach line_following
-    def line_following(self, distance):
-        # threshold of corner
-        # send command to ev3
-        if distance:
-            num = len(distance)
-            if num == 1:
-                bias = [i*j for i, j in zip(distance, self.weight_1)]
-                bias = sum(bias)
-            elif num == 2:
-                bias = [i*j for i, j in zip(distance, self.weight_2)]
-                bias = sum(bias)
-            elif num == 3:
-                bias = [i*j for i, j in zip(distance, self.weight_3)]
-                bias = sum(bias)
-            elif num == 4:
-                bias = [i*j for i, j in zip(distance, self.weight_4)]
-                bias = sum(bias)
+    def computeWheelSpeeds(self, distanceBiasArray):
+        if len(distanceBiasArray) > 0:
+            bias = sum(distanceBiasArray)
 
             # bias = sum(distance)
-            print('The distance list is {}'.format(distance))
+            print('The distance list is {}'.format(distanceBiasArray))
             print('The bias is {}'.format(bias))
 
-            speed = attenuate(bias/6, -40, 40)
+            # attenuate ensures speed will be between -40 and 40   -  parser requires speed to be an integer
+            speed = int(attenuate(bias/6, -40, 40))
+
             if abs(bias) > self.threshold:
                 if bias > 0:
-                    return [20 - speed, 20 + speed]
+                    self.previousSpeeds = (20 - speed, 20 + speed)
+                    return (20 - speed, 20 + speed)
                 else:
-                    return [20 + abs(speed), 20 - abs(speed)]
+                    self.previousSpeeds = (20 + abs(speed), 20 - abs(speed))
+                    return (20 + abs(speed), 20 - abs(speed))
             else:
-                return [50, 50]
+                return (50, 50)
 
-    def turn_R_angle(self, dir):
-        if dir == 'right':
-            s.sendTurnCommand(-60)
+        # no main line is detected -> reverse
+        else:
+            return (-50, -50)
 
-        elif dir == 'left':
-            s.sendTurnCommand(60)
+
+def turn(direction):
+    if direction == 'right':
+        server.sendTurnCommand(-60)
+
+    elif direction == 'left':
+        server.sendTurnCommand(60)
+
+
+def resetDictionary(d):
+    for key in d:
+        d[key] = []
+
 
 # noinspection PyRedundantParentheses
+# returns a list of turns
 def compute_path(position, destination):
     # Debugging
     log = open("log.txt", "a+")
     log.write("[" + datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') + "] ")
     log.write("Received command to move to " + str(destination) + ".\n")
 
-    first_junction = None
-    second_junction = None
-    dest_colour = desks[destination]['colour']
-    pos_colour = desks[position]['colour']
+    firstTurnColor = desks[position]['color']
+    secondTurnColor = desks[destination]['color']
 
-    # first_junction computation
-    if (position == 1):
-        first_junction = "right"
-    elif (position == 2):
-        if (destination == 1):
-            first_junction = "right"
-        else:
-            first_junction = "left"
-    elif (position == 3):
-        if (destination in [1, 2]):
-            first_junction = "left"
-        else:
-            first_junction = "right"
-    elif (position == 4):
-        if (destination in [5, 6]):
-            first_junction = "left"
-        else:
-            first_junction = "right"
-    elif (position == 5):
-        if (destination == 6):
-            first_junction = "right"
-        else:
-            first_junction = "left"
-    else:  # position 6
-        first_junction = "none"
-
-    # second junction
-    if (destination == 6):
-        second_junction = "none"
-    elif (position == 1):
-        if (destination in [2, 4]):
-            second_junction = "left"
-        else:
-            second_junction = "right"
-    elif (position == 2):
-        if (destination in [1, 4]):
-            second_junction = "left"
-        else:
-            second_junction = "right"
-    elif (position == 3):
-        if (destination in [2, 5]):
-            second_junction = "right"
-        else:
-            second_junction = "left"
-    elif (position == 4):
-        if (destination in [1, 3]):
-            second_junction = "left"
-        else:
-            second_junction = "right"
-    elif (position == 5):
-        if (destination in [1, 3]):
-            second_junction = "left"
-        else:
-            second_junction = "right"
-    else:  # position 6
-        if (destination in [2, 4]):
-            second_junction = "right"
+    (firstTurnDirection, secondTurnDirection) = directionsToTurnArray[position-1][destination-1]  # -1 because desks are 1 indexed, array is 0 indexed
 
     # Debugging
-    debug_text = "COMPUTING ROUTE." + " position: " + str(position) + ", destination: " + \
-                 str(destination) + " first_junction: " + str(first_junction) + \
-                 " second_junction: " + str(second_junction) + ". MOVING."
+    debug_text = "COMPUTING ROUTE.\n" \
+                 "Position: {} ({})\tDestination: {} ({})\n" \
+                 "First Junction: {}\tSecond Junction: {}\n" \
+                 "MOVING.".format(position, firstTurnColor, destination, secondTurnColor, firstTurnDirection, secondTurnDirection)
     print(debug_text)
     log.write("[" + datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') + "] ")
     log.write(debug_text + "\n")
     log.close()
-    return [first_junction, second_junction, pos_colour, dest_colour]
+
+    return ((firstTurnColor, firstTurnDirection), (secondTurnColor, secondTurnDirection))
 
 
 def main():
-    global destination
+    global server, ESCAPE_KEY, camera, line, mainLineColor, resolution, ir_sensors, IR_THRESHOLD
 
     position = 1
-    destination = None
-    arrived = False
 
-    # schedule = sched.scheduler(time.time, time.sleep)
-    s = Server(5005)
+    server = Server(5005)
+
+    resolution = (320, 240)
+
+    camera = picamera.PiCamera(resolution=resolution, framerate=60)
+
+    # flip the image vertically and horizontally (because the camera is upside down)
+    camera.vflip = True
+    camera.hflip = True
+
+    # required for the camera to 'warm up'
+    time.sleep(0.1)
 
     line = line_detect()
-    cap = cv2.VideoCapture(1)
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, line.width)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, line.height)
-    cap.set(cv2.CAP_PROP_FPS, line.FPS_limit)
 
-    # file ping counter
-    file_ping = 0
+    # set up ir sensors and threshold
+    ir_sensors = IR_Bus()
+    IR_THRESHOLD = 100
+
+    mainLineColor = 'black'
+
+    ESCAPE_KEY = 27
+
     while True:
-        ############################# LOGIC ##############################
-        file_ping = file_ping % 100
+        destination = getDestinationFromFile()
+        if destination is not None:
+            if destination == position:
+                print("Destination is the same as current position. Skipping.")
 
-        if arrived and (file_ping == 0):
-            file = open("dest.txt", "r+")
-            content = file.read()
-            print("File content: " + content)
+            elif destination == 100:
+                handleManualOverride()
 
-            if len(content) > 0:
-                destination = int(content)
-
-                # Manual override
-                if destination == 100 or destination == 200:
-                    file.seek(0)
-                    file.truncate()
-                    file.close()
-                    print("MANUAL OVERRIDE TRIGGERED.")
-                    while True:
-                        # TODO: trigger ps4 controls, and periodically check for 200 code to remove manual override
-                        pass
-
-                file.seek(0)
-                file.truncate()
-                file.close()
-                print("RECEIVED DESTINATION: " + str(destination) + ".")
-                if (destination != position):
-                    if (destination not in [1, 2, 3, 4, 5, 6, 7, 8, 9]):
-                        print("Destination not valid!")
-                    else:
-                        [first_junction, second_junction, pos_color, dest_color] = compute_path(position, destination)
-
-                        # Updates location
-                        position = destination
-                        destination = None
-                else:
-                    print("Destination is the same as current position. Skipping.")
-            file.close()
-            # time.sleep(1) # pings file every second
-        file_ping += 1
-
-        ############################# CAMERA ##############################
-        inputFrameExists, readFrame = cap.read()
-        if not inputFrameExists:
-            print('DEBUG: No input frames')
-        else:
-            # the main function
-            prev_dest = 'white'
-            isCircleInFrame = line.circle_detect(readFrame)
-
-            ############################# HSV TEST ##############################
-            HSV_black = line.RemoveBackground_HSV_Black(readFrame)
-            HSV_blue = line.RemoveBackground_HSV_Blue(readFrame)
-            HSV_green = line.RemoveBackground_HSV_Green(readFrame)
-            HSV_yellow = line.RemoveBackground_HSV_Yellow(readFrame)
-            HSV_purple = line.RemoveBackground_HSV_Purple(readFrame)
-            HSV_red = line.RemoveBackground_HSV_Red(readFrame)
-            HSV_white = line.RemoveBackground_HSV_White(readFrame)
-
-            ############################# get distance between middle of vision and line #########################
-            distance_Black = line.SlicePart(HSV_black, line.slice, 'BLACK')
-            distance_Blue = line.SlicePart(HSV_blue, line.slice, 'BLUE')
-            distance_Green = line.SlicePart(HSV_green, line.slice, 'GREEN')
-            distance_Red = line.SlicePart(HSV_red, line.slice, 'RED')
-            distance_Yellow = line.SlicePart(HSV_yellow, line.slice, 'YELLOW')
-            distance_Purple = line.SlicePart(HSV_purple, line.slice, 'PURPLE')
-            distance_White = line.SlicePart(HSV_white, line.slice, 'WHITE')
-
-            ############################# concatenate every slice ###############
-            img_black = line.RepackImages(line.image_black)
-            img_blue = line.RepackImages(line.image_blue)
-
-            # output images to screen
-            cv2.imshow('img_black',img_black)
-            cv2.imshow('img_blue', img_blue)
-
-            ############################# pseudocode #################
-            # if the robot doesn't turn:
-            # if distance_Black:
-            # if not some_color(get from webapp):
-            # line_following(black)
-            # elif some_color(get from webapp):
-            # line_following(some_color):
-            # elif not distance_Black:
-            # if not some_color(get from webapp):
-            # turn_itself
-            # elif some_color:
-            # line_following(some_color)
-
-            # if the robot has already turned:
-            # if signal detected:
-            # decide turn left or right
-            # turn left or right, until signal at a "specific position".
-            # reset turn
-            # line_following(black)
-            # if not signal detected:
-            # line_following(some_color)
-
-            ############################# send command to ev3 ###################
-            # schedule.enter(1, 1, s.sendMotorCommand, argument=(int(left_motor), int(right_motor)))
-            # schedule.run()
-            # s.sendMotorCommand(int(left_motor), int(right_motor))
-
-            # if first junction is none, then we only need to do once turning.
-            # Only dest_color is detected, then call turn_R_angle
-            if prev_dest == dest_color:
-                print('DEBUG: dest does not change')
             else:
-                if first_junction == 'none':
-                    if dest_color == 'red':
-                        if distance_Red and not isCircleInFrame:
-                            line.turn_R_angle(second_junction)
-                        elif distance_Red and isCircleInFrame:
-                            prev_dest = dest_color
-                            arrived = False
-                            log_success()
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-                    elif dest_color == 'blue':
-                        if distance_Blue and not isCircleInFrame:
-                            line.turn_R_angle(second_junction)
-                        elif distance_Blue and isCircleInFrame:
-                            prev_dest = dest_color
-                            arrived = False
-                            log_success()
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-                    elif dest_color == 'green':
-                        if distance_Green and not isCircleInFrame:
-                            line.turn_R_angle(second_junction)
-                        elif distance_Green and isCircleInFrame:
-                            prev_dest = dest_color
-                            arrived = False
-                            log_success()
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-                    elif dest_color == 'yellow':
-                        if distance_Yellow and not isCircleInFrame:
-                            line.turn_R_angle(second_junction)
-                        elif distance_Yellow and isCircleInFrame:
-                            prev_dest = dest_color
-                            arrived = False
-                            log_success()
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-                    elif dest_color == 'purple':
-                        if distance_Purple and not isCircleInFrame:
-                            line.turn_R_angle(second_junction)
-                        elif distance_Purple and isCircleInFrame:
-                            prev_dest = dest_color
-                            arrived = False
-                            log_success()
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-                    elif dest_color == 'white':
-                        if distance_White and not isCircleInFrame:
-                            line.turn_R_angle(second_junction)
-                        elif distance_White and isCircleInFrame:
-                            prev_dest = dest_color
-                            arrived = False
-                            log_success()
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-
-                # if second junction is none, then we only need to do once turning.
-                # Only post_color is detected, then call turn_R_angle
-                elif second_junction == 'none':
-                    if pos_color == 'red':
-                        if distance_Red and not isCircleInFrame:
-                            line.turn_R_angle(first_junction)
-                        elif distance_Red and isCircleInFrame:
-                            prev_dest = dest_color
-                            arrived = False
-                            log_success()
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-                    elif pos_color == 'blue':
-                        if distance_Blue and not isCircleInFrame:
-                            line.turn_R_angle(first_junction)
-                        elif distance_Blue and isCircleInFrame:
-                            prev_dest = dest_color
-                            arrived = False
-                            log_success()
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-                    elif pos_color == 'green':
-                        if distance_Green and not isCircleInFrame:
-                            line.turn_R_angle(first_junction)
-                        elif distance_Green and isCircleInFrame:
-                            prev_dest = dest_color
-                            arrived = False
-                            log_success()
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-                    elif pos_color == 'yellow':
-                        if distance_Yellow and not isCircleInFrame:
-                            line.turn_R_angle(first_junction)
-                        elif distance_Yellow and isCircleInFrame:
-                            prev_dest = dest_color
-                            arrived = False
-                            log_success()
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-                    elif pos_color == 'purple':
-                        if distance_Purple and not isCircleInFrame:
-                            line.turn_R_angle(first_junction)
-                        elif distance_Purple and isCircleInFrame:
-                            prev_dest = dest_color
-                            arrived = False
-                            log_success()
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-                    elif pos_color == 'white':
-                        if distance_White and not isCircleInFrame:
-                            line.turn_R_angle(first_junction)
-                        elif distance_White and isCircleInFrame:
-                            prev_dest = dest_color
-                            arrived = False
-                            log_success()
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-
-                # if first_junction and second_junction all have values
-                #  we detect color combination and call function
+                if destination not in [1, 2, 3, 4, 5, 6]:
+                    print("Destination not valid!")
                 else:
-                    if pos_color == 'blue' and dest_color == 'red':
-                        if distance_Blue:
-                            line.turn_R_angle(first_junction)
-                        elif distance_Red and not isCircleInFrame:
-                            line.turn_R_angle(second_junction)
-                        elif distance_Red and isCircleInFrame:
-                            prev_dest = dest_color
-                            arrived = False
-                            log_success()
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-                    elif pos_color == 'red' and dest_color == 'blue':
-                        if distance_Red:
-                            line.turn_R_angle(first_junction)
-                        elif distance_Blue and not isCircleInFrame:
-                            line.turn_R_angle(second_junction)
-                        elif distance_Blue and isCircleInFrame:
-                            prev_dest = dest_color
-                            arrived = False
-                            log_success()
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
+                    path = compute_path(position, destination)
 
-                    elif pos_color == 'yellow' and dest_color == 'red':
-                        if distance_Yellow:
-                            line.turn_R_angle(first_junction)
-                        elif distance_Red and not isCircleInFrame:
-                            line.turn_R_angle(second_junction)
-                        elif distance_Red and isCircleInFrame:
-                            prev_dest = dest_color
-                            arrived = False
-                            log_success()
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-                    elif pos_color == 'red' and dest_color == 'yellow':
-                        if distance_Red:
-                            line.turn_R_angle(first_junction)
-                        elif distance_Yellow and not isCircleInFrame:
-                            line.turn_R_angle(second_junction)
-                        elif distance_Yellow and isCircleInFrame:
-                            prev_dest = dest_color
-                            arrived = False
-                            log_success()
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
+                    # follow the computed path, return when completed or escaped
+                    try:
+                        followPath(path)
+                        position = destination
+                        log_arrived_at(destination)
+                        # wait 5 secs when it reaches destination
+                        time.sleep(5)
+                    except KeyboardInterrupt:
+                        # Escape key was pressed
+                        server.sendMotorCommand(0, 0)
+                        camera.close()
+                        cv2.destroyAllWindows()
+                        break
 
-                    elif pos_color == 'green' and dest_color == 'red':
-                        if distance_Green:
-                            line.turn_R_angle(first_junction)
-                        elif distance_Red and not isCircleInFrame:
-                            line.turn_R_angle(second_junction)
-                        elif distance_Red and isCircleInFrame:
-                            prev_dest = dest_color
-                            arrived = False
-                            log_success()
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-                    elif pos_color == 'red' and dest_color == 'green':
-                        if distance_Red:
-                            line.turn_R_angle(first_junction)
-                        elif distance_Green and not isCircleInFrame:
-                            line.turn_R_angle(second_junction)
-                        elif distance_Green and isCircleInFrame:
-                            prev_dest = dest_color
-                            arrived = False
-                            log_success()
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
+        else:
+            print("File was empty.")
+            time.sleep(1)
 
-                    elif pos_color == 'green' and dest_color == 'red':
-                        if distance_Green:
-                            line.turn_R_angle(first_junction)
-                        elif distance_Red and not isCircleInFrame:
-                            line.turn_R_angle(second_junction)
-                        elif distance_Red and isCircleInFrame:
-                            prev_dest = dest_color
-                            arrived = False
-                            log_success()
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-                    elif pos_color == 'red' and dest_color == 'green':
-                        if distance_Red:
-                            line.turn_R_angle(first_junction)
-                        elif distance_Green and not isCircleInFrame:
-                            line.turn_R_angle(second_junction)
-                        elif distance_Green and isCircleInFrame:
-                            prev_dest = dest_color
-                            arrived = False
-                            log_success()
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
 
-                    elif pos_color == 'purple' and dest_color == 'red':
-                        if distance_Purple:
-                            line.turn_R_angle(first_junction)
-                        elif distance_Red and not isCircleInFrame:
-                            line.turn_R_angle(second_junction)
-                        elif distance_Red and isCircleInFrame:
-                            prev_dest = dest_color
-                            arrived = False
-                            log_success()
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-                    elif pos_color == 'red' and dest_color == 'purple':
-                        if distance_Red:
-                            line.turn_R_angle(first_junction)
-                        elif distance_Purple and not isCircleInFrame:
-                            line.turn_R_angle(second_junction)
-                        elif distance_Purple and isCircleInFrame:
-                            prev_dest = dest_color
-                            arrived = False
-                            log_success()
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
+def handleManualOverride():
+    print("MANUAL OVERRIDE ENABLED.")
+    # run ps4 controller loop
+    # clear out webapp queue, reset location on both web-app and logic
+    # will have to write to file so that web-app is aware of it
+    print("MANUAL OVERRIDE DISABLED.")
 
-                    elif pos_color == 'blue' and dest_color == 'yellow':
-                        if distance_Blue:
-                            line.turn_R_angle(first_junction)
-                        elif distance_Yellow and not isCircleInFrame:
-                            line.turn_R_angle(second_junction)
-                        elif distance_Yellow and isCircleInFrame:
-                            prev_dest = dest_color
-                            arrived = False
-                            log_success()
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-                    elif pos_color == 'yellow' and dest_color == 'blue':
-                        if distance_Yellow:
-                            line.turn_R_angle(first_junction)
-                        elif distance_Blue and not isCircleInFrame:
-                            line.turn_R_angle(second_junction)
-                        elif distance_Blue and isCircleInFrame:
-                            prev_dest = dest_color
-                            arrived = False
-                            log_success()
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
 
-                    elif pos_color == 'blue' and dest_color == 'green':
-                        if distance_Blue:
-                            line.turn_R_angle(first_junction)
-                        elif distance_Green and not isCircleInFrame:
-                            line.turn_R_angle(second_junction)
-                        elif distance_Green and isCircleInFrame:
-                            prev_dest = dest_color
-                            arrived = False
-                            log_success()
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-                    elif pos_color == 'green' and dest_color == 'blue':
-                        if distance_Green:
-                            line.turn_R_angle(first_junction)
-                        elif distance_Blue and not isCircleInFrame:
-                            line.turn_R_angle(second_junction)
-                        elif distance_Blue and isCircleInFrame:
-                            prev_dest = dest_color
-                            arrived = False
-                            log_success()
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
+# checks if there is a new destination to go to (written by app.py)
+def getDestinationFromFile():
+    file = open("dest.txt", "r+")
+    content = file.read()
+    if len(content) > 0:
+        print("File content: " + content)
+        destination = int(content)
 
-                    elif pos_color == 'blue' and dest_color == 'purple':
-                        if distance_Blue:
-                            line.turn_R_angle(first_junction)
-                        elif distance_Purple and not isCircleInFrame:
-                            line.turn_R_angle(second_junction)
-                        elif distance_Purple and isCircleInFrame:
-                            prev_dest = dest_color
-                            arrived = False
-                            log_success()
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-                    elif pos_color == 'purple' and dest_color == 'blue':
-                        if distance_Purple:
-                            line.turn_R_angle(first_junction)
-                        elif distance_Blue and not isCircleInFrame:
-                            line.turn_R_angle(second_junction)
-                        elif distance_Blue and isCircleInFrame:
-                            prev_dest = dest_color
-                            arrived = False
-                            log_success()
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
+        # empty the file
+        file.seek(0)
+        file.truncate()
+        file.close()
 
-                    elif pos_color == 'yellow' and dest_color == 'green':
-                        if distance_Yellow:
-                            line.turn_R_angle(first_junction)
-                        elif distance_Green and not isCircleInFrame:
-                            line.turn_R_angle(second_junction)
-                        elif distance_Green and isCircleInFrame:
-                            prev_dest = dest_color
-                            arrived = False
-                            log_success()
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-                    elif pos_color == 'green' and dest_color == 'yellow':
-                        if distance_Green:
-                            line.turn_R_angle(first_junction)
-                        elif distance_Yellow and not isCircleInFrame:
-                            line.turn_R_angle(second_junction)
-                        elif distance_Yellow and isCircleInFrame:
-                            prev_dest = dest_color
-                            arrived = False
-                            log_success()
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
+        return destination
+    else:
+        file.close()
+        return None
 
-                    elif pos_color == 'yellow' and dest_color == 'purple':
-                        if distance_Yellow:
-                            line.turn_R_angle(first_junction)
-                        elif distance_Purple and not isCircleInFrame:
-                            line.turn_R_angle(second_junction)
-                        elif distance_Purple and isCircleInFrame:
-                            prev_dest = dest_color
-                            arrived = False
-                            log_success()
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-                    elif pos_color == 'purple' and dest_color == 'yellow':
-                        if distance_Purple:
-                            line.turn_R_angle(first_junction)
-                        elif distance_Yellow and not isCircleInFrame:
-                            line.turn_R_angle(second_junction)
-                        elif distance_Yellow and isCircleInFrame:
-                            prev_dest = dest_color
-                            arrived = False
-                            log_success()
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
 
-                    elif pos_color == 'green' and dest_color == 'purple':
-                        if distance_Green:
-                            line.turn_R_angle(first_junction)
-                        elif distance_Purple and not isCircleInFrame:
-                            line.turn_R_angle(second_junction)
-                        elif distance_Purple and isCircleInFrame:
-                            prev_dest = dest_color
-                            arrived = False
-                            log_success()
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-                    elif pos_color == 'purple' and dest_color == 'green':
-                        if distance_Purple:
-                            line.turn_R_angle(first_junction)
-                        elif distance_Green and not isCircleInFrame:
-                            line.turn_R_angle(second_junction)
-                        elif distance_Green and isCircleInFrame:
-                            prev_dest = dest_color
-                            log_success()
-                            arrived = False
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-                    elif pos_color == 'white' and dest_color == 'purple':
-                        if distance_White:
-                            line.turn_R_angle(first_junction)
-                        elif distance_Purple and not isCircleInFrame:
-                            line.turn_R_angle(second_junction)
-                        elif distance_Purple and isCircleInFrame:
-                            prev_dest = dest_color
-                            arrived = False
-                            log_success()
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-                    elif pos_color == 'purple' and dest_color == 'white':
-                        if distance_Purple:
-                            line.turn_R_angle(first_junction)
-                        elif distance_White and not isCircleInFrame:
-                            line.turn_R_angle(second_junction)
-                        elif distance_White and isCircleInFrame:
-                            prev_dest = dest_color
-                            log_success()
-                            arrived = False
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-                    elif pos_color == 'white' and dest_color == 'red':
-                        if distance_White:
-                            line.turn_R_angle(first_junction)
-                        elif distance_Red and not isCircleInFrame:
-                            line.turn_R_angle(second_junction)
-                        elif distance_Red and isCircleInFrame:
-                            prev_dest = dest_color
-                            arrived = False
-                            log_success()
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-                    elif pos_color == 'red' and dest_color == 'white':
-                        if distance_Red:
-                            line.turn_R_angle(first_junction)
-                        elif distance_White and not isCircleInFrame:
-                            line.turn_R_angle(second_junction)
-                        elif distance_White and isCircleInFrame:
-                            prev_dest = dest_color
-                            log_success()
-                            arrived = False
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-                    elif pos_color == 'white' and dest_color == 'blue':
-                        if distance_White:
-                            line.turn_R_angle(first_junction)
-                        elif distance_Blue and not isCircleInFrame:
-                            line.turn_R_angle(second_junction)
-                        elif distance_Blue and isCircleInFrame:
-                            prev_dest = dest_color
-                            arrived = False
-                            log_success()
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-                    elif pos_color == 'blue' and dest_color == 'white':
-                        if distance_Blue:
-                            line.turn_R_angle(first_junction)
-                        elif distance_White and not isCircleInFrame:
-                            line.turn_R_angle(second_junction)
-                        elif distance_White and isCircleInFrame:
-                            prev_dest = dest_color
-                            log_success()
-                            arrived = False
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-                    elif pos_color == 'white' and dest_color == 'yellow':
-                        if distance_White:
-                            line.turn_R_angle(first_junction)
-                        elif distance_Yellow and not isCircleInFrame:
-                            line.turn_R_angle(second_junction)
-                        elif distance_Yellow and isCircleInFrame:
-                            prev_dest = dest_color
-                            arrived = False
-                            log_success()
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-                    elif pos_color == 'yellow' and dest_color == 'white':
-                        if distance_Yellow:
-                            line.turn_R_angle(first_junction)
-                        elif distance_White and not isCircleInFrame:
-                            line.turn_R_angle(second_junction)
-                        elif distance_White and isCircleInFrame:
-                            prev_dest = dest_color
-                            log_success()
-                            arrived = False
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-                    elif pos_color == 'white' and dest_color == 'green':
-                        if distance_White:
-                            line.turn_R_angle(first_junction)
-                        elif distance_Green and not isCircleInFrame:
-                            line.turn_R_angle(second_junction)
-                        elif distance_Green and isCircleInFrame:
-                            prev_dest = dest_color
-                            arrived = False
-                            log_success()
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
-                    elif pos_color == 'green' and dest_color == 'white':
-                        if distance_Green:
-                            line.turn_R_angle(first_junction)
-                        elif distance_White and not isCircleInFrame:
-                            line.turn_R_angle(second_junction)
-                        elif distance_White and isCircleInFrame:
-                            prev_dest = dest_color
-                            log_success()
-                            arrived = False
-                            pass
-                        else:
-                            [new_left_motor_speed, new_right_motor_speed] = line.line_following(distance_Black)
+# follows the given path until a circle marking the end of path is detected
+def followPath(path):
+    for junction in path:
+        followTillJunction(junction)
+    followTillEnd()
 
-                # if prev_l != new_left_motor_speed or new_right_motor_speed != prev_r:
-                print('DEBUG: left motor speed: {}'.format(new_left_motor_speed))
-                print('DEBUG: right motor speed: {}'.format(new_right_motor_speed))
 
-                s.sendMotorCommand(new_left_motor_speed, new_right_motor_speed)
-    cap.release()
-    cv2.destroyAllWindows()
+def followTillJunction(junction):
+    (junctionColor, turnDirection) = junction
 
+    rawCapture = picamera.array.PiRGBArray(camera, size=resolution)
+    startTime = time.time()
+    # Capture images, opencv uses bgr format, using video port is faster but takes lower quality images
+    for _ in camera.capture_continuous(rawCapture, format='bgr', use_video_port=True):
+
+        rawCapture.truncate(0)  # clear the rawCapture array
+
+        frame = rawCapture.array
+
+        # reset the arrays of slices
+        line.slicesByColor[mainLineColor] = []
+        line.slicesByColor[junctionColor] = []
+
+        # isolating colors and getting distance between centre of vision and centre of line
+        frameWithoutBackground = line.RemoveBackground_HSV(frame, mainLineColor)
+        mainLineDistanceBiases = line.computeDistanceBiases(frameWithoutBackground, line.numSlices, mainLineColor)
+
+        HSV_turnColor = line.RemoveBackground_HSV(frame, junctionColor)
+        isTurnColorInFrame = line.isColorInFrame(HSV_turnColor)
+
+        if isTurnColorInFrame:
+            time.sleep(1)
+            print("Turning " + turnDirection)
+            turn(turnDirection)
+            time.sleep(3)
+            return
+        else:
+            (new_left_motor_speed, new_right_motor_speed) = line.computeWheelSpeeds(mainLineDistanceBiases)
+
+            print('DEBUG: left motor speed: {}'.format(new_left_motor_speed))
+            print('DEBUG: right motor speed: {}'.format(new_right_motor_speed))
+
+            server.sendMotorCommand(new_left_motor_speed, new_right_motor_speed)
+
+#            printLinesToScreen(mainLineColor, junctionColor)
+
+            # required when printing lines to the screen
+#            pressedKey = cv2.waitKey(1) & 0xff
+#            if pressedKey == ESCAPE_KEY:
+#                raise KeyboardInterrupt('Exit key was pressed')
+        print(time.time() - startTime)
+        startTime = time.time()
+
+
+def followTillEnd():
+
+    rawCapture = picamera.array.PiRGBArray(camera, size=resolution)
+    startTime = time.time()
+
+    # Capture images, opencv uses bgr format, using video port is faster but takes lower quality images
+    for _ in camera.capture_continuous(rawCapture, format='bgr', use_video_port=True):
+        rawCapture.truncate(0)  # clear the rawCapture array
+
+        frame = rawCapture.array
+
+        # reset the array of slices
+        line.slicesByColor[mainLineColor] = []
+
+        # isolating colors and getting distance between centre of vision and centre of line
+        HSV_lineColor = line.RemoveBackground_HSV(frame, mainLineColor)
+        mainLineDistanceBiases = line.computeDistanceBiases(HSV_lineColor, line.numSlices, mainLineColor)
+
+        isCircleInFrame = line.circle_detect(frame)
+
+        if isCircleInFrame:
+            # arrived at destination, turn around, stop motors and return
+            server.sendTurnCommand(200) # 200 degrees instead of 180 because a slight overturning is fine
+
+            time.sleep(2)
+
+            server.sendMotorCommand(0, 0)
+            return
+        else:
+            (new_left_motor_speed, new_right_motor_speed) = line.computeWheelSpeeds(mainLineDistanceBiases)
+
+            print('DEBUG: left motor speed: {}'.format(new_left_motor_speed))
+            print('DEBUG: right motor speed: {}'.format(new_right_motor_speed))
+
+            server.sendMotorCommand(new_left_motor_speed, new_right_motor_speed)
+
+        print(time.time() - startTime)
+        startTime = time.time()
+
+#        printLinesToScreen(mainLineColor)
+
+        # required when printing lines to the screen
+#        pressedKey = cv2.waitKey(1) & 0xff
+#        if pressedKey == ESCAPE_KEY:
+#            raise KeyboardInterrupt('Exit key was pressed')
+
+
+def printLinesToScreen(*listOfColors):
+    for color in listOfColors:
+        slices = line.slicesByColor[color]
+
+        # join slices back together
+        image = line.repackSlices(slices)
+
+        # output image to screen
+        cv2.imshow(color, image)
+
+def isIRSensorValueClose():
+    values = ir_sensors.read()
+    if values is None:
+        return False
+
+    for v in values:
+        if int(v) < IR_THRESHOLD:
+            return True
+
+    return False
 
 if __name__ == '__main__':
     main()
