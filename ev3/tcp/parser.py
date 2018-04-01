@@ -22,7 +22,9 @@ server_port = 5005
 
 colorList = ("R", "W", "BW", "N", "BK", "BL", "G", "Y")
 
-sound_config = '-a 300 -s 110'
+# a is volume (max 200), s is words per minute
+sound_config = '-a 300 -s 180'
+
 GEAR_RATIO = 3
 SCALE = 1.9
 

@@ -511,7 +511,7 @@ def followTillEnd():
 
         if isCircleInFrame:
             # arrived at destination, turn around, stop motors and return
-            server.sendTurnCommand(200) # 200 degrees instead of 180 because a slight overturning is fine
+            server.sendTurnCommand(180)
 
             time.sleep(2)
 
