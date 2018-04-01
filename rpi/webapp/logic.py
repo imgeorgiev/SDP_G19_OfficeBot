@@ -371,7 +371,7 @@ def main():
     ESCAPE_KEY = 27
 
     while True:
-        destination = getDestinationFromFile()
+        destination = getDestinationAndClearFile()
         if destination is not None:
             if destination == position:
                 print("Destination is the same as current position. Skipping.")
@@ -417,23 +417,26 @@ def handleManualOverride():
 
 
 # checks if there is a new destination to go to (written by app.py)
+def getDestinationAndClearFile():
+    destination = getDestinationFromFile()
+    if destination is not None:
+        # empty the file
+        file = open("dest.txt", "r+")
+        file.seek(0)
+        file.truncate()
+        file.close()
+
+    return destination
+
 def getDestinationFromFile():
     file = open("dest.txt", "r+")
     content = file.read()
     if len(content) > 0:
         print("File content: " + content)
         destination = int(content)
-
-        # empty the file
-        file.seek(0)
-        file.truncate()
-        file.close()
-
         return destination
     else:
-        file.close()
         return None
-
 
 # follows the given path until a circle marking the end of path is detected
 def followPath(path):
