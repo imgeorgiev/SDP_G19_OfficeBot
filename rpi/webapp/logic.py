@@ -421,12 +421,17 @@ def getDestinationAndClearFile():
     destination = getDestinationFromFile()
     if destination is not None:
         # empty the file
-        file = open("dest.txt", "r+")
-        file.seek(0)
-        file.truncate()
-        file.close()
+        clearFile()
 
     return destination
+
+
+def clearFile():
+    file = open("dest.txt", "r+")
+    file.seek(0)
+    file.truncate()
+    file.close()
+
 
 def getDestinationFromFile():
     file = open("dest.txt", "r+")
