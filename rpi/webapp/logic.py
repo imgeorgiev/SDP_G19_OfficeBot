@@ -302,10 +302,10 @@ class line_detect():
 
 def turn(direction):
     if direction == 'right':
-        server.sendTurnCommand(-60)
+        server.sendTurnCommand(60)
 
     elif direction == 'left':
-        server.sendTurnCommand(60)
+        server.sendTurnCommand(-60)
 
 
 def resetDictionary(d):
@@ -420,13 +420,17 @@ def handleManualOverride():
 def getDestinationAndClearFile():
     destination = getDestinationFromFile()
     if destination is not None:
-        # empty the file
-        file = open("dest.txt", "r+")
-        file.seek(0)
-        file.truncate()
-        file.close()
+        clearFile()
 
     return destination
+
+
+def clearFile():
+    file = open("dest.txt", "r+")
+    file.seek(0)
+    file.truncate()
+    file.close()
+
 
 def getDestinationFromFile():
     file = open("dest.txt", "r+")
@@ -484,10 +488,6 @@ def followTillJunction(junction):
 
 #            printLinesToScreen(mainLineColor, junctionColor)
 
-            # required when printing lines to the screen
-#            pressedKey = cv2.waitKey(1) & 0xff
-#            if pressedKey == ESCAPE_KEY:
-#                raise KeyboardInterrupt('Exit key was pressed')
         print(time.time() - startTime)
         startTime = time.time()
 
@@ -541,10 +541,6 @@ def followTillEnd():
 
 #        printLinesToScreen(mainLineColor)
 
-        # required when printing lines to the screen
-#        pressedKey = cv2.waitKey(1) & 0xff
-#        if pressedKey == ESCAPE_KEY:
-#            raise KeyboardInterrupt('Exit key was pressed')
         if isIRSensorValueClose():
             server.sendMotorCommand(0,0)
             server.sendSpeakCommand("MOVE OUT THE WAY")
@@ -564,6 +560,11 @@ def printLinesToScreen(*listOfColors):
 
         # output image to screen
         cv2.imshow(color, image)
+
+    # required when printing lines to the screen
+    pressedKey = cv2.waitKey(1) & 0xff
+    if pressedKey == ESCAPE_KEY:
+        raise KeyboardInterrupt('Exit key was pressed')
 
 def isIRSensorValueClose():
     if int(float(ir_sensors.IR_LR)) > IR_THRESHOLD:
