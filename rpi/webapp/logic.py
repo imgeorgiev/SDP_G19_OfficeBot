@@ -13,7 +13,7 @@ import datetime
 import picamera
 import picamera.array
 import ir_reader
-# import joystick
+import psControl
 
 
 desks = {
@@ -403,9 +403,14 @@ def main():
 
 def handleManualOverride():
     print("MANUAL OVERRIDE ENABLED.")
-    # run ps4 controller loop
-    # clear out webapp queue, reset location on both web-app and logic
-    # will have to write to file so that web-app is aware of it
+    joy = psControl()
+
+    while True:
+        joy_val = joy.spin()
+        if joy_val is False:
+            break
+        elif joy_val is not True:
+            server.sendMotorCommand(joy_val[0], joy_val[1])
     print("MANUAL OVERRIDE DISABLED.")
 
 
