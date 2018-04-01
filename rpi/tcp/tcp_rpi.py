@@ -73,7 +73,7 @@ class Server:
         sendMsg = "TRN:" + str(degrees)
         self._server.sendMessage(sendMsg)
 
-    def speak(self, string):
+    def sendSpeakCommand(self, string):
         sendMsg = "SPK:" + str(string)
         self._server.sendMessage(sendMsg)
 
