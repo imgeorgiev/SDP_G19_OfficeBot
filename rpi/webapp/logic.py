@@ -314,7 +314,7 @@ def turn(direction):
         if coef > 0:
             server.sendTurnCommand(int(angle - coef))
         else:
-            server.sendTurnCommand(int(angle + coef))
+            server.sendTurnCommand(int(angle - coef))
 
     elif direction == 'left':
         if coef > 0:
