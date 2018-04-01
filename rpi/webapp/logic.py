@@ -49,6 +49,8 @@ class line_detect():
         self.width = 320
         self.height = 240
         self.numSlices = 4
+        self.bias = []
+        self.numberOfbias = 5
 
         weight_1 = (0.9)
         weight_2 = (0.45, 0.45)
@@ -281,7 +283,11 @@ class line_detect():
             # bias = sum(distance)
             print('The distance list is {}'.format(distanceBiasArray))
             print('The bias is {}'.format(bias))
-
+            if len(self.bias) <= self.numberOfbias:
+                self.bias.append(bias)
+            else:
+                del(self.bias[0])
+                self.bias.append(bias)
             # attenuate ensures speed will be between -40 and 40   -  parser requires speed to be an integer
             speed = int(attenuate(bias/6, -40, 40))
 
@@ -301,11 +307,20 @@ class line_detect():
 
 
 def turn(direction):
+    coef = np.mean(self.bias)
+    coef = abs(coef/10)
+    angle = 90
     if direction == 'right':
-        server.sendTurnCommand(-60)
+        if coef > 0:
+            server.sendTurnCommand(angle - coef)
+        else:
+            server.sendTurnCommand(angle + coef)
 
     elif direction == 'left':
-        server.sendTurnCommand(60)
+        if coef > 0:
+            server.sendTurnCommand(-angle - coef)
+        else:
+            server.sendTurnCommand(-angle + coef)
 
 
 def resetDictionary(d):
