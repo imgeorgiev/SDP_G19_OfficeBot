@@ -458,6 +458,8 @@ def followTillJunction(junction):
 
     rawCapture = picamera.array.PiRGBArray(camera, size=resolution)
     startTime = time.time()
+
+    previousSpeeds = (0,0)
     # Capture images, opencv uses bgr format, using video port is faster but takes lower quality images
     for _ in camera.capture_continuous(rawCapture, format='bgr', use_video_port=True):
 
@@ -487,10 +489,12 @@ def followTillJunction(junction):
         else:
             (new_left_motor_speed, new_right_motor_speed) = line.computeWheelSpeeds(mainLineDistanceBiases)
 
-            print('DEBUG: left motor speed: {}'.format(new_left_motor_speed))
-            print('DEBUG: right motor speed: {}'.format(new_right_motor_speed))
+            if (new_left_motor_speed, new_right_motor_speed) != previousSpeeds:
+                server.sendMotorCommand(new_left_motor_speed, new_right_motor_speed)
+                print('DEBUG: left motor speed: {}'.format(new_left_motor_speed))
+                print('DEBUG: right motor speed: {}'.format(new_right_motor_speed))
+                previousSpeeds = (new_left_motor_speed, new_right_motor_speed)
 
-            server.sendMotorCommand(new_left_motor_speed, new_right_motor_speed)
 
 #            printLinesToScreen(mainLineColor, junctionColor)
 
@@ -510,6 +514,8 @@ def followTillEnd():
 
     rawCapture = picamera.array.PiRGBArray(camera, size=resolution)
     startTime = time.time()
+
+    previousSpeeds = (0, 0)
 
     # Capture images, opencv uses bgr format, using video port is faster but takes lower quality images
     for _ in camera.capture_continuous(rawCapture, format='bgr', use_video_port=True):
@@ -538,10 +544,11 @@ def followTillEnd():
         else:
             (new_left_motor_speed, new_right_motor_speed) = line.computeWheelSpeeds(mainLineDistanceBiases)
 
-            print('DEBUG: left motor speed: {}'.format(new_left_motor_speed))
-            print('DEBUG: right motor speed: {}'.format(new_right_motor_speed))
-
-            server.sendMotorCommand(new_left_motor_speed, new_right_motor_speed)
+            if (new_left_motor_speed, new_right_motor_speed) != previousSpeeds:
+                server.sendMotorCommand(new_left_motor_speed, new_right_motor_speed)
+                print('DEBUG: left motor speed: {}'.format(new_left_motor_speed))
+                print('DEBUG: right motor speed: {}'.format(new_right_motor_speed))
+                previousSpeeds = (new_left_motor_speed, new_right_motor_speed)
 
         print(time.time() - startTime)
         startTime = time.time()
