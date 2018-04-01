@@ -305,10 +305,10 @@ class line_detect():
 
 def turn(direction):
     if direction == 'right':
-        server.sendTurnCommand(80)
+        server.sendTurnCommand(90)
 
     elif direction == 'left':
-        server.sendTurnCommand(-80)
+        server.sendTurnCommand(-90)
 
 
 def resetDictionary(d):
