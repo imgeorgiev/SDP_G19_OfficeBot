@@ -286,17 +286,17 @@ class line_detect():
             print('The bias is {}'.format(bias))
 
             # attenuate ensures speed will be between -40 and 40   -  parser requires speed to be an integer
-            speed = int(attenuate(bias/6, -40, 40))
+            speed = int(attenuate(bias/10, -50, 50))
 
             if abs(bias) < self.threshold:
                 return (50, 50)
 
             # robot is to the right of the line
             if bias > 0:
-                return (20 - speed, 20 + speed)
+                return (25 - speed, 25 + speed)
 
             else:
-                return (20 + abs(speed), 20 - abs(speed))
+                return (25 + abs(speed), 25 - abs(speed))
 
         # no main line is detected -> reverse
         else:
