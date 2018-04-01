@@ -307,7 +307,7 @@ class line_detect():
 
 
 def turn(direction):
-    coef = np.mean(self.bias)
+    coef = np.mean(line.bias)
     coef = abs(coef/10)
     angle = 90
     if direction == 'right':
