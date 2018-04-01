@@ -15,6 +15,7 @@ from tcpcom_py3 import TCPClient
 import ev3dev.auto as ev3
 import ev3dev.ev3 as brickman
 from time import sleep
+import threading
 
 server_ip = "169.254.23.50"
 server_port = 5005
@@ -37,7 +38,7 @@ def main():
     rightMotor.setPolarity("inversed")
 
     # start TCP client
-    client = TCPClient(server_ip, server_port, stateChanged=onStateChanged, isVerbose=True)
+    client = TCPClient(server_ip, server_port, stateChanged=onStateChanged, isVerbose=False)
     print("Client starting")
 
     try:
@@ -56,18 +57,19 @@ def main():
     leftMotor.stop()
     rightMotor.stop()
     client.disconnect()
+    threading.cleanup_stop_thread()
 
 
 def setWheelSpeeds(leftMotor, rightMotor, wheelSpeedMessage):
     newLeftWheelSpeed = int(wheelSpeedMessage[0])
     leftMotor.speed = newLeftWheelSpeed
     leftMotor.forward()
-    print("DEBUG: Left motor set to ", newLeftWheelSpeed)
+#   print("DEBUG: Left motor set to ", newLeftWheelSpeed)
 
     newRightWheelSpeed = int(wheelSpeedMessage[1])
     rightMotor.speed = newRightWheelSpeed
     rightMotor.forward()
-    print("DEBUG: Right motor set to ", newRightWheelSpeed)
+#   print("DEBUG: Right motor set to ", newRightWheelSpeed)
 
 
 def onStateChanged(state, msg):
@@ -88,13 +90,9 @@ def onStateChanged(state, msg):
         main()
 
     elif state == "MESSAGE":
-        print("DEBUG: Client:-- Message received: ", msg)
+#        print("DEBUG: Client:-- Message received: ", msg)
 
-        if(msg[0:3] == "SPK"):
-            msg = parseMsg(msg)
-            brickman.Sound.speak(msg, sound_config)
-
-        elif(msg[0:3] == "CMD"):
+        if(msg[0:3] == "CMD"):
             wheelSpeedMessage = parseMsg(msg)
             setWheelSpeeds(leftMotor, rightMotor, wheelSpeedMessage)
 
@@ -104,6 +102,10 @@ def onStateChanged(state, msg):
             # turn the robot clockwise by degrees
             leftMotor.turn(degrees)
             rightMotor.turn(degrees * -1)
+
+        elif(msg[0:3] == "SPK"):
+            msg = parseMsg(msg)
+            brickman.Sound.speak(msg, sound_config)
 
         else:
             print("ERROR: Message not recognised")
