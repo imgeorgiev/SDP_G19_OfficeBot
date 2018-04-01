@@ -531,7 +531,7 @@ def followTillEnd():
             server.sendTurnCommand(180)
 
             # wait while turning
-            time.sleep(2)
+            time.sleep(4)
 
             server.sendMotorCommand(0, 0)
             return
