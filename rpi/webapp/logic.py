@@ -12,7 +12,7 @@ import time
 import datetime
 import picamera
 import picamera.array
-import ir_reader
+from ir_reader import *
 # import joystick
 
 
@@ -376,7 +376,10 @@ def main():
 
     # set up ir sensors and threshold
     ir_sensors = IR_Bus()
-    IR_THRESHOLD = 100
+    ir_sensors.setDaemon(True)
+    ir_sensors.start()
+
+    IR_THRESHOLD = 400
 
     mainLineColor = 'black'
 
@@ -496,6 +499,10 @@ def followTillJunction(junction):
         print(time.time() - startTime)
         startTime = time.time()
 
+        if isIRSensorValueClose():
+            server.sendSpeakCommand("MOVE OUT THE WAY")
+            print("Sensor detected something")
+
 
 def followTillEnd():
 
@@ -519,7 +526,7 @@ def followTillEnd():
 
         if isCircleInFrame:
             # arrived at destination, turn around, stop motors and return
-            server.sendTurnCommand(200) # 200 degrees instead of 180 because a slight overturning is fine
+            server.sendTurnCommand(180)
 
             time.sleep(2)
 
@@ -542,6 +549,9 @@ def followTillEnd():
 #        pressedKey = cv2.waitKey(1) & 0xff
 #        if pressedKey == ESCAPE_KEY:
 #            raise KeyboardInterrupt('Exit key was pressed')
+        if isIRSensorValueClose():
+            server.sendSpeakCommand("MOVE OUT THE WAY")
+            print("Sensor detected something")
 
 
 def printLinesToScreen(*listOfColors):
@@ -555,13 +565,17 @@ def printLinesToScreen(*listOfColors):
         cv2.imshow(color, image)
 
 def isIRSensorValueClose():
-    values = ir_sensors.read()
-    if values is None:
-        return False
+    if int(float(ir_sensors.IR_LR)) > IR_THRESHOLD:
+        return True
 
-    for v in values:
-        if int(v) < IR_THRESHOLD:
-            return True
+    if int(float(ir_sensors.IR_RR)) > IR_THRESHOLD:
+        return True
+
+    if int(float(ir_sensors.IR_LF)) > IR_THRESHOLD:
+        return True
+
+    if int(float(ir_sensors.IR_RF)) > IR_THRESHOLD:
+        return True
 
     return False
 
