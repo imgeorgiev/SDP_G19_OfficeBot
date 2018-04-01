@@ -302,10 +302,10 @@ class line_detect():
 
 def turn(direction):
     if direction == 'right':
-        server.sendTurnCommand(-60)
+        server.sendTurnCommand(60)
 
     elif direction == 'left':
-        server.sendTurnCommand(60)
+        server.sendTurnCommand(-60)
 
 
 def resetDictionary(d):
@@ -420,7 +420,6 @@ def handleManualOverride():
 def getDestinationAndClearFile():
     destination = getDestinationFromFile()
     if destination is not None:
-        # empty the file
         clearFile()
 
     return destination
