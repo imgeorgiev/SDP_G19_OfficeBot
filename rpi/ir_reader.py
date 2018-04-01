@@ -4,9 +4,10 @@
 # returns data in format [LR, RR, LF, RF]
 
 import serial
+import threading
 
 
-class IR_Bus():
+class IR_Bus(threading.Thread):
     IR_LR = 0
     IR_RR = 0
     IR_LF = 0
@@ -18,9 +19,11 @@ class IR_Bus():
         self.IR_RR = 0
         self.IR_LF = 0
         self.IR_RF = 0
+
         # TODO: error checking for port
-        print(port)
         self.ser = serial.Serial(port, baud)
+
+        threading.Thread.__init__(self)
 
     def read(self):
         serial_str = str(self.ser.readline())[2:-5]
@@ -32,6 +35,11 @@ class IR_Bus():
             self.IR_LF = serial_str[2]
             self.IR_RF = serial_str[3]
             return serial_str
+
+    def run(self):
+        while(True):
+            self.read()
+
 
 
 def main():

@@ -361,6 +361,9 @@ def main():
 
     # set up ir sensors and threshold
     ir_sensors = IR_Bus()
+    ir_sensors.setDaemon(True)
+    ir_sensors.start()
+
     IR_THRESHOLD = 400
 
     mainLineColor = 'black'
@@ -547,13 +550,17 @@ def printLinesToScreen(*listOfColors):
         cv2.imshow(color, image)
 
 def isIRSensorValueClose():
-    values = ir_sensors.read()
-    if values is None:
-        return False
+    if int(float(ir_sensors.IR_LR)) > IR_THRESHOLD:
+        return True
 
-    for v in values:
-        if int(float(v)) > IR_THRESHOLD:
-            return True
+    if int(float(ir_sensors.IR_RR)) > IR_THRESHOLD:
+        return True
+
+    if int(float(ir_sensors.IR_LF)) > IR_THRESHOLD:
+        return True
+
+    if int(float(ir_sensors.IR_RF)) > IR_THRESHOLD:
+        return True
 
     return False
 
