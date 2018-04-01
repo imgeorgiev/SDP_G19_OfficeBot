@@ -270,7 +270,10 @@ class line_detect():
     @staticmethod
     def circle_detect(img):
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, 100, param1=100, param2=30, minRadius=0, maxRadius=200)
+
+        # minDistBetweenCentres is high as we only need to detect one circle
+
+        circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, 100, minDist=10000, param1=100, param2=20, minRadius=10, maxRadius=240)
         return (circles is not None)
 
     # through the distance bias array, we can use this function to reach line_following
