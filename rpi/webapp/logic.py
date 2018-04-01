@@ -3,6 +3,7 @@
 # multi-color lines detect in HSV and distance between middle of robot vision and center of line.
 import sys
 sys.path.append("../tcp/")
+sys.path.append("../")
 
 import numpy as np
 import cv2
@@ -11,6 +12,7 @@ import time
 import datetime
 import picamera
 import picamera.array
+import ir_reader
 # import joystick
 
 
@@ -295,8 +297,7 @@ class line_detect():
 
         # no main line is detected -> reverse
         else:
-            left, right = self.previousSpeeds
-            return (-left, -right)
+            return (-50, -50)
 
 
 def turn(direction):
@@ -339,7 +340,7 @@ def compute_path(position, destination):
 
 
 def main():
-    global server, ESCAPE_KEY, camera, line, mainLineColor, resolution
+    global server, ESCAPE_KEY, camera, line, mainLineColor, resolution, ir_sensors, IR_THRESHOLD
 
     position = 1
 
@@ -357,6 +358,10 @@ def main():
     time.sleep(0.1)
 
     line = line_detect()
+
+    # set up ir sensors and threshold
+    ir_sensors = IR_Bus()
+    IR_THRESHOLD = 100
 
     mainLineColor = 'black'
 
@@ -464,9 +469,7 @@ def followTillJunction(junction):
             print('DEBUG: left motor speed: {}'.format(new_left_motor_speed))
             print('DEBUG: right motor speed: {}'.format(new_right_motor_speed))
 
-            if (new_left_motor_speed, new_right_motor_speed) != line.previousSpeeds:
-                server.sendMotorCommand(new_left_motor_speed, new_right_motor_speed)
-                line.previousSpeeds = (new_left_motor_speed, new_right_motor_speed)
+            server.sendMotorCommand(new_left_motor_speed, new_right_motor_speed)
 
 #            printLinesToScreen(mainLineColor, junctionColor)
 
@@ -512,10 +515,7 @@ def followTillEnd():
             print('DEBUG: left motor speed: {}'.format(new_left_motor_speed))
             print('DEBUG: right motor speed: {}'.format(new_right_motor_speed))
 
-            if (new_left_motor_speed, new_right_motor_speed) != line.previousSpeeds:
-                server.sendMotorCommand(new_left_motor_speed, new_right_motor_speed)
-                if not (new_left_motor_speed < 0 and new_right_motor_speed < 0):
-                    line.previousSpeeds = (new_left_motor_speed, new_right_motor_speed)
+            server.sendMotorCommand(new_left_motor_speed, new_right_motor_speed)
 
         print(time.time() - startTime)
         startTime = time.time()
@@ -538,6 +538,16 @@ def printLinesToScreen(*listOfColors):
         # output image to screen
         cv2.imshow(color, image)
 
+def isIRSensorValueClose():
+    values = ir_sensors.read()
+    if values is None:
+        return False
+
+    for v in values:
+        if int(v) < IR_THRESHOLD:
+            return True
+
+    return False
 
 if __name__ == '__main__':
     main()
