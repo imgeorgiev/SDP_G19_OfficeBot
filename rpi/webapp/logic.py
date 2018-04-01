@@ -387,9 +387,13 @@ def main():
 
                     # follow the computed path, return when completed or escaped
                     try:
+                        server.sendSpeakCommand("Heading to desk " + destination)
                         followPath(path)
-                        position = destination
+
                         log_arrived_at(destination)
+                        server.sendSpeakCommand("Arrived at desk " + destination)
+                        position = destination
+
                         # wait 5 secs when it reaches destination
                         time.sleep(5)
                     except KeyboardInterrupt:
@@ -485,9 +489,13 @@ def followTillJunction(junction):
         startTime = time.time()
 
         if isIRSensorValueClose():
+            server.sendMotorCommand(0,0)
             server.sendSpeakCommand("MOVE OUT THE WAY")
             print("Sensor detected something")
 
+            while isIRSensorValueClose():
+                pass
+            print("Something is no longer in the way")
 
 def followTillEnd():
 
@@ -504,8 +512,8 @@ def followTillEnd():
         line.slicesByColor[mainLineColor] = []
 
         # isolating colors and getting distance between centre of vision and centre of line
-        HSV_lineColor = line.RemoveBackground_HSV(frame, mainLineColor)
-        mainLineDistanceBiases = line.computeDistanceBiases(HSV_lineColor, line.numSlices, mainLineColor)
+        frameWithoutBackground = line.RemoveBackground_HSV(frame, mainLineColor)
+        mainLineDistanceBiases = line.computeDistanceBiases(frameWithoutBackground, line.numSlices, mainLineColor)
 
         isCircleInFrame = line.circle_detect(frame)
 
@@ -535,8 +543,13 @@ def followTillEnd():
 #        if pressedKey == ESCAPE_KEY:
 #            raise KeyboardInterrupt('Exit key was pressed')
         if isIRSensorValueClose():
+            server.sendMotorCommand(0,0)
             server.sendSpeakCommand("MOVE OUT THE WAY")
             print("Sensor detected something")
+
+            while isIRSensorValueClose():
+                pass
+            print("Something is no longer in the way")
 
 
 def printLinesToScreen(*listOfColors):
