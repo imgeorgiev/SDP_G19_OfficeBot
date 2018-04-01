@@ -26,6 +26,10 @@ distances = []
 # for priority scheduling
 priorities = [0, 0, 0, 0, 0, 0]
 
+# starvation cut-off (number of priorities that can pass ahead
+# before a normal call is turned into a priority one)
+starvation_cutoff = -4
+
 job_queue = []
 
 error_msg = False
@@ -94,6 +98,25 @@ def manual_toggle():
     return render_template('index.html', **templateData)
 
 
+def add_priority(desk):
+    global job_queue, priorities
+
+    # add desk to front of job_queue, behind any other prioritised desks
+    i = 0
+    while (len(job_queue) != i and priorities[job_queue[i] - 1] != 1):
+        # print("len(job_queue): " + str(len(job_queue)) + " priorities[job_queue[i]]: " + str(priorities[job_queue[i]]))
+        # print("i: " + str(i) + ". incrementing i.")
+        i += 1
+
+    if (len(job_queue) == i):
+        job_queue.append(desk)
+    else:
+        job_queue.insert(i, desk)
+
+    # set that desk to be a priority desk
+    priorities[desk - 1] = 1
+
+
 @app.route("/<int:desk>/<action>")
 def action(desk, action):
     global CURRENTLY_WRITING, currently_processing, job_queue, sched_alg, priorities
@@ -126,20 +149,7 @@ def action(desk, action):
                 job_queue.insert(0, desk)
             # priority call
             else:
-                # add desk to front of job_queue, behind any other prioritised desks
-                i = 0
-                while (len(job_queue) != i and priorities[job_queue[i] - 1] != 1):
-                    # print("len(job_queue): " + str(len(job_queue)) + " priorities[job_queue[i]]: " + str(priorities[job_queue[i]]))
-                    # print("i: " + str(i) + ". incrementing i.")
-                    i += 1
-
-                if (len(job_queue) == i):
-                    job_queue.append(desk)
-                else:
-                    job_queue.insert(i, desk)
-
-                # set that desk to be a priority desk
-                priorities[desk - 1] = 1
+                add_priority(desk)
 
             print("**ACTION**\nCall to " + str(desk) + ".")
             if (action == "call"):
@@ -181,6 +191,29 @@ def calc_distances():
             distances[i][j] = abs((desks_x_y[i][0] - desks_x_y[j][0])) + abs((desks_x_y[i][1] - desks_x_y[j][1]))
     print("Calculated distances:\n\n" + str(distances) + "\n")
 
+# Updates priority list to prevent starvation
+def update_priorities():
+    global priorities, job_queue, starvation_cutoff
+    for i in range(0, len(priorities)):
+        # do not update priority of desks that are not in job_queue right now
+        if ((i + 1) in job_queue):
+            # skip if priority
+            if priorities[i] != 1:
+                # make the standard call a priority call
+                if priorities[i] == starvation_cutoff:
+                    print("Updating priority of " + str(i + 1) + ".\n")
+                    job_queue.remove(i + 1)
+                    # prioritise, move ahead
+                    # TODO: any kind of problem with written_job/currently_processing?
+                    # what if no priorities left, issue?
+                    add_priority(i + 1)
+                # update all other desks
+                else:
+                    priorities[i] = priorities[i] - 1
+    print("UPDATE_PRIORITIES done. priorities queue: " + str(priorities) + " job_queue: " + str(job_queue) + "\n")
+
+
+
 # Reorders job_queue based on the sched_alg and current job
 def reorder_jobs(alg):
     global next_job, currently_processing, job_queue, distances, priorities
@@ -198,8 +231,8 @@ def reorder_jobs(alg):
 
         # if the current front of queue is not a priority
         if (priorities[job_queue[-1] - 1] != 1):
-            print("job_queue[-1]: " + str(job_queue[-1]) + " priorities[job_queue[-1] - 1]: " + str(priorities[job_queue[-1] - 1]))
-            print("priorities queue: " + str(priorities))
+            # print("job_queue[-1]: " + str(job_queue[-1]) + " priorities[job_queue[-1] - 1]: " + str(priorities[job_queue[-1] - 1]))
+            # print("priorities queue: " + str(priorities))
             print("Not a priority call!\n")
             # Simplest algorithm. Checks closest location to currently_processing
             # and moves it to the front of the queue.
@@ -219,6 +252,8 @@ def reorder_jobs(alg):
             job_queue.append(job_queue.pop(idx_smallest))
             print("job_queue: " + str(job_queue) + "\n")
         else:
+            # To make standard calls into priority ones if needed
+            update_priorities()
             print("FRONT OF QUEUE HAS PRIORITY. REORDER_JOBS doesn't execute.")
             print("job_queue: " + str(job_queue) + "\n")
 
@@ -257,7 +292,7 @@ def write_job():
                 reorder_jobs(sched_alg)
                 currently_processing = written_job
                 # reset priority of that desk
-                priorities[currently_processing - 1] = 0;
+                priorities[currently_processing - 1] = 0
                 print("priorities queue: " + str(priorities))
                 written_job = None
                 next_job = job_queue[-1]
@@ -293,10 +328,13 @@ def check_file():
             print("Logic has processed a job. START OF CHECK_FILE UPDATING.")
             job_queue.remove(written_job)
             currently_processing = written_job
+            # reset priority of that desk
+            priorities[currently_processing - 1] = 0
+            print("priorities queue: " + str(priorities))
             written_job = None
             reorder_jobs(sched_alg)
             write_job()
-            print("END OF CHECK_FILE UPDATING. New job_queue: " + str(job_queue) + "\n")
+            print("END OF CHECK_FILE. New job_queue: " + str(job_queue) + "\n")
         file.close()
         CURRENTLY_WRITING = 0
 
