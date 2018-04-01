@@ -459,6 +459,7 @@ def followTillJunction(junction):
         isTurnColorInFrame = line.isColorInFrame(HSV_turnColor)
 
         if isTurnColorInFrame:
+            time.sleep(1)
             print("Turning " + turnDirection)
             turn(turnDirection)
             time.sleep(3)
