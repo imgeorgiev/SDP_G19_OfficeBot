@@ -503,6 +503,8 @@ def followTillJunction(junction):
 
         if isIRSensorValueClose():
             server.sendMotorCommand(0,0)
+            previousSpeeds = (0, 0)
+
             server.sendSpeakCommand("MOVE OUT THE WAY")
             print("Sensor detected something")
 
@@ -557,6 +559,8 @@ def followTillEnd():
 
         if isIRSensorValueClose():
             server.sendMotorCommand(0,0)
+            previousSpeeds = (0, 0)
+
             server.sendSpeakCommand("MOVE OUT THE WAY")
             print("Sensor detected something")
 
