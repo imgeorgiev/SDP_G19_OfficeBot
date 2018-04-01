@@ -12,6 +12,7 @@ body {
   padding-top: 50px;
   border: 1px dashed #442a23;
   border-radius: 10px;
+  box-shadow: 5px 5px 10px hsla(0, 0%, 62.4%, 0.5);
 }
 
 a, .notification {
@@ -114,7 +115,7 @@ img {
 
 a.btn {
     display: inline-block;
-    width: 100%;
+    width: 70%;
 }
 
 a.priority {
@@ -143,4 +144,5 @@ a.priority {
   .container {
     margin-top: 0px;
   }
+
 }
