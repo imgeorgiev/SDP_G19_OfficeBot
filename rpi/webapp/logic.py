@@ -308,19 +308,19 @@ class line_detect():
 
 def turn(direction):
     coef = np.mean(line.bias)
-    coef = abs(coef/10)
+    coef = coef/10
     angle = 90
     if direction == 'right':
         if coef > 0:
-            server.sendTurnCommand(angle - coef)
+            server.sendTurnCommand(int(angle - coef))
         else:
-            server.sendTurnCommand(angle + coef)
+            server.sendTurnCommand(int(angle + coef))
 
     elif direction == 'left':
         if coef > 0:
-            server.sendTurnCommand(-angle - coef)
+            server.sendTurnCommand(int(-angle - coef))
         else:
-            server.sendTurnCommand(-angle + coef)
+            server.sendTurnCommand(int(-angle - coef))
 
 
 def resetDictionary(d):
