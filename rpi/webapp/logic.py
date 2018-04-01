@@ -181,7 +181,7 @@ class line_detect():
     # return contours greater than requiredPercentageSize% of the image area
     @staticmethod
     def thresholdContourSize(img, height, width, requiredPercentageSize=20):
-        totalImageArea = height * width;
+        totalImageArea = height * width
         contour = []
         for i in range(len(img)):
             cnt = img[i]
@@ -241,14 +241,14 @@ class line_detect():
 
             contours = self.getContours(crop_img)
             contours = self.thresholdContourSize(contours, height, width)
-
-            cv2.drawContours(crop_img, contours, -1, (0, 255, 0), 3)
-            cv2.circle(crop_img, (middlew, middleh), 7, (0, 0, 255), -1)  # Draw middle circle RED
+            #
+            # cv2.drawContours(crop_img, contours, -1, (0, 255, 0), 3)
+            # cv2.circle(crop_img, (middlew, middleh), 7, (0, 0, 255), -1)  # Draw middle circle RED
             if contours:
                 contourCenterX = self.getContourCenter(contours[0])[0]
-                cv2.circle(crop_img, (contourCenterX, middleh), 7, (255, 255, 255), -1)  # Draw dX circle WHITE
-                font = cv2.FONT_HERSHEY_SIMPLEX
-                cv2.putText(crop_img, str(middlew - contourCenterX), (contourCenterX + 20, middleh), font, 1, (200, 0, 200), 2, cv2.LINE_AA)
+                # cv2.circle(crop_img, (contourCenterX, middleh), 7, (255, 255, 255), -1)  # Draw dX circle WHITE
+                # font = cv2.FONT_HERSHEY_SIMPLEX
+                # cv2.putText(crop_img, str(middlew - contourCenterX), (contourCenterX + 20, middleh), font, 1, (200, 0, 200), 2, cv2.LINE_AA)
 
                 bias = int(middlew - contourCenterX)
                 distance.append(bias)
@@ -288,15 +288,15 @@ class line_detect():
             # attenuate ensures speed will be between -40 and 40   -  parser requires speed to be an integer
             speed = int(attenuate(bias/6, -40, 40))
 
-            if abs(bias) > self.threshold:
-                if bias > 0:
-                    self.previousSpeeds = (20 - speed, 20 + speed)
-                    return (20 - speed, 20 + speed)
-                else:
-                    self.previousSpeeds = (20 + abs(speed), 20 - abs(speed))
-                    return (20 + abs(speed), 20 - abs(speed))
-            else:
+            if abs(bias) < self.threshold:
                 return (50, 50)
+
+            # robot is to the right of the line
+            if bias > 0:
+                return (20 - speed, 20 + speed)
+
+            else:
+                return (20 + abs(speed), 20 - abs(speed))
 
         # no main line is detected -> reverse
         else:
@@ -397,8 +397,9 @@ def main():
                         server.sendSpeakCommand("Arrived at desk " + str(destination))
                         position = destination
 
-                        # wait 5 secs when it reaches destination
+                        # wait 5 secs while at destination
                         time.sleep(5)
+
                     except KeyboardInterrupt:
                         # Escape key was pressed
                         server.sendMotorCommand(0, 0)
@@ -476,10 +477,15 @@ def followTillJunction(junction):
         isTurnColorInFrame = line.isColorInFrame(HSV_turnColor)
 
         if isTurnColorInFrame:
-            time.sleep(1)
             print("Turning " + turnDirection)
+
+            # wait until wheels are over the junction
+            time.sleep(1)
+
             turn(turnDirection)
-            time.sleep(3)
+
+            # wait while turning
+            time.sleep(2)
             return
         else:
             (new_left_motor_speed, new_right_motor_speed) = line.computeWheelSpeeds(mainLineDistanceBiases)
@@ -527,6 +533,7 @@ def followTillEnd():
             # arrived at destination, turn around, stop motors and return
             server.sendTurnCommand(180)
 
+            # wait while turning
             time.sleep(2)
 
             server.sendMotorCommand(0, 0)
