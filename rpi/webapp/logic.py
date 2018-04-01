@@ -286,7 +286,7 @@ class line_detect():
             print('The bias is {}'.format(bias))
 
             # attenuate ensures speed will be between -40 and 40   -  parser requires speed to be an integer
-            speed = int(attenuate(bias/10, -50, 50))
+            speed = int(attenuate(bias/12, -50, 50))
 
             if abs(bias) < self.threshold:
                 return (50, 50)
@@ -305,10 +305,10 @@ class line_detect():
 
 def turn(direction):
     if direction == 'right':
-        server.sendTurnCommand(60)
+        server.sendTurnCommand(80)
 
     elif direction == 'left':
-        server.sendTurnCommand(-60)
+        server.sendTurnCommand(-80)
 
 
 def resetDictionary(d):
@@ -478,9 +478,6 @@ def followTillJunction(junction):
 
         if isTurnColorInFrame:
             print("Turning " + turnDirection)
-
-            # wait until wheels are over the junction
-            time.sleep(1)
 
             turn(turnDirection)
 
