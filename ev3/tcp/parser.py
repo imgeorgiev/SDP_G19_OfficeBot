@@ -10,76 +10,86 @@
 # EV3 IP: 169.254.21.39
 # RPI IP: 169.254.21.44
 
-import time
+
 from tcpcom_py3 import TCPClient
 import ev3dev.auto as ev3
-import threading
 import ev3dev.ev3 as brickman
-# import sys
+from time import sleep
 
 server_ip = "169.254.23.50"
 server_port = 5005
 
-sound_config = '-a 300 -s 110'
-GEAR_RATIO = 3
-
 colorList = ("R", "W", "BW", "N", "BK", "BL", "G", "Y")
 
+sound_config = '-a 300 -s 110'
+GEAR_RATIO = 3
+SCALE = 1.9
 
 def main():
     global client
-    global leftMotor
-    global rightMotor
+    global leftMotor, rightMotor
 
-    leftMotor = MotorThread("LEFT", "A")
-    leftMotor.setDaemon(True)
-    leftMotor.start()
+    # initialise motors
+    leftMotor = CustomMotor("LEFT", "A")
+    rightMotor = CustomMotor("RIGHT", "D")
 
-    rightMotor = MotorThread("RIGHT", "D")
-    rightMotor.setDaemon(True)
-    rightMotor.start()
+    leftMotor.setPolarity("inversed")
+    rightMotor.setPolarity("inversed")
 
-    client = TCPClient(server_ip, server_port, stateChanged=stateTrans)
+    # start TCP client
+    client = TCPClient(server_ip, server_port, stateChanged=onStateChanged, isVerbose=True)
     print("Client starting")
 
-    rc = client.connect()
     try:
-        while(True):
+        while True:
             rc = client.connect()
+            sleep(0.01)
             if rc:
-                isConnected = True  # not sure if needed
-                while(isConnected):
-                    pass
+                isConnected = True
+                while isConnected:
+                    sleep(0.001)
             else:
                 print("Client:-- Connection failed")
-                time.sleep(0.1)
+                sleep(0.1)
     except KeyboardInterrupt:
-        rightMotor.stop()
-        leftMotor.stop()
-        client.disconnect()
-        threading.cleanup_stop_thread()
+        pass
+    leftMotor.stop()
+    rightMotor.stop()
+    client.disconnect()
 
 
-def stateTrans(state, msg):
+def setWheelSpeeds(leftMotor, rightMotor, wheelSpeedMessage):
+    newLeftWheelSpeed = int(wheelSpeedMessage[0])
+    leftMotor.speed = newLeftWheelSpeed
+    leftMotor.forward()
+    print("DEBUG: Left motor set to ", newLeftWheelSpeed)
+
+    newRightWheelSpeed = int(wheelSpeedMessage[1])
+    rightMotor.speed = newRightWheelSpeed
+    rightMotor.forward()
+    print("DEBUG: Right motor set to ", newRightWheelSpeed)
+
+
+def onStateChanged(state, msg):
     global isConnected
-    global ultra
-    global lineFollowMsg
-    global wheelSpeedMessage
-    global leftMotor, rightMotor
 
     if state == "LISTENING":
         print("DEBUG: Client:-- Listening...")
+
     elif state == "CONNECTED":
         isConnected = True
         print("DEBUG: Client:-- Connected to ", msg)
+
     elif state == "DISCONNECTED":
+        isConnected = False
         print("DEBUG: Client:-- Connection lost.")
         leftMotor.stop()
         rightMotor.stop()
-        isConnected = False
         main()
+
     elif state == "MESSAGE":
         print("DEBUG: Client:-- Message received: ", msg)
+
         if(msg[0:3] == "SPK"):
             msg = parseMsg(msg)
             brickman.Sound.speak(msg, sound_config)
@@ -90,25 +100,23 @@ def stateTrans(state, msg):
 
         elif(msg[0:3] == "TRN"):
             degrees = int(parseMsg(msg)[0])
+
+            # turn the robot clockwise by degrees
             leftMotor.turn(degrees)
             rightMotor.turn(degrees * -1)
 
         else:
             print("ERROR: Message not recognised")
 
-
 # helper func: Discard message header and split the rest into a list
 def parseMsg(msg):
     return msg[4:].split(",")
 
 
-class MotorThread(threading.Thread):
+class CustomMotor:
     def __init__(self, side, out):
-        self.work = True
-        self.pause = False
-        self.reverse = False
-        self.speed = 0
         self.side = side
+        self.speed = 0
 
         self.motor = ev3.LargeMotor(ev3.OUTPUT_A)
         if out.upper() == "B":
@@ -118,34 +126,20 @@ class MotorThread(threading.Thread):
         elif out.upper() == "D":
             self.motor = ev3.LargeMotor(ev3.OUTPUT_D)
 
-        threading.Thread.__init__(self)
+    def reverse(self):
+        self.motor.run_forever(speed_sp=-self.speed*9) # scaling
 
     def forward(self):
-        self.motor.run_forever(speed_sp=self.speed * 9)
-
-    def reverse(self):
-        self.motor.run_forever(speed_sp=-self.speed * 9)
-
-    def pause(self):
-        self.motor.run_forever(speed_sp=0)
-
-    # turns the robot clockwise by degrees
-    def turn(self, degrees):
-        self.motor.run_to_rel_pos(position_sp=degrees * GEAR_RATIO)
+        self.motor.run_forever(speed_sp=self.speed*9)
 
     def stop(self):
         self.motor.stop()
 
+    def setPolarity(self, polarity):
+        self.motor.polarity = polarity
 
-def setWheelSpeeds(leftMotor, rightMotor, wheelSpeedMessage):
-    leftMotor.speed = int(wheelSpeedMessage[0])
-    leftMotor.forward()
-    # print("DEBUG: Left motor set to ", newLeftWheelSpeed)
-
-    rightMotor.speed = int(wheelSpeedMessage[1])
-    rightMotor.forward()
-    # print("DEBUG: Right motor set to ", newRightWheelSpeed)
-
+    def turn(self, degrees):
+        self.motor.run_to_rel_pos(position_sp=int(degrees*GEAR_RATIO*SCALE))
 
 if __name__ == '__main__':
     main()
