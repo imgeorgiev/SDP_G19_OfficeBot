@@ -387,11 +387,11 @@ def main():
 
                     # follow the computed path, return when completed or escaped
                     try:
-                        server.sendSpeakCommand("Heading to desk " + destination)
+                        server.sendSpeakCommand("Heading to desk " + str(destination))
                         followPath(path)
 
                         log_arrived_at(destination)
-                        server.sendSpeakCommand("Arrived at desk " + destination)
+                        server.sendSpeakCommand("Arrived at desk " + str(destination))
                         position = destination
 
                         # wait 5 secs when it reaches destination
