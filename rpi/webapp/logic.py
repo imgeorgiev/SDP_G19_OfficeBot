@@ -13,7 +13,7 @@ import datetime
 import picamera
 import picamera.array
 import ir_reader
-import psControl
+from psControl import *
 
 
 desks = {
