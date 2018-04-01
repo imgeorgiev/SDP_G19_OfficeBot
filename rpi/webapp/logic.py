@@ -484,10 +484,6 @@ def followTillJunction(junction):
 
 #            printLinesToScreen(mainLineColor, junctionColor)
 
-            # required when printing lines to the screen
-#            pressedKey = cv2.waitKey(1) & 0xff
-#            if pressedKey == ESCAPE_KEY:
-#                raise KeyboardInterrupt('Exit key was pressed')
         print(time.time() - startTime)
         startTime = time.time()
 
@@ -541,10 +537,6 @@ def followTillEnd():
 
 #        printLinesToScreen(mainLineColor)
 
-        # required when printing lines to the screen
-#        pressedKey = cv2.waitKey(1) & 0xff
-#        if pressedKey == ESCAPE_KEY:
-#            raise KeyboardInterrupt('Exit key was pressed')
         if isIRSensorValueClose():
             server.sendMotorCommand(0,0)
             server.sendSpeakCommand("MOVE OUT THE WAY")
@@ -564,6 +556,11 @@ def printLinesToScreen(*listOfColors):
 
         # output image to screen
         cv2.imshow(color, image)
+
+    # required when printing lines to the screen
+    pressedKey = cv2.waitKey(1) & 0xff
+    if pressedKey == ESCAPE_KEY:
+        raise KeyboardInterrupt('Exit key was pressed')
 
 def isIRSensorValueClose():
     if int(float(ir_sensors.IR_LR)) > IR_THRESHOLD:
