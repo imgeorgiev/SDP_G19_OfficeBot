@@ -12,7 +12,7 @@ import time
 import datetime
 import picamera
 import picamera.array
-import ir_reader
+from ir_reader import *
 # import joystick
 
 
@@ -361,7 +361,7 @@ def main():
 
     # set up ir sensors and threshold
     ir_sensors = IR_Bus()
-    IR_THRESHOLD = 100
+    IR_THRESHOLD = 400
 
     mainLineColor = 'black'
 
@@ -481,6 +481,10 @@ def followTillJunction(junction):
         print(time.time() - startTime)
         startTime = time.time()
 
+        if isIRSensorValueClose():
+            server.sendSpeakCommand("MOVE OUT THE WAY")
+            print("Sensor detected something")
+
 
 def followTillEnd():
 
@@ -527,6 +531,9 @@ def followTillEnd():
 #        pressedKey = cv2.waitKey(1) & 0xff
 #        if pressedKey == ESCAPE_KEY:
 #            raise KeyboardInterrupt('Exit key was pressed')
+        if isIRSensorValueClose():
+            server.sendSpeakCommand("MOVE OUT THE WAY")
+            print("Sensor detected something")
 
 
 def printLinesToScreen(*listOfColors):
@@ -545,7 +552,7 @@ def isIRSensorValueClose():
         return False
 
     for v in values:
-        if int(v) < IR_THRESHOLD:
+        if int(float(v)) > IR_THRESHOLD:
             return True
 
     return False
