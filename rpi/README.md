@@ -111,17 +111,18 @@ Achieved via TCP packets send between the two. RPi acting as a server and the EV
 
 To achieve this we have used the [tcpcom libary](http://www.aplu.ch/home/apluhomex.jsp?site=164).
 
-Packages:
+Comms packets:
 
 Each package has a header and comma-seperated parameters: `CMD:L,50`. Commands include:
-- RQT - Request command - RPi to EV3 - `RQT`. Request the EV3 to send data.
-- SNR - Sensor data - EV3 to RPi - `SNR:10.23,R,BL`. Send data back. Ultrasonic, Left colour sensor, right colour sensor
-- CMD - Motor command -  RPi to EV3 - `CMD:L,50`. Paramters: Motor [L or R], Speed [-100,100].
-- LFW - Line follow command - RPi to EV3 - `CMD:Y,BL,L,4`. Parameters: Line to follow, next line to follow, side to turn, num of junctions to skip
+- CMD - Motor command -  RPi to EV3 - `CMD:50,50`. Paramters: speed left wheel (-100 to 100), speed right wheel.
+- TRN - Turn command - RPi to EV3 - `TRN:90`. Paramters: degrees to turn.
+- SPK - Speak command - RPi to EV3 - `SPK:retrospark`. Parameters: string to speak out.
+
+First you have to start the parser on the EV3 which can be started using the `start_ev3.sh` script. Note - the EV3 must be in the same network as the RPi
+
+Then simply import the `tcp_rpi.py` class into your code and use its functions. Should be straightforward, if not look into its code and `tcpcom_py3.py`.
 
 
-### To control directly via PS4 controller
+## 4.Control directly via PS4 controller
 Launch `python3 ~/SDP_G19_OfficeBot/rpi/tcp/tcp_rpi.py` with the joystick connected to the RPi.
 
-
-Otherwise simply import the `tcp_rpi.py` class into your code and use its functions. Should be straightforward, if not look into its code and `tcpcom_py3.py`.

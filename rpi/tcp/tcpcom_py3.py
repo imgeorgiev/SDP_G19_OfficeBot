@@ -30,7 +30,7 @@ class TimeoutThread(Thread):
         self.server = server
         self.timeout = timeout
         self.count = 0
-        
+
     def run(self):
         TCPServer.debug("TimeoutThread starting")
         self.isRunning = True

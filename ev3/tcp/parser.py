@@ -13,100 +13,102 @@
 
 from tcpcom_py3 import TCPClient
 import ev3dev.auto as ev3
+import ev3dev.ev3 as brickman
 from time import sleep
+import threading
 
 server_ip = "169.254.23.50"
 server_port = 5005
 
 colorList = ("R", "W", "BW", "N", "BK", "BL", "G", "Y")
 
+sound_config = '-a 300 -s 110'
 GEAR_RATIO = 3
+SCALE = 1.9
 
 def main():
     global client
+    global leftMotor, rightMotor
+
     # initialise motors
     leftMotor = CustomMotor("LEFT", "A")
     rightMotor = CustomMotor("RIGHT", "D")
 
-    # initialise sensors
-    ultrasonicSensor = ev3.UltrasonicSensor(ev3.INPUT_AUTO); assert ultrasonicSensor.connected
+    leftMotor.setPolarity("inversed")
+    rightMotor.setPolarity("inversed")
 
     # start TCP client
-    client = TCPClient(server_ip, server_port, stateChanged=onStateChanged, isVerbose=True)
+    client = TCPClient(server_ip, server_port, stateChanged=onStateChanged, isVerbose=False)
     print("Client starting")
 
-    rc = client.connect()
     try:
         while True:
+            rc = client.connect()
             sleep(0.01)
-            if not rc:
+            if rc:
+                isConnected = True
+                while isConnected:
+                    sleep(0.001)
+            else:
                 print("Client:-- Connection failed")
-                rc = client.connect()
-                sleep(1)
+                sleep(0.1)
     except KeyboardInterrupt:
         pass
     leftMotor.stop()
     rightMotor.stop()
     client.disconnect()
+    threading.cleanup_stop_thread()
 
 
 def setWheelSpeeds(leftMotor, rightMotor, wheelSpeedMessage):
     newLeftWheelSpeed = int(wheelSpeedMessage[0])
     leftMotor.speed = newLeftWheelSpeed
     leftMotor.forward()
-    print("DEBUG: Left motor set to ", newLeftWheelSpeed)
+#   print("DEBUG: Left motor set to ", newLeftWheelSpeed)
 
     newRightWheelSpeed = int(wheelSpeedMessage[1])
     rightMotor.speed = newRightWheelSpeed
     rightMotor.forward()
-    print("DEBUG: Right motor set to ", newRightWheelSpeed)
+#   print("DEBUG: Right motor set to ", newRightWheelSpeed)
 
 
 def onStateChanged(state, msg):
     global isConnected
-    global ultra
-    global lineFollowMsg
-    global wheelSpeedMessage
-    global leftMotor, rightMotor, ultrasonicSensor
 
-    if state == "CONNECTED":
+    if state == "LISTENING":
+        print("DEBUG: Client:-- Listening...")
+
+    elif state == "CONNECTED":
         isConnected = True
         print("DEBUG: Client:-- Connected to ", msg)
 
     elif state == "DISCONNECTED":
-        print("DEBUG: Client:-- Connection lost.")
         isConnected = False
-
-    elif state == "LISTENING":
-        pass
-        print("DEBUG: Client:-- Listening...")
+        print("DEBUG: Client:-- Connection lost.")
+        leftMotor.stop()
+        rightMotor.stop()
+        main()
 
     elif state == "MESSAGE":
-        print("DEBUG: Client:-- Message received: ", msg)
-        if(msg[0:3] == "RQT"):
-            ultra = ultrasonicSensor.value()
-            sendSensorData(ultra)
+#        print("DEBUG: Client:-- Message received: ", msg)
 
-        elif(msg[0:3] == "LFW"):
-            lineFollowMsg = parseMsg(msg)
-
-        elif(msg[0:3] == "CMD"):
+        if(msg[0:3] == "CMD"):
             wheelSpeedMessage = parseMsg(msg)
             setWheelSpeeds(leftMotor, rightMotor, wheelSpeedMessage)
 
         elif(msg[0:3] == "TRN"):
-            turnMessage = parseMsg(msg)
-            degreesToTurn = int(turnMessage[0])
-            turn([leftMotor, rightMotor], degreesToTurn)
+            degrees = int(parseMsg(msg)[0])
+
+            # turn the robot clockwise by degrees
+            leftMotor.turn(degrees)
+            rightMotor.turn(degrees * -1)
+
+        elif(msg[0:3] == "SPK"):
+            msg = parseMsg(msg)
+            brickman.Sound.speak(msg, sound_config)
 
         else:
             print("ERROR: Message not recognised")
-
-
-def sendSensorData(ultra):
-    sensorMessage = "SNR:" + str(ultra)
-    client.sendMessage(sensorMessage)
-
 
 # helper func: Discard message header and split the rest into a list
 def parseMsg(msg):
@@ -129,9 +131,6 @@ class CustomMotor:
     def reverse(self):
         self.motor.run_forever(speed_sp=-self.speed*9) # scaling
 
-    def pause(self):
-        self.motor.run_forever(speed_sp=0)
-
     def forward(self):
         self.motor.run_forever(speed_sp=self.speed*9)
 
@@ -141,22 +140,8 @@ class CustomMotor:
     def setPolarity(self, polarity):
         self.motor.polarity = polarity
 
-    def isReversing(self):
-        return self.motor.speed < 0
-
-    def isGoingForward(self):
-        return self.motor.speed > 0
-
     def turn(self, degrees):
-        self.motor.run_to_rel_pos(position_sp=degrees*GEAR_RATIO)
-
-# turns the robot clockwise by degrees
-def turn(motors, degrees):
-        leftMotor = motors[0]
-        rightMotor = motors[1]
-
-        leftMotor.turn(degrees)
-        rightMotor.turn(degrees*-1)
+        self.motor.run_to_rel_pos(position_sp=int(degrees*GEAR_RATIO*SCALE))
 
 if __name__ == '__main__':
     main()
