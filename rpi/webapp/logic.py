@@ -26,12 +26,12 @@ desks = {
 }
 
 directionsToTurnArray = [
-    [(None, None), ("left", "left"), ("left", "right"), ("left", "right"), ("left", "left"), ("left", "right")],
-    [("right", "right"), (None, None), ("left", "right"), ("left", "right"), ("left", "left"), ("left", "right")],
-    [("left", "right"), ("left", "right"), (None, None), ("right", "right"), ("right", "left"), ("right", "right")],
-    [("left", "right"), ("left", "right"), ("left", "left"), (None, None), ("right", "left"), ("right", "right")],
-    [("right", "right"), ("right", "right"), ("right", "left"), ("right", "left"), (None, None), ("left", "right")],
-    [("left", "right"), ("left", "right"), ("left", "left"), ("left", "left"), ("left", "right"), (None, None)]
+    [("None", "None"), ("left", "left"), ("left", "right"), ("left", "right"), ("left", "left"), ("left", "right")],
+    [("right", "right"), ("None", "None"), ("left", "right"), ("left", "right"), ("left", "left"), ("left", "right")],
+    [("left", "right"), ("left", "right"), ("None", "None"), ("right", "right"), ("right", "left"), ("right", "right")],
+    [("left", "right"), ("left", "right"), ("left", "left"), ("None", "None"), ("right", "left"), ("right", "right")],
+    [("right", "right"), ("right", "right"), ("right", "left"), ("right", "left"), ("None", "None"), ("left", "right")],
+    [("left", "right"), ("left", "right"), ("left", "left"), ("left", "left"), ("left", "right"), ("None", "None")]
 ]
 
 
@@ -306,9 +306,15 @@ class line_detect():
 def turn(direction):
     if direction == 'right':
         server.sendTurnCommand(90)
+        
+        # wait while turning
+        time.sleep(2)
 
     elif direction == 'left':
         server.sendTurnCommand(-90)
+        
+        # wait while turning
+        time.sleep(2)
 
 
 def resetDictionary(d):
@@ -372,15 +378,17 @@ def main():
     mainLineColor = 'black'
 
     ESCAPE_KEY = 27
+    MANUAL_OVERRIDE_START = 100
+    MANUAL_OVERRIDE_CANCEL = 200
 
     while True:
         destination = getDestinationFromFile()
-        if destination is not None and destination is not 200:
+        if destination is not None and destination is not MANUAL_OVERRIDE_CANCEL:
             clearFile()
             if destination == position:
                 print("Destination is the same as current position. Skipping.")
 
-            elif destination == 100:
+            elif destination == MANUAL_OVERRIDE_START:
                 handleManualOverride()
 
             else:
@@ -431,6 +439,7 @@ def handleManualOverride():
             break
         elif joy_val is not True:
             server.sendMotorCommand(joy_val[0], joy_val[1])
+    server.sendMotorCommand(0, 0)
     writeManualExitToFile()
     print("MANUAL OVERRIDE DISABLED.")
 
@@ -440,7 +449,6 @@ def getDestinationAndClearFile():
     destination = getDestinationFromFile()
     if destination is not None:
         clearFile()
-
     return destination
 
 
@@ -495,11 +503,7 @@ def followTillJunction(junction):
 
         if isTurnColorInFrame:
             print("Turning " + turnDirection)
-
             turn(turnDirection)
-
-            # wait while turning
-            time.sleep(2)
             return
         else:
             (new_left_motor_speed, new_right_motor_speed) = line.computeWheelSpeeds(mainLineDistanceBiases)
