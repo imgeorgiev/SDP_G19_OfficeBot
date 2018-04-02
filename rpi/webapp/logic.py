@@ -181,7 +181,7 @@ class line_detect():
     # return contours greater than requiredPercentageSize% of the image area
     @staticmethod
     def thresholdContourSize(img, height, width, requiredPercentageSize=20):
-        totalImageArea = height * width;
+        totalImageArea = height * width
         contour = []
         for i in range(len(img)):
             cnt = img[i]
@@ -241,14 +241,14 @@ class line_detect():
 
             contours = self.getContours(crop_img)
             contours = self.thresholdContourSize(contours, height, width)
-
-            cv2.drawContours(crop_img, contours, -1, (0, 255, 0), 3)
-            cv2.circle(crop_img, (middlew, middleh), 7, (0, 0, 255), -1)  # Draw middle circle RED
+            #
+            # cv2.drawContours(crop_img, contours, -1, (0, 255, 0), 3)
+            # cv2.circle(crop_img, (middlew, middleh), 7, (0, 0, 255), -1)  # Draw middle circle RED
             if contours:
                 contourCenterX = self.getContourCenter(contours[0])[0]
-                cv2.circle(crop_img, (contourCenterX, middleh), 7, (255, 255, 255), -1)  # Draw dX circle WHITE
-                font = cv2.FONT_HERSHEY_SIMPLEX
-                cv2.putText(crop_img, str(middlew - contourCenterX), (contourCenterX + 20, middleh), font, 1, (200, 0, 200), 2, cv2.LINE_AA)
+                # cv2.circle(crop_img, (contourCenterX, middleh), 7, (255, 255, 255), -1)  # Draw dX circle WHITE
+                # font = cv2.FONT_HERSHEY_SIMPLEX
+                # cv2.putText(crop_img, str(middlew - contourCenterX), (contourCenterX + 20, middleh), font, 1, (200, 0, 200), 2, cv2.LINE_AA)
 
                 bias = int(middlew - contourCenterX)
                 distance.append(bias)
@@ -270,7 +270,10 @@ class line_detect():
     @staticmethod
     def circle_detect(img):
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, 100, param1=100, param2=30, minRadius=0, maxRadius=200)
+
+        # minDistBetweenCentres is high as we only need to detect one circle
+
+        circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, minDist=10000, param1=100, param2=20, minRadius=10, maxRadius=240)
         return (circles is not None)
 
     # through the distance bias array, we can use this function to reach line_following
@@ -283,17 +286,17 @@ class line_detect():
             print('The bias is {}'.format(bias))
 
             # attenuate ensures speed will be between -40 and 40   -  parser requires speed to be an integer
-            speed = int(attenuate(bias/6, -40, 40))
+            speed = int(attenuate(bias/12, -50, 50))
 
-            if abs(bias) > self.threshold:
-                if bias > 0:
-                    self.previousSpeeds = (20 - speed, 20 + speed)
-                    return (20 - speed, 20 + speed)
-                else:
-                    self.previousSpeeds = (20 + abs(speed), 20 - abs(speed))
-                    return (20 + abs(speed), 20 - abs(speed))
-            else:
+            if abs(bias) < self.threshold:
                 return (50, 50)
+
+            # robot is to the right of the line
+            if bias > 0:
+                return (25 - speed, 25 + speed)
+
+            else:
+                return (25 + abs(speed), 25 - abs(speed))
 
         # no main line is detected -> reverse
         else:
@@ -302,10 +305,10 @@ class line_detect():
 
 def turn(direction):
     if direction == 'right':
-        server.sendTurnCommand(-60)
+        server.sendTurnCommand(90)
 
     elif direction == 'left':
-        server.sendTurnCommand(60)
+        server.sendTurnCommand(-90)
 
 
 def resetDictionary(d):
@@ -361,7 +364,10 @@ def main():
 
     # set up ir sensors and threshold
     ir_sensors = IR_Bus()
-    IR_THRESHOLD = 100
+    ir_sensors.setDaemon(True)
+    ir_sensors.start()
+
+    IR_THRESHOLD = 400
 
     mainLineColor = 'black'
 
@@ -385,11 +391,16 @@ def main():
 
                     # follow the computed path, return when completed or escaped
                     try:
+                        server.sendSpeakCommand("Heading to desk " + str(destination))
                         followPath(path)
-                        position = destination
+
                         log_arrived_at(destination)
-                        # wait 5 secs when it reaches destination
+                        server.sendSpeakCommand("Arrived at desk " + str(destination))
+                        position = destination
+
+                        # wait 5 secs while at destination
                         time.sleep(5)
+
                     except KeyboardInterrupt:
                         # Escape key was pressed
                         server.sendMotorCommand(0, 0)
@@ -425,23 +436,30 @@ def handleManualOverride():
 
 
 # checks if there is a new destination to go to (written by app.py)
+def getDestinationAndClearFile():
+    destination = getDestinationFromFile()
+    if destination is not None:
+        clearFile()
+
+    return destination
+
+
+def clearFile():
+    file = open("dest.txt", "r+")
+    file.seek(0)
+    file.truncate()
+    file.close()
+
+
 def getDestinationFromFile():
     file = open("dest.txt", "r+")
     content = file.read()
     if len(content) > 0:
         print("File content: " + content)
         destination = int(content)
-
-        # empty the file
-        file.seek(0)
-        file.truncate()
-        file.close()
-
         return destination
     else:
-        file.close()
         return None
-
 
 # follows the given path until a circle marking the end of path is detected
 def followPath(path):
@@ -455,6 +473,8 @@ def followTillJunction(junction):
 
     rawCapture = picamera.array.PiRGBArray(camera, size=resolution)
     startTime = time.time()
+
+    previousSpeeds = (0,0)
     # Capture images, opencv uses bgr format, using video port is faster but takes lower quality images
     for _ in camera.capture_continuous(rawCapture, format='bgr', use_video_port=True):
 
@@ -474,33 +494,45 @@ def followTillJunction(junction):
         isTurnColorInFrame = line.isColorInFrame(HSV_turnColor)
 
         if isTurnColorInFrame:
-            time.sleep(1)
             print("Turning " + turnDirection)
+
             turn(turnDirection)
-            time.sleep(3)
+
+            # wait while turning
+            time.sleep(2)
             return
         else:
             (new_left_motor_speed, new_right_motor_speed) = line.computeWheelSpeeds(mainLineDistanceBiases)
 
-            print('DEBUG: left motor speed: {}'.format(new_left_motor_speed))
-            print('DEBUG: right motor speed: {}'.format(new_right_motor_speed))
+            if (new_left_motor_speed, new_right_motor_speed) != previousSpeeds:
+                server.sendMotorCommand(new_left_motor_speed, new_right_motor_speed)
+                print('DEBUG: left motor speed: {}'.format(new_left_motor_speed))
+                print('DEBUG: right motor speed: {}'.format(new_right_motor_speed))
+                previousSpeeds = (new_left_motor_speed, new_right_motor_speed)
 
-            server.sendMotorCommand(new_left_motor_speed, new_right_motor_speed)
 
 #            printLinesToScreen(mainLineColor, junctionColor)
 
-            # required when printing lines to the screen
-#            pressedKey = cv2.waitKey(1) & 0xff
-#            if pressedKey == ESCAPE_KEY:
-#                raise KeyboardInterrupt('Exit key was pressed')
         print(time.time() - startTime)
         startTime = time.time()
 
+        if isIRSensorValueClose():
+            server.sendMotorCommand(0,0)
+            previousSpeeds = (0, 0)
+
+            server.sendSpeakCommand("MOVE OUT THE WAY")
+            print("Sensor detected something")
+
+            while isIRSensorValueClose():
+                pass
+            print("Something is no longer in the way")
 
 def followTillEnd():
 
     rawCapture = picamera.array.PiRGBArray(camera, size=resolution)
     startTime = time.time()
+
+    previousSpeeds = (0, 0)
 
     # Capture images, opencv uses bgr format, using video port is faster but takes lower quality images
     for _ in camera.capture_continuous(rawCapture, format='bgr', use_video_port=True):
@@ -512,36 +544,44 @@ def followTillEnd():
         line.slicesByColor[mainLineColor] = []
 
         # isolating colors and getting distance between centre of vision and centre of line
-        HSV_lineColor = line.RemoveBackground_HSV(frame, mainLineColor)
-        mainLineDistanceBiases = line.computeDistanceBiases(HSV_lineColor, line.numSlices, mainLineColor)
+        frameWithoutBackground = line.RemoveBackground_HSV(frame, mainLineColor)
+        mainLineDistanceBiases = line.computeDistanceBiases(frameWithoutBackground, line.numSlices, mainLineColor)
 
         isCircleInFrame = line.circle_detect(frame)
 
         if isCircleInFrame:
             # arrived at destination, turn around, stop motors and return
-            server.sendTurnCommand(200) # 200 degrees instead of 180 because a slight overturning is fine
+            server.sendTurnCommand(180)
 
-            time.sleep(2)
+            # wait while turning
+            time.sleep(4)
 
             server.sendMotorCommand(0, 0)
             return
         else:
             (new_left_motor_speed, new_right_motor_speed) = line.computeWheelSpeeds(mainLineDistanceBiases)
 
-            print('DEBUG: left motor speed: {}'.format(new_left_motor_speed))
-            print('DEBUG: right motor speed: {}'.format(new_right_motor_speed))
-
-            server.sendMotorCommand(new_left_motor_speed, new_right_motor_speed)
+            if (new_left_motor_speed, new_right_motor_speed) != previousSpeeds:
+                server.sendMotorCommand(new_left_motor_speed, new_right_motor_speed)
+                print('DEBUG: left motor speed: {}'.format(new_left_motor_speed))
+                print('DEBUG: right motor speed: {}'.format(new_right_motor_speed))
+                previousSpeeds = (new_left_motor_speed, new_right_motor_speed)
 
         print(time.time() - startTime)
         startTime = time.time()
 
 #        printLinesToScreen(mainLineColor)
 
-        # required when printing lines to the screen
-#        pressedKey = cv2.waitKey(1) & 0xff
-#        if pressedKey == ESCAPE_KEY:
-#            raise KeyboardInterrupt('Exit key was pressed')
+        if isIRSensorValueClose():
+            server.sendMotorCommand(0,0)
+            previousSpeeds = (0, 0)
+
+            server.sendSpeakCommand("MOVE OUT THE WAY")
+            print("Sensor detected something")
+
+            while isIRSensorValueClose():
+                pass
+            print("Something is no longer in the way")
 
 
 def printLinesToScreen(*listOfColors):
@@ -554,14 +594,23 @@ def printLinesToScreen(*listOfColors):
         # output image to screen
         cv2.imshow(color, image)
 
-def isIRSensorValueClose():
-    values = ir_sensors.read()
-    if values is None:
-        return False
+    # required when printing lines to the screen
+    pressedKey = cv2.waitKey(1) & 0xff
+    if pressedKey == ESCAPE_KEY:
+        raise KeyboardInterrupt('Exit key was pressed')
 
-    for v in values:
-        if int(v) < IR_THRESHOLD:
-            return True
+def isIRSensorValueClose():
+    if int(float(ir_sensors.IR_LR)) > IR_THRESHOLD:
+        return True
+
+    if int(float(ir_sensors.IR_RR)) > IR_THRESHOLD:
+        return True
+
+    if int(float(ir_sensors.IR_LF)) > IR_THRESHOLD:
+        return True
+
+    if int(float(ir_sensors.IR_RF)) > IR_THRESHOLD:
+        return True
 
     return False
 

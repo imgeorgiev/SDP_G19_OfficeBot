@@ -1,5 +1,4 @@
-#!/usr/bin/env python3
-# Was forced to do this as the class implimentation didn't work exactly
+# was forced to do this as the class implimentation didn't work exactly
 
 # Library for sending UDP commands to an EV3
 # Commands include: motors
@@ -22,9 +21,11 @@ server_port = 5005
 
 colorList = ("R", "W", "BW", "N", "BK", "BL", "G", "Y")
 
-sound_config = '-a 300 -s 110'
+# a is volume (max 200), s is words per minute
+sound_config = '-a 300 -s 180'
+
 GEAR_RATIO = 3
-SCALE = 1.9
+SCALE = 2
 
 def main():
     global client
@@ -90,19 +91,31 @@ def onStateChanged(state, msg):
         main()
 
     elif state == "MESSAGE":
-#        print("DEBUG: Client:-- Message received: ", msg)
+        print("DEBUG: Client:-- Message received: ", msg)
 
         if(msg[0:3] == "CMD"):
             wheelSpeedMessage = parseMsg(msg)
             setWheelSpeeds(leftMotor, rightMotor, wheelSpeedMessage)
 
         elif(msg[0:3] == "TRN"):
+
             degrees = int(parseMsg(msg)[0])
 
             # turn the robot clockwise by degrees
-            leftMotor.turn(degrees)
-            rightMotor.turn(degrees * -1)
 
+            if degrees == 180:
+                leftMotor.turn(degrees)
+                rightMotor.turn(degrees * -1)
+            else:
+                if degrees > 0:
+                    rightMotor.speed = 0
+                    rightMotor.forward()
+                    leftMotor.turn(degrees * 2)
+                    
+                else:
+                    leftMotor.speed = 0
+                    leftMotor.forward()
+                    rightMotor.turn(degrees * -2)
         elif(msg[0:3] == "SPK"):
             msg = parseMsg(msg)
             brickman.Sound.speak(msg, sound_config)
@@ -141,7 +154,7 @@ class CustomMotor:
         self.motor.polarity = polarity
 
     def turn(self, degrees):
-        self.motor.run_to_rel_pos(position_sp=int(degrees*GEAR_RATIO*SCALE))
+        self.motor.run_to_rel_pos(position_sp=int(degrees*GEAR_RATIO*SCALE), speed_sp=360)
 
 if __name__ == '__main__':
     main()
