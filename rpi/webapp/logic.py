@@ -293,14 +293,17 @@ class line_detect():
 
             # robot is to the right of the line
             if bias > 0:
+                self.previousSpeeds = (25 - speed, 25 + speed)
                 return (25 - speed, 25 + speed)
 
             else:
+                self.previousSpeeds = (25 - speed, 25 + speed)
                 return (25 + abs(speed), 25 - abs(speed))
 
         # no main line is detected -> reverse
         else:
-            return (-50, -50)
+            (newRight, newLeft) = self.previousSpeeds
+            return (-newRight, -newLeft)
 
 
 def turn(direction):
