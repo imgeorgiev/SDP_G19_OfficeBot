@@ -10,6 +10,7 @@ class psControl:
         # Using PS3 settings by default
         self._xAxis = xAxis
         self._yAxis = yAxis
+        self._prevButton = None
         self._exitButton = exitButton
         self._axisFactor = 100  # number to scale the joy outputs with
         self._joystick = None
@@ -118,7 +119,7 @@ class psControl:
                         xSpeed = axisVal
                     # print("DEBUG: x axis used", str(xSpeed))
 
-            if hadEvent:
+            if xPoll and yPoll:
                 # Determine the drive power levels
                 # print("xspeed: " + str(xSpeed) + " yspeed: " + str(ySpeed))
                 # xSpeed = scale_stick(xSpeed)
