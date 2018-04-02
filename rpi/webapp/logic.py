@@ -57,7 +57,7 @@ class line_detect():
 
         self.weights = (weight_1, weight_2, weight_3, weight_4)
 
-        self.threshold = 80
+        self.threshold = 20 * self.numSlices
         self.FPS_limit = 10
 
         self.previousSpeeds = (0, 0)
@@ -80,27 +80,20 @@ class line_detect():
         blackLower = self.transfer([0, 0, 0])
         blackUpper = self.transfer([0.278, 1, 0.294])
 
-        blueLower = self.transfer([0.583, 0.709, 0.309])
-        blueUpper = self.transfer([0.625, 1, 0.765])
+        yellowLower = self.transfer([0.02, 0.437, 0.283])
+        yellowUpper = self.transfer([0.23,0.84, 0.867])
 
-        redLower = self.transfer([-0.017, 0.581, 0.304])
-        redUpper = self.transfer([0.050, 0.941, 0.787])
+        blueLower = self.transfer([0.533, 0.709, 0.309])
+        blueUpper = self.transfer([0.675, 1, 0.765])
 
-        whiteLower = self.transfer([0, 0, 0])
-        whiteUpper = self.transfer([0, 0, 0.589])
+        redLower = self.transfer([-0.067, 0.581, 0.304])
+        redUpper = self.transfer([0.100, 0.941, 0.787])
 
-        pinkLower = self.transfer([0.943, 0.736, 0.283])
-        pinkUpper = self.transfer([0.993, 1, 0.739])
+        pinkLower = self.transfer([0.903, 0.736, 0.283])
+        pinkUpper = self.transfer([1, 1, 0.739])
 
-        brownLower = self.transfer([0.035, 0.485, 0.411])
-        brownUpper = self.transfer([0.123, 1, 0.813])
-
-        # not sure with this range
-        grayLower = self.transfer([0., 0, 0.236])
-        grayUpper = self.transfer([0.717, 0.253, 0.552])
-
-        greenLower = self.transfer([0.479, 0.853, 0.197])
-        greenUpper = self.transfer([0.553, 1, 0.776])
+        greenLower = self.transfer([0.429, 0.853, 0.197])
+        greenUpper = self.transfer([0.523, 1, 0.776])
 
         orangeLower = self.transfer([0.046, 0.757, 0.357])
         orangeUpper = self.transfer([0.102, 1, 1])
@@ -108,22 +101,16 @@ class line_detect():
         purpleLower = self.transfer([0.766, 0.464, 0.240])
         purpleUpper = self.transfer([0.848, 0.749, 0.787])
 
-        yellowLower = self.transfer([0.105, 0.480, 0.309])
-        yellowUpper = self.transfer([0.182, 1, 0.807])
-
         self.kernel = np.ones((5, 5), np.uint8)
 
         self.colorToMask = {
             "black": (blackLower, blackUpper),
             "blue": (blueLower, blueUpper),
+            "yellow": (yellowLower, yellowUpper),
             "red": (redLower, redUpper),
             "green": (greenLower, greenUpper),
-            "yellow": (yellowLower, yellowUpper),
-            "white": (whiteLower, whiteUpper),
             "purple": (purpleLower, purpleUpper),
             "pink" : (pinkLower, pinkUpper),
-            "brown": (brownLower, brownUpper),
-            "gray": (grayLower, grayUpper),
             "orange": (orangeLower, orangeUpper),
         }
 
@@ -233,7 +220,7 @@ class line_detect():
             heightOffset = sliceHeight*i
             crop_img = image[heightOffset:heightOffset + sliceHeight, widthOffset:self.width-widthOffset]
 
-            self.slicesByColor[color].append(crop_img)
+#           self.slicesByColor[color].append(crop_img)
 
             height, width = crop_img.shape[:2]
             middleh = int(height/2)
@@ -241,14 +228,14 @@ class line_detect():
 
             contours = self.getContours(crop_img)
             contours = self.thresholdContourSize(contours, height, width)
-            #
-            # cv2.drawContours(crop_img, contours, -1, (0, 255, 0), 3)
-            # cv2.circle(crop_img, (middlew, middleh), 7, (0, 0, 255), -1)  # Draw middle circle RED
+
+ #          cv2.drawContours(crop_img, contours, -1, (0, 255, 0), 3)
+ #          cv2.circle(crop_img, (middlew, middleh), 7, (0, 0, 255), -1)  # Draw middle circle RED
             if contours:
                 contourCenterX = self.getContourCenter(contours[0])[0]
-                # cv2.circle(crop_img, (contourCenterX, middleh), 7, (255, 255, 255), -1)  # Draw dX circle WHITE
-                # font = cv2.FONT_HERSHEY_SIMPLEX
-                # cv2.putText(crop_img, str(middlew - contourCenterX), (contourCenterX + 20, middleh), font, 1, (200, 0, 200), 2, cv2.LINE_AA)
+#               cv2.circle(crop_img, (contourCenterX, middleh), 7, (255, 255, 255), -1)  # Draw dX circle WHITE
+#               font = cv2.FONT_HERSHEY_SIMPLEX
+#               cv2.putText(crop_img, str(middlew - contourCenterX), (contourCenterX + 20, middleh), font, 1, (200, 0, 200), 2, cv2.LINE_AA)
 
                 bias = int(middlew - contourCenterX)
                 distance.append(bias)
