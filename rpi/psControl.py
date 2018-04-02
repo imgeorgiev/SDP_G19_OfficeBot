@@ -6,7 +6,7 @@ import os
 
 class psControl:
 
-    def __init__(self, xAxis=0, yAxis=4, exitButton=0):
+    def __init__(self, xAxis=0, yAxis=5, exitButton=9):
         # Using PS3 settings by default
         self._xAxis = xAxis
         self._yAxis = yAxis
@@ -88,9 +88,14 @@ class psControl:
             if event.type == pygame.JOYBUTTONDOWN:
                 # A button on the joystick just got pushed down
                 hadEvent = True
-                print("DEBUG: had keypress event", event.button)
+                # print("DEBUG: had keypress event", event.button)
+                self._prevButton = event.button
 
-                if self._joystick.get_button(self._exitButton):
+            elif event.type == pygame.JOYBUTTONUP:
+                hadEvent = True
+                # print("DEBUG: had keypress release", event.button)
+
+                if (event.button == self._prevButton and event.button == self._exitButton):
                     return False
 
             elif event.type == pygame.JOYAXISMOTION:
