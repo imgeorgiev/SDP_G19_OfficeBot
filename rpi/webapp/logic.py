@@ -17,21 +17,21 @@ from psControl import *
 
 
 desks = {
-    1: {'name': 'Desk 1', 'color': 'orange'},
-    2: {'name': 'Desk 2', 'color': 'green'},
-    3: {'name': 'Desk 3', 'color': 'purple'},
-    4: {'name': 'Desk 4', 'color': 'yellow'},
-    5: {'name': 'Desk 5', 'color': 'red'},
-    6: {'name': 'Desk 6', 'color': 'blue'}
+    1: {'name': 'Desk 1', 'color': 'blue'},
+    2: {'name': 'Desk 2', 'color': 'red'},
+    3: {'name': 'Desk 3', 'color': 'blue'},
+    4: {'name': 'Desk 4', 'color': 'red'},
+    5: {'name': 'Desk 5', 'color': 'blue'},
+    6: {'name': 'Desk 6', 'color': 'red'}
 }
 
 directionsToTurnArray = [
-    [("None", "None"), ("left", "left"), ("left", "right"), ("left", "right"), ("left", "left"), ("left", "right")],
-    [("right", "right"), ("None", "None"), ("left", "right"), ("left", "right"), ("left", "left"), ("left", "right")],
-    [("left", "right"), ("left", "right"), ("None", "None"), ("right", "right"), ("right", "left"), ("right", "right")],
-    [("left", "right"), ("left", "right"), ("left", "left"), ("None", "None"), ("right", "left"), ("right", "right")],
-    [("right", "right"), ("right", "right"), ("right", "left"), ("right", "left"), ("None", "None"), ("left", "right")],
-    [("left", "right"), ("left", "right"), ("left", "left"), ("left", "left"), ("left", "right"), ("None", "None")]
+    [(None, None), ("left", "left"), ("left", "None", "right"), ("left", "None", "None", "right"), ("left", "None", "None", "None", "left"), ("left", "None", "None", "None", "None", "right")],
+    [("right", "right"), (None, None), ("left", "right"), ("left", "None", "right"), ("left", "None", "None", "left"), ("left", "None", "None", "None", "right")],
+    [("left", "None", "right"), ("left", "right"), (None, None), ("right", "right"), ("right", "None", "left"), ("right", "None", "None", "right")],
+    [("left", "None", "None", "right"), ("left", "None", "right"), ("left", "left"), (None, None), ("right", "left"), ("right", "None", "right")],
+    [("right", "None", "None", "None", "right"), ("right", "None", "None", "right"), ("right", "None", "left"), ("right", "left"), (None, None), ("left", "right")],
+    [("left", "None", "None", "None", "None", "right"), ("left", "None", "None", "None", "right"), ("left", "None", "None", "left"), ("left", "None", "left"), ("left", "right"), (None, None)]
 ]
 
 
@@ -321,21 +321,27 @@ def compute_path(position, destination):
     log.write("Received command to move to " + str(destination) + ".\n")
 
     firstTurnColor = desks[position]['color']
-    secondTurnColor = desks[destination]['color']
 
-    (firstTurnDirection, secondTurnDirection) = directionsToTurnArray[position-1][destination-1]  # -1 because desks are 1 indexed, array is 0 indexed
+    directionsToTurn = directionsToTurnArray[position-1][destination-1]  # -1 because desks are 1 indexed, array is 0 indexed
+
+    path = []
+
+    nextTurnColor = firstTurnColor
+    for direction in directionsToTurn:
+        path.append((nextTurnColor, direction))
+        nextTurnColor = "red" if nextTurnColor == "blue" else "blue"
 
     # Debugging
     debug_text = "COMPUTING ROUTE.\n" \
-                 "Position: {} ({})\tDestination: {} ({})\n" \
-                 "First Junction: {}\tSecond Junction: {}\n" \
-                 "MOVING.".format(position, firstTurnColor, destination, secondTurnColor, firstTurnDirection, secondTurnDirection)
+                 "Position: {} \tDestination: {} \n" \
+                 "First Junction: {}\tFinal Junction: {}\n" \
+                 "MOVING.".format(position, destination, directionsToTurn[0], directionsToTurn[len(directionsToTurn)-1])
     print(debug_text)
     log.write("[" + datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') + "] ")
     log.write(debug_text + "\n")
     log.close()
 
-    return ((firstTurnColor, firstTurnDirection), (secondTurnColor, secondTurnDirection))
+    return path
 
 
 def main():
