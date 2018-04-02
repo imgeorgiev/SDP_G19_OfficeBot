@@ -214,7 +214,7 @@ class line_detect():
         distance = []
 
         # ignore the 20% of each side of the image
-        widthOffset = int(self.width*0.2)
+        widthOffset = int(self.width*0.1)
 
         for i in range(numberOfSlices):
             heightOffset = sliceHeight*i
@@ -290,7 +290,7 @@ class line_detect():
         # no main line is detected -> reverse
         else:
             (newRight, newLeft) = self.previousSpeeds
-            return (-newRight, -newLeft)
+            return (-newLeft, -newRight)
 
 
 def turn(direction):
