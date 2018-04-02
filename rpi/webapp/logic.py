@@ -400,6 +400,14 @@ def main():
             print("File was empty.")
             time.sleep(1)
 
++def writeManualExitToFile():
+    file = open("dest.txt", "r+")
+    # empty the file just in case
+    file.seek(0)
+    file.truncate()
+    file.write("200")
+    file.close()
+    print("Writing 200 to file.")
 
 def handleManualOverride():
     print("MANUAL OVERRIDE ENABLED.")
@@ -411,6 +419,7 @@ def handleManualOverride():
             break
         elif joy_val is not True:
             server.sendMotorCommand(joy_val[0], joy_val[1])
+    writeManualExitToFile()
     print("MANUAL OVERRIDE DISABLED.")
 
 
