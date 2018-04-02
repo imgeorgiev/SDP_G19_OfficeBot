@@ -188,7 +188,7 @@ class line_detect():
             area = cv2.contourArea(cnt)
 
             # if contour takes up 20% or more of the total area
-            if (area >= totalImageArea/requiredPercentageSize):
+            if (area >= totalImageArea * requiredPercentageSize/100):
                 contour.append(cnt)
 
         return contour
@@ -262,8 +262,8 @@ class line_detect():
         # get contours of image
         contours = self.getContours(image)
 
-        # get contours larger than 10% of image area
-        contours = self.thresholdContourSize(contours, height, width, 10)
+        # get contours larger than 5% of image area
+        contours = self.thresholdContourSize(contours, height, width, 5)
         return len(contours) > 0
 
     # this function will detect whether there is a circle(destination) in the robot vision
@@ -305,14 +305,14 @@ class line_detect():
 
 def turn(direction):
     if direction == 'right':
-        server.sendTurnCommand(90)
-        
+        server.sendTurnCommand(100)
+
         # wait while turning
         time.sleep(2)
 
     elif direction == 'left':
-        server.sendTurnCommand(-90)
-        
+        server.sendTurnCommand(-100)
+
         # wait while turning
         time.sleep(2)
 
@@ -430,6 +430,7 @@ def writeManualExitToFile():
     print("Writing 200 to file.")
 
 def handleManualOverride():
+    server.sendSpeakCommand("Manual override enabled.")
     print("MANUAL OVERRIDE ENABLED.")
     joy = psControl()
 
@@ -441,6 +442,7 @@ def handleManualOverride():
             server.sendMotorCommand(joy_val[0], joy_val[1])
     server.sendMotorCommand(0, 0)
     writeManualExitToFile()
+    server.sendSpeakCommand("Manual override disabled.")
     print("MANUAL OVERRIDE DISABLED.")
 
 
