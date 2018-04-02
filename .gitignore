@@ -1,0 +1,5 @@
+rpi/__pycache__
+rpi/tcp/__pycache__
+rpi/webapp/__pycache__
+rpi/webapp/log.txt
+rpi/webapp/dest.txt
