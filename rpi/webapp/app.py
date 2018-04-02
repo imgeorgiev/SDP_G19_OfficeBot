@@ -58,6 +58,27 @@ def index():
     }
     return render_template('index.html', **templateData)
 
+@app.route("/manual_refresh")
+def manual_refresh():
+    global manual_control
+
+    if (manual_control):
+        message = "Manual control is still on: please trigger the controller to disable it."
+        error_msg = True
+    else:
+        message = "Manual control has been set off."
+        error_msg = False
+
+    # return either the normal or desk-filled index page
+    templateData = {
+        'desks' : desks,
+        'message' : message,
+        'error_msg' : error_msg,
+        'manual_control' : manual_control
+    }
+
+    return render_template('index.html', **templateData)
+
 @app.route("/manual")
 def manual_toggle():
     global manual_control, written_job, CURRENTLY_WRITING
@@ -68,7 +89,7 @@ def manual_toggle():
 
     CURRENTLY_WRITING = 1
 
-    manual_control = not manual_control
+    manual_control = True
     message = " Manual override toggled."
     error_msg = False
 
@@ -81,8 +102,7 @@ def manual_toggle():
     if (manual_control):
         # Special character for manual override
         file.write("100")
-    else:
-        file.write("200")
+
     file.close()
 
 
@@ -315,26 +335,44 @@ def write_to_file(f):
 # Checks text file periodically, and if a job has been removed then it
 # removes it from the job_queue
 def check_file():
-    global next_job, written_job, job_queue, CURRENTLY_WRITING, currently_processing, sched_alg
+    global next_job, written_job, job_queue, CURRENTLY_WRITING, currently_processing, sched_alg, priorities, manual_control
 
     if (CURRENTLY_WRITING == 0):
 
         CURRENTLY_WRITING = 1
-        file = open("dest.txt","r")
+        file = open("dest.txt","r+")
         content = file.read()
         print("**CHECK_FILE**\nFile content: " + content + "\n")
-        # Initial state will have written_job = None
-        if ((len(content) == 0) and written_job is not None):
-            print("Logic has processed a job. START OF CHECK_FILE UPDATING.")
-            job_queue.remove(written_job)
-            currently_processing = written_job
-            # reset priority of that desk
-            priorities[currently_processing - 1] = 0
-            print("priorities queue: " + str(priorities))
-            written_job = None
-            reorder_jobs(sched_alg)
-            write_job()
-            print("END OF CHECK_FILE. New job_queue: " + str(job_queue) + "\n")
+        if (not manual_control):
+            # Initial state will have written_job = None
+            if ((len(content) == 0) and written_job is not None):
+                print("Logic has processed a job. START OF CHECK_FILE UPDATING.")
+                job_queue.remove(written_job)
+                currently_processing = written_job
+                # reset priority of that desk
+                priorities[currently_processing - 1] = 0
+                print("priorities queue: " + str(priorities))
+                written_job = None
+                reorder_jobs(sched_alg)
+                write_job()
+                print("END OF CHECK_FILE. New job_queue: " + str(job_queue) + "\n")
+        else:
+            print("Manual control on. Looking for code 200 only\n")
+            # Look for 200
+            if len(content) > 0 and int(content) == 200:
+                print("CODE 200. Emptying all.\n")
+                # reset everything; assume position 1
+                job_queue = []
+                currently_processing = None
+                writteb_job = None
+                next_job = None
+                priorities = [0, 0, 0, 0, 0, 0]
+                position = 1
+                # empty file
+                file.seek(0)
+                file.truncate()
+                manual_control = False
+
         file.close()
         CURRENTLY_WRITING = 0
 

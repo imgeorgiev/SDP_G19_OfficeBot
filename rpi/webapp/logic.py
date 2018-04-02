@@ -13,7 +13,7 @@ import datetime
 import picamera
 import picamera.array
 from ir_reader import *
-# import joystick
+from psControl import *
 
 
 desks = {
@@ -374,8 +374,9 @@ def main():
     ESCAPE_KEY = 27
 
     while True:
-        destination = getDestinationAndClearFile()
-        if destination is not None:
+        destination = getDestinationFromFile()
+        if destination is not None and destination is not 200:
+            clearFile()
             if destination == position:
                 print("Destination is the same as current position. Skipping.")
 
@@ -411,12 +412,26 @@ def main():
             print("File was empty.")
             time.sleep(1)
 
+def writeManualExitToFile():
+    file = open("dest.txt", "r+")
+    # empty the file just in case
+    file.seek(0)
+    file.truncate()
+    file.write("200")
+    file.close()
+    print("Writing 200 to file.")
 
 def handleManualOverride():
     print("MANUAL OVERRIDE ENABLED.")
-    # run ps4 controller loop
-    # clear out webapp queue, reset location on both web-app and logic
-    # will have to write to file so that web-app is aware of it
+    joy = psControl()
+
+    while True:
+        joy_val = joy.spin()
+        if joy_val is False:
+            break
+        elif joy_val is not True:
+            server.sendMotorCommand(joy_val[0], joy_val[1])
+    writeManualExitToFile()
     print("MANUAL OVERRIDE DISABLED.")
 
 
