@@ -118,7 +118,7 @@ class psControl:
                         xSpeed = axisVal
                     # print("DEBUG: x axis used", str(xSpeed))
 
-            if(yPoll and xPoll):
+            if hadEvent:
                 # Determine the drive power levels
                 # print("xspeed: " + str(xSpeed) + " yspeed: " + str(ySpeed))
                 # xSpeed = scale_stick(xSpeed)

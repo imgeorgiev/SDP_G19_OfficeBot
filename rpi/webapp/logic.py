@@ -12,7 +12,7 @@ import time
 import datetime
 import picamera
 import picamera.array
-import ir_reader
+from ir_reader import *
 from psControl import *
 
 
@@ -369,7 +369,8 @@ def main():
 
     while True:
         destination = getDestinationFromFile()
-        if destination is not None:
+        if destination is not None and destination is not 200:
+            clearFile()
             if destination == position:
                 print("Destination is the same as current position. Skipping.")
 
@@ -400,7 +401,7 @@ def main():
             print("File was empty.")
             time.sleep(1)
 
-+def writeManualExitToFile():
+def writeManualExitToFile():
     file = open("dest.txt", "r+")
     # empty the file just in case
     file.seek(0)

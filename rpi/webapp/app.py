@@ -359,7 +359,7 @@ def check_file():
         else:
             print("Manual control on. Looking for code 200 only\n")
             # Look for 200
-            if (int(content) == 200):
+            if len(content) > 0 and int(content) == 200:
                 print("CODE 200. Emptying all.\n")
                 # reset everything; assume position 1
                 job_queue = []
