@@ -53,9 +53,17 @@ CURRENTLY_WRITING = 0
 
 @app.route("/")
 def index():
-    templateData = {
-        'desks' : desks
-    }
+    if (manual_control):
+        templateData = {
+            'desks' : desks,
+            'message' : " Manual control is currently enabled.",
+            'error_msg' : True,
+            'manual_control' : manual_control
+        }
+    else:
+        templateData = {
+            'desks' : desks
+        }
     return render_template('index.html', **templateData)
 
 @app.route("/manual_refresh")
