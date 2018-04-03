@@ -30,6 +30,7 @@ desks = {
 l = "left"
 r = "right"
 s = "straight"
+
 # based on new environment with 8 desks
 directionsToTurnArray = [
     [None, (s), (l, r), (l, s, l, l), (l, s, l, s), (l, s, s, l), (l, s, s, s, r), (l, s, s, s, s, l)],
@@ -57,13 +58,6 @@ class line_detect():
         self.height = 240
         self.numSlices = 4
 
-        weight_1 = (0.9)
-        weight_2 = (0.45, 0.45)
-        weight_3 = (0.3, 0.3, 0.3)
-        weight_4 = (0.23, 0.23, 0.23, 0.23)
-
-        self.weights = (weight_1, weight_2, weight_3, weight_4)
-
         self.threshold = 20 * self.numSlices
 
         self.previousSpeeds = (0, 0)
@@ -74,12 +68,9 @@ class line_detect():
             "red": []
         }
 
-        # initialising numpy upper and lower bounds for cv2 mask
+        # numpy upper and lower bounds for color ranges
         blackLower = self.transfer([0, 0, 0])
         blackUpper = self.transfer([0.278, 1, 0.294])
-
-        yellowLower = self.transfer([0.02, 0.437, 0.283])
-        yellowUpper = self.transfer([0.23,0.84, 0.867])
 
         blueLower = self.transfer([0.533, 0.709, 0.309])
         blueUpper = self.transfer([0.675, 1, 0.765])
@@ -87,31 +78,13 @@ class line_detect():
         redLower = self.transfer([-0.067, 0.581, 0.304])
         redUpper = self.transfer([0.100, 0.941, 0.787])
 
-        pinkLower = self.transfer([0.903, 0.736, 0.283])
-        pinkUpper = self.transfer([1, 1, 0.739])
-
-        greenLower = self.transfer([0.429, 0.853, 0.197])
-        greenUpper = self.transfer([0.523, 1, 0.776])
-
-        orangeLower = self.transfer([0.046, 0.757, 0.357])
-        orangeUpper = self.transfer([0.102, 1, 1])
-
-        purpleLower = self.transfer([0.766, 0.464, 0.240])
-        purpleUpper = self.transfer([0.848, 0.749, 0.787])
-
-        self.kernel = np.ones((5, 5), np.uint8)
-
         self.colorToMask = {
             "black": (blackLower, blackUpper),
             "blue": (blueLower, blueUpper),
-            "yellow": (yellowLower, yellowUpper),
             "red": (redLower, redUpper),
-            "green": (greenLower, greenUpper),
-            "purple": (purpleLower, purpleUpper),
-            "pink" : (pinkLower, pinkUpper),
-            "orange": (orangeLower, orangeUpper),
         }
 
+        self.kernel = np.ones((5, 5), np.uint8)
 
     def RemoveBackground_HSV(self, image, color):
         (lower, upper) = self.colorToMask[color]
@@ -128,7 +101,9 @@ class line_detect():
 
         return image
 
-    def transfer(self, color_Range):
+    # scale MATLAB hsv range to openCV hsv range
+    @staticmethod
+    def transfer(color_Range):
         color_Range[0] = int(color_Range[0]*180)
         color_Range[1] = int(color_Range[1]*255)
         color_Range[2] = int(color_Range[2]*255)
@@ -187,14 +162,6 @@ class line_detect():
                 image = np.concatenate((image, slices[i]), axis=0)
         return image
 
-    # def draw(self, img, contour):
-    #     if self.getContourCenter(contour) != 0:
-    #         self.contourCenterX = self.getContourCenter(contour)[0]
-    #     self.dir =  int((self.middleX-self.contourCenterX) * self.getContourExtent(contour))
-    #     cv2.drawContours(img,contour,-1,(0,255,0),3) #Draw Contour GREEN
-    #     cv2.circle(img, (self.contourCenterX, self.middleY), 7, (255,255,255), -1) #Draw dX circle WHITE
-    #     cv2.circle(img, (self.middleX, self.middleY), 3, (0,0,255), -1) #Draw middle circle RED
-
     @staticmethod
     def getContourExtent(contour):
         area = cv2.contourArea(contour)
@@ -204,7 +171,7 @@ class line_detect():
             return (float(area) / rect_area)
 
     # this is the main function which will return an array which contains all distance bias for every point
-    def computeDistanceBiases(self, image, numberOfSlices, color):
+    def computeDistanceBiases(self, image, numberOfSlices):
         # divide the image horizontally into numberOfSlices
         # find contours of slice
 
@@ -218,24 +185,16 @@ class line_detect():
             heightOffset = sliceHeight*i
             crop_img = image[heightOffset:heightOffset + sliceHeight, widthOffset:self.width-widthOffset]
 
-#           self.slicesByColor[color].append(crop_img)
-
             height, width = crop_img.shape[:2]
-            middleh = int(height/2)
             middlew = int(width/2)
 
             contours = self.getContours(crop_img)
             contours = self.thresholdContourSize(contours, height, width)
 
- #          cv2.drawContours(crop_img, contours, -1, (0, 255, 0), 3)
- #          cv2.circle(crop_img, (middlew, middleh), 7, (0, 0, 255), -1)  # Draw middle circle RED
             if contours:
                 contourCenterX = self.getContourCenter(contours[0])[0]
-#               cv2.circle(crop_img, (contourCenterX, middleh), 7, (255, 255, 255), -1)  # Draw dX circle WHITE
-#               font = cv2.FONT_HERSHEY_SIMPLEX
-#               cv2.putText(crop_img, str(middlew - contourCenterX), (contourCenterX + 20, middleh), font, 1, (200, 0, 200), 2, cv2.LINE_AA)
-
                 bias = int(middlew - contourCenterX)
+
                 distance.append(bias)
 
         # return distance array reversed
@@ -492,7 +451,7 @@ def followTillJunction(junction):
 
         # isolating colors and getting distance between centre of vision and centre of line
         frameWithoutBackground = line.RemoveBackground_HSV(frame, mainLineColor)
-        mainLineDistanceBiases = line.computeDistanceBiases(frameWithoutBackground, line.numSlices, mainLineColor)
+        mainLineDistanceBiases = line.computeDistanceBiases(frameWithoutBackground, line.numSlices)
 
         HSV_turnColor = line.RemoveBackground_HSV(frame, junctionColor)
         isTurnColorInFrame = line.isColorInFrame(HSV_turnColor)
@@ -516,14 +475,15 @@ def followTillJunction(junction):
         print(time.time() - startTime)
         startTime = time.time()
 
-        if isIRSensorValueClose():
+        closeSensor = getCloseIRSensor()
+        if closeSensor is not None:
             server.sendMotorCommand(0,0)
             previousSpeeds = (0, 0)
 
-            server.sendSpeakCommand("MOVE OUT THE WAY")
+            server.sendSpeakCommand(closeSensor + " sensor detected something.")
             print("Sensor detected something")
 
-            while isIRSensorValueClose():
+            while getCloseIRSensor() is not None:
                 pass
             print("Something is no longer in the way")
 
@@ -543,9 +503,9 @@ def followTillEnd():
         # reset the array of slices
         line.slicesByColor[mainLineColor] = []
 
-        # isolating colors and getting distance between centre of vision and centre of line
+        # isolating main line color and getting distance between centre of vision and centre of line
         frameWithoutBackground = line.RemoveBackground_HSV(frame, mainLineColor)
-        mainLineDistanceBiases = line.computeDistanceBiases(frameWithoutBackground, line.numSlices, mainLineColor)
+        mainLineDistanceBiases = line.computeDistanceBiases(frameWithoutBackground, line.numSlices)
 
         isCircleInFrame = line.circle_detect(frame)
 
@@ -572,14 +532,15 @@ def followTillEnd():
 
 #        printLinesToScreen(mainLineColor)
 
-        if isIRSensorValueClose():
+        closeSensor = getCloseIRSensor()
+        if closeSensor is not None:
             server.sendMotorCommand(0,0)
             previousSpeeds = (0, 0)
 
-            server.sendSpeakCommand("MOVE OUT THE WAY")
+            server.sendSpeakCommand(closeSensor + " sensor detected something.")
             print("Sensor detected something")
 
-            while isIRSensorValueClose():
+            while getCloseIRSensor() is not None:
                 pass
             print("Something is no longer in the way")
 
@@ -599,20 +560,20 @@ def printLinesToScreen(*listOfColors):
     if pressedKey == ESCAPE_KEY:
         raise KeyboardInterrupt('Exit key was pressed')
 
-def isIRSensorValueClose():
+def getCloseIRSensor():
     if int(float(ir_sensors.IR_LR)) > IR_THRESHOLD:
-        return True
+        return "Rear Left"
 
     if int(float(ir_sensors.IR_RR)) > IR_THRESHOLD:
-        return True
+        return "Rear Right"
 
     if int(float(ir_sensors.IR_LF)) > IR_THRESHOLD:
-        return True
+        return "Front Left"
 
     if int(float(ir_sensors.IR_RF)) > IR_THRESHOLD:
-        return True
+        return "Front Right"
 
-    return False
+    return None
 
 if __name__ == '__main__':
     main()
