@@ -18,22 +18,29 @@ from psControl import *
 
 desks = {
     1: {'name': 'Desk 1', 'color': 'blue'},
-    2: {'name': 'Desk 2', 'color': 'red'},
-    3: {'name': 'Desk 3', 'color': 'blue'},
+    2: {'name': 'Desk 2', 'color': 'blue'},
+    3: {'name': 'Desk 3', 'color': 'red'},
     4: {'name': 'Desk 4', 'color': 'red'},
-    5: {'name': 'Desk 5', 'color': 'blue'},
-    6: {'name': 'Desk 6', 'color': 'red'}
+    5: {'name': 'Desk 5', 'color': 'red'},
+    6: {'name': 'Desk 6', 'color': 'red'},
+    7: {'name': 'Desk 6', 'color': 'blue'},
+    8: {'name': 'Desk 6', 'color': 'red'}
 }
 
+l = "left"
+r = "right"
+s = "straight"
+# based on new environment with 8 desks
 directionsToTurnArray = [
-    [(None, None), ("left", "left"), ("left", "None", "right"), ("left", "None", "None", "right"), ("left", "None", "None", "None", "left"), ("left", "None", "None", "None", "None", "right")],
-    [("right", "right"), (None, None), ("left", "right"), ("left", "None", "right"), ("left", "None", "None", "left"), ("left", "None", "None", "None", "right")],
-    [("left", "None", "right"), ("left", "right"), (None, None), ("right", "right"), ("right", "None", "left"), ("right", "None", "None", "right")],
-    [("left", "None", "None", "right"), ("left", "None", "right"), ("left", "left"), (None, None), ("right", "left"), ("right", "None", "right")],
-    [("right", "None", "None", "None", "right"), ("right", "None", "None", "right"), ("right", "None", "left"), ("right", "left"), (None, None), ("left", "right")],
-    [("left", "None", "None", "None", "None", "right"), ("left", "None", "None", "None", "right"), ("left", "None", "None", "left"), ("left", "None", "left"), ("left", "right"), (None, None)]
+    [None, (s), (l, r), (l, s, l, l), (l, s, l, s), (l, s, s, l), (l, s, s, s, r), (l, s, s, s, s, l)],
+    [(s), None, (r, r), (r, s, l, l), (r, s, l, s), (r, s, s, l), (r, s, s, s, r), (r, s, s, s, s, l)],
+    [(l, r), (l, l), None, (r, l, l), (r, l, s), (r, s, l), (r, s, s, r), (r, s, s, s, l)],
+    [(r, r, s, r), (r, r, s, l), (r, r, l), None, l, (r, l, l), (r, l, s, r), (r, l, s, s, l)],
+    [(s, r, s, r), (s, r, s, l), (s, r, l), r, None, (s, l, l), (s, l, s, r), (s, l, s, s, l)],
+    [(r, s, s, r), (r, s, s, l), (r, s, l), (r, r, l), (r, r, s), None, (l, r), (l, l)],
+    [(l, s, s, s, r), (l, s, s, s, l), (l, s, s, l), (l, s, r, l), (l, s, r, s), (l, r), None, (r, l)],
+    [(r, s, s, s, s, r), (r, s, s, s, s, l), (r, s, s, s, l), (r, s, s, r, l), (r, s, s, r, s), (r, s, r), (r, l), None]
 ]
-
 
 def log_arrived_at(destination):
     log = open("log.txt", "a+")
@@ -58,22 +65,13 @@ class line_detect():
         self.weights = (weight_1, weight_2, weight_3, weight_4)
 
         self.threshold = 20 * self.numSlices
-        self.FPS_limit = 10
 
         self.previousSpeeds = (0, 0)
 
         self.slicesByColor = {
             "black": [],
             "blue": [],
-            "red": [],
-            "purple": [],
-            "green": [],
-            "yellow": [],
-            "white": [],
-            "pink" : [],
-            "brown": [],
-            "gray": [],
-            "orange": [],
+            "red": []
         }
 
         # initialising numpy upper and lower bounds for cv2 mask
@@ -388,7 +386,7 @@ def main():
                 handleManualOverride()
 
             else:
-                if destination not in [1, 2, 3, 4, 5, 6]:
+                if destination not in desks.keys():
                     print("Destination not valid!")
                 else:
                     path = compute_path(position, destination)
