@@ -9,22 +9,24 @@ import logging
 app = Flask(__name__)
 
 desks = {
-    1 : {'name' : 'Desk 1', 'colour' : 'red'},
-    2 : {'name' : 'Desk 2', 'colour' : 'yellow'},
-    3 : {'name' : 'Desk 3', 'colour' : 'green'},
-    4 : {'name' : 'Desk 4', 'colour' : 'orange'},
-    5 : {'name' : 'Desk 5', 'colour' : 'pink'},
-    6 : {'name' : 'Desk 6', 'colour' : 'purple'}
+    1 : {'name' : 'Desk 1'},
+    2 : {'name' : 'Desk 2'},
+    3 : {'name' : 'Desk 3'},
+    4 : {'name' : 'Desk 4'},
+    5 : {'name' : 'Desk 5'},
+    6 : {'name' : 'Desk 6'},
+    7 : {'name' : 'Desk 7'},
+    8 : {'name' : 'Desk 8'}
 }
 
 # x and y coordinates for desks
-desks_x_y = [[1, 1], [3, 2], [0, 3], [3, 3], [4, 5], [1, 6]]
+desks_x_y = [[1, 1], [3, 2], [0, 3], [3, 3], [4, 5], [1, 6], [0, 7], [4, 8]]
 
 # matrix of distances between desks
 distances = []
 
 # for priority scheduling
-priorities = [0, 0, 0, 0, 0, 0]
+priorities = [0, 0, 0, 0, 0, 0, 0, 0]
 
 # starvation cut-off (number of priorities that can pass ahead
 # before a normal call is turned into a priority one)
