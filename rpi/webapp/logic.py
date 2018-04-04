@@ -235,14 +235,8 @@ class line_detect():
             if abs(bias) < self.threshold:
                 return (50, 50)
 
-            # robot is to the right of the line
-            if bias > 0:
-                self.previousSpeeds = (25 - speed, 25 + speed)
-                return (25 - speed, 25 + speed)
-
-            else:
-                self.previousSpeeds = (25 - speed, 25 + speed)
-                return (25 + abs(speed), 25 - abs(speed))
+            self.previousSpeeds = (25 - speed, 25 + speed)
+            return (25 - speed, 25 + speed)
 
         # no main line is detected -> reverse
         else:
