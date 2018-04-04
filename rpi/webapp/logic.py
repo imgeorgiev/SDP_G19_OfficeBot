@@ -79,11 +79,11 @@ class line_detect():
         blackLower = self.transfer([0, 0, 0])
         blackUpper = self.transfer([0.278, 1, 0.294])
 
-        blueLower = self.transfer([0.533, 0.709, 0.309])
-        blueUpper = self.transfer([0.675, 1, 0.765])
+        blueLower = self.transfer([0.505, 0.240, 0])
+        blueUpper = self.transfer([0.730, 1.000, 1.000])
 
-        redLower = self.transfer([-0.067, 0.581, 0.304])
-        redUpper = self.transfer([0.100, 0.941, 0.787])
+        redLower = self.transfer([-0.067, 0.289, 0.155])
+        redUpper = self.transfer([0.100, 1.000, 1.000])
 
         self.colorToMask = {
             "black": (blackLower, blackUpper),
