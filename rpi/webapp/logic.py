@@ -62,10 +62,10 @@ class line_detect():
 
         self.previousSpeeds = (0, 0)
 
-        weight_1 = 1
-        weight_2 = (0.5, 0.5)
-        weight_3 = (0.25, 0.5, 0.25)
-        weight_4 = (0.2, 0.3, 0.3, 0.2)
+        weight_1 = [1]
+        weight_2 = [0.5, 0.5]
+        weight_3 = [0.25, 0.5, 0.25]
+        weight_4 = [0.2, 0.3, 0.3, 0.2]
 
         self.weights = (weight_1, weight_2, weight_3, weight_4)
 
