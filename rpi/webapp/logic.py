@@ -237,11 +237,11 @@ class line_detect():
             print('The distance list is {}'.format(distanceBiasArray))
             print('The bias is {}'.format(bias))
 
-            # attenuate ensures speed will be between -40 and 40   -  parser requires speed to be an integer
-            speed = int(attenuate(bias/(1.5*self.numSlices), -50, 50))
-
             if abs(bias) < self.threshold:
                 return (50, 50)
+
+            # attenuate ensures speed will be between -40 and 40   -  parser requires speed to be an integer
+            speed = int(attenuate(bias/(1.5*self.numSlices), -50, 50))
 
             self.previousSpeeds = (20 - speed, 20 + speed)
             return (20 - speed, 20 + speed)
