@@ -217,7 +217,7 @@ class line_detect():
 
         # minDistBetweenCentres is high as we only need to detect one circle
 
-        circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, minDist=10000, param1=100, param2=20, minRadius=10, maxRadius=240)
+        circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, minDist=10000, param1=100, param2=20, minRadius=50, maxRadius=240)
         return (circles is not None)
 
     # through the distance bias array, we can use this function to reach line_following
@@ -447,10 +447,6 @@ def followTillJunction(junction):
         rawCapture.truncate(0)  # clear the rawCapture array
 
         frame = rawCapture.array
-
-        # reset the arrays of slices
-        line.slicesByColor[mainLineColor] = []
-        line.slicesByColor[junctionColor] = []
 
         # isolating colors and getting distance between centre of vision and centre of line
         frameWithoutBackground = line.RemoveBackground_HSV(frame, mainLineColor)
