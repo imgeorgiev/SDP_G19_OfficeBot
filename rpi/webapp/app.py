@@ -366,9 +366,9 @@ def check_file():
                 # reset everything; assume position 1
                 job_queue = []
                 currently_processing = None
-                writteb_job = None
+                written_job = None
                 next_job = None
-                priorities = [0, 0, 0, 0, 0, 0]
+                priorities = [0, 0, 0, 0, 0, 0, 0, 0]
                 position = 1
                 # empty file
                 file.seek(0)
