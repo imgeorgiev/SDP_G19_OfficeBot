@@ -38,7 +38,7 @@ directionsToTurnArray = [
     [(l, r), (l, l), None, (r, l, l), (r, l, s), (r, s, l), (r, s, s, r), (r, s, s, s, l)],
     [(r, r, s, r), (r, r, s, l), (r, r, l), None, l, (r, l, l), (r, l, s, r), (r, l, s, s, l)],
     [(s, r, s, r), (s, r, s, l), (s, r, l), r, None, (s, l, l), (s, l, s, r), (s, l, s, s, l)],
-    [(r, s, s, r), (r, s, s, l), (r, s, l), (r, r, l), (r, r, s), None, (l, r), (l, l)],
+    [(r, s, s, r), (r, s, s, l), (r, s, l), (r, r, l), (r, r, s), None, (l, r), (l, s, l)],
     [(l, s, s, s, r), (l, s, s, s, l), (l, s, s, l), (l, s, r, l), (l, s, r, s), (l, r), None, (r, l)],
     [(r, s, s, s, s, r), (r, s, s, s, s, l), (r, s, s, s, l), (r, s, s, r, l), (r, s, s, r, s), (r, s, r), (r, l), None]
 ]
@@ -58,7 +58,7 @@ class line_detect():
         self.height = 240
         self.numSlices = 4
 
-        self.threshold = 20 * self.numSlices
+        self.threshold = 10 * self.numSlices
 
         self.previousSpeeds = (0, 0)
 
@@ -238,7 +238,7 @@ class line_detect():
             print('The bias is {}'.format(bias))
 
             # attenuate ensures speed will be between -40 and 40   -  parser requires speed to be an integer
-            speed = int(attenuate(bias/(3*self.numSlices), -50, 50))
+            speed = int(attenuate(bias/(1.5*self.numSlices), -50, 50))
 
             if abs(bias) < self.threshold:
                 return (50, 50)
