@@ -235,8 +235,8 @@ class line_detect():
             if abs(bias) < self.threshold:
                 return (50, 50)
 
-            self.previousSpeeds = (25 - speed, 25 + speed)
-            return (25 - speed, 25 + speed)
+            self.previousSpeeds = (20 - speed, 20 + speed)
+            return (20 - speed, 20 + speed)
 
         # no main line is detected -> reverse
         else:
