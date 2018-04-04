@@ -300,7 +300,7 @@ def compute_path(position, destination):
 
 
 def main():
-    global server, ESCAPE_KEY, camera, line, mainLineColor, resolution, ir_sensors, IR_THRESHOLD
+    global server, camera, line, mainLineColor, resolution, ir_sensors, IR_THRESHOLD
 
     position = 1
 
@@ -328,7 +328,6 @@ def main():
 
     mainLineColor = 'black'
 
-    ESCAPE_KEY = 27
     MANUAL_OVERRIDE_START = 100
     MANUAL_OVERRIDE_CANCEL = 200
 
@@ -462,7 +461,6 @@ def followTillJunction(junction):
                 print('DEBUG: right motor speed: {}'.format(new_right_motor_speed))
                 previousSpeeds = (new_left_motor_speed, new_right_motor_speed)
 
-
 #            printLinesToScreen(mainLineColor, junctionColor)
 
         print(time.time() - startTime)
@@ -547,7 +545,7 @@ def printLinesToScreen(*listOfColors):
 
     # required when printing lines to the screen
     pressedKey = cv2.waitKey(1) & 0xff
-    if pressedKey == ESCAPE_KEY:
+    if pressedKey == 27:  # Escape Key
         raise KeyboardInterrupt('Exit key was pressed')
 
 def getCloseIRSensor():
