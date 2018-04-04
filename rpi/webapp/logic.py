@@ -79,10 +79,10 @@ class line_detect():
         blackLower = self.transfer([0, 0, 0])
         blackUpper = self.transfer([0.278, 1, 0.294])
 
-        blueLower = self.transfer([0.505, 0.240, 0])
+        blueLower = self.transfer([0.505, 0.240, 0.3])
         blueUpper = self.transfer([0.730, 1.000, 1.000])
 
-        redLower = self.transfer([-0.067, 0.289, 0.155])
+        redLower = self.transfer([-0.067, 0.289, 0.3])
         redUpper = self.transfer([0.100, 1.000, 1.000])
 
         self.colorToMask = {
@@ -215,7 +215,7 @@ class line_detect():
         contours = self.getContours(image)
 
         # get contours larger than 5% of image area
-        contours = self.thresholdContourSize(contours, height, width, 5)
+        contours = self.thresholdContourSize(contours, height, width, 10)
         return len(contours) > 0
 
     # this function will detect whether there is a circle(destination) in the robot vision
@@ -231,7 +231,7 @@ class line_detect():
     # through the distance bias array, we can use this function to reach line_following
     def computeWheelSpeeds(self, distanceBiasArray):
         if len(distanceBiasArray) > 0:
-            bias = sum(i*j for i, j in zip(distanceBiasArray, self.weights[len(distanceBiasArray)-1]))
+            bias = int(sum(i*j for i, j in zip(distanceBiasArray, self.weights[len(distanceBiasArray)-1])))
 
             # bias = sum(distance)
             print('The distance list is {}'.format(distanceBiasArray))
