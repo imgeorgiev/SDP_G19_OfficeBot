@@ -27,9 +27,9 @@ desks = {
     8: {'name': 'Desk 6', 'color': 'red'}
 }
 
-l = "left"
-r = "right"
-s = "straight"
+l = "l"  # left
+r = "r"  # right
+s = "s"  # straight
 
 # based on new environment with 8 desks
 directionsToTurnArray = [
@@ -251,13 +251,13 @@ class line_detect():
 
 
 def turn(direction):
-    if direction == 'right':
+    if direction == r:
         server.sendTurnCommand(100)
 
         # wait while turning
         time.sleep(2)
 
-    elif direction == 'left':
+    elif direction == l:
         server.sendTurnCommand(-100)
 
         # wait while turning
