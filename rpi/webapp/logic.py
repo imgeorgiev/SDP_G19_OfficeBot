@@ -230,7 +230,7 @@ class line_detect():
             print('The bias is {}'.format(bias))
 
             # attenuate ensures speed will be between -40 and 40   -  parser requires speed to be an integer
-            speed = int(attenuate(bias/12, -50, 50))
+            speed = int(attenuate(bias/(3*self.numSlices), -50, 50))
 
             if abs(bias) < self.threshold:
                 return (50, 50)
