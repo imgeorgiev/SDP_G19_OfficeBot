@@ -284,9 +284,12 @@ def compute_path(position, destination):
     path = []
 
     nextTurnColor = firstTurnColor
-    for direction in directionsToTurn:
-        path.append((nextTurnColor, direction))
-        nextTurnColor = "red" if nextTurnColor == "blue" else "blue"
+    if len(directionsToTurn) > 1:
+        for direction in directionsToTurn:
+            path.append((nextTurnColor, direction))
+            nextTurnColor = "red" if nextTurnColor == "blue" else "blue"
+    else:
+        path.append((nextTurnColor, directionsToTurn))
 
     # Debugging
     debug_text = "COMPUTING ROUTE.\n" \
