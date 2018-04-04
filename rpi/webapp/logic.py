@@ -23,8 +23,8 @@ desks = {
     4: {'name': 'Desk 4', 'color': 'red'},
     5: {'name': 'Desk 5', 'color': 'red'},
     6: {'name': 'Desk 6', 'color': 'red'},
-    7: {'name': 'Desk 6', 'color': 'blue'},
-    8: {'name': 'Desk 6', 'color': 'red'}
+    7: {'name': 'Desk 7', 'color': 'blue'},
+    8: {'name': 'Desk 8', 'color': 'red'}
 }
 
 l = "l"  # left
@@ -77,7 +77,7 @@ class line_detect():
 
         # numpy upper and lower bounds for color ranges
         blackLower = self.transfer([0, 0, 0])
-        blackUpper = self.transfer([0.278, 1, 0.294])
+        blackUpper = self.transfer([0.100, 1, 0.150])
 
         blueLower = self.transfer([0.505, 0.240, 0.3])
         blueUpper = self.transfer([0.730, 1.000, 1.000])
@@ -356,11 +356,11 @@ def main():
 
                     # follow the computed path, return when completed or escaped
                     try:
-                        server.sendSpeakCommand("Heading to desk " + str(destination))
+                        server.sendSpeakCommand("Heading to " + str(desks[destination]['name']))
                         followPath(path)
 
                         log_arrived_at(destination)
-                        server.sendSpeakCommand("Arrived at desk " + str(destination))
+                        server.sendSpeakCommand("Arrived at " + str(desks[destination]['name']))
                         position = destination
 
                         # wait 5 secs while at destination
