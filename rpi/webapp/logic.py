@@ -62,6 +62,13 @@ class line_detect():
 
         self.previousSpeeds = (0, 0)
 
+        weight_1 = 1
+        weight_2 = (0.5, 0.5)
+        weight_3 = (0.25, 0.5, 0.25)
+        weight_4 = (0.2, 0.3, 0.3, 0.2)
+
+        self.weights = (weight_1, weight_2, weight_3, weight_4)
+
         self.slicesByColor = {
             "black": [],
             "blue": [],
@@ -224,7 +231,7 @@ class line_detect():
     # through the distance bias array, we can use this function to reach line_following
     def computeWheelSpeeds(self, distanceBiasArray):
         if len(distanceBiasArray) > 0:
-            bias = sum(distanceBiasArray)
+            bias = sum(i*j for i, j in zip(distanceBiasArray, self.weights[len(distanceBiasArray)-1]))
 
             # bias = sum(distance)
             print('The distance list is {}'.format(distanceBiasArray))
@@ -477,6 +484,8 @@ def followTillJunction(junction):
             while getCloseIRSensor() is not None:
                 pass
             print("Something is no longer in the way")
+
+        print("sensor time: " + str(time.time()-startTime))
 
 def followTillEnd():
 
