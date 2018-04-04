@@ -478,7 +478,7 @@ def followTillJunction(junction):
             server.sendMotorCommand(0,0)
             previousSpeeds = (0, 0)
 
-            server.sendSpeakCommand(closeSensor + " sensor detected something.")
+            server.sendSpeakCommand(closeSensor + " sensor detected something")
             print("Sensor detected something")
 
             while getCloseIRSensor() is not None:
@@ -534,7 +534,7 @@ def followTillEnd():
             server.sendMotorCommand(0,0)
             previousSpeeds = (0, 0)
 
-            server.sendSpeakCommand(closeSensor + " sensor detected something.")
+            server.sendSpeakCommand(closeSensor + " sensor detected something")
             print("Sensor detected something")
 
             while getCloseIRSensor() is not None:
