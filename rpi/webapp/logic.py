@@ -200,7 +200,8 @@ class line_detect():
         # return distance array reversed
         return distance[::-1]
 
-    def isColorInFrame(self, image):
+    def isColorInFrame(self, frame, junctionColor):
+        image = line.RemoveBackground_HSV(frame, junctionColor)
         height, width = image.shape[:2]
 
         # get contours of image
@@ -442,18 +443,17 @@ def followTillJunction(junction):
 
         frame = rawCapture.array
 
-        # isolating colors and getting distance between centre of vision and centre of line
-        frameWithoutBackground = line.RemoveBackground_HSV(frame, mainLineColor)
-        mainLineDistanceBiases = line.computeDistanceBiases(frameWithoutBackground, line.numSlices)
-
-        HSV_turnColor = line.RemoveBackground_HSV(frame, junctionColor)
-        isTurnColorInFrame = line.isColorInFrame(HSV_turnColor)
+        isTurnColorInFrame = line.isColorInFrame(frame, junctionColor)
 
         if isTurnColorInFrame:
-            print("Turning " + turnDirection)
+            print("\nTurning " + turnDirection)
             turn(turnDirection)
             return
         else:
+            # isolating colors and getting distance between centre of vision and centre of line
+            frameWithoutBackground = line.RemoveBackground_HSV(frame, mainLineColor)
+            mainLineDistanceBiases = line.computeDistanceBiases(frameWithoutBackground, line.numSlices)
+
             (new_left_motor_speed, new_right_motor_speed) = line.computeWheelSpeeds(mainLineDistanceBiases)
 
             if (new_left_motor_speed, new_right_motor_speed) != previousSpeeds:
@@ -493,13 +493,6 @@ def followTillEnd():
 
         frame = rawCapture.array
 
-        # reset the array of slices
-        line.slicesByColor[mainLineColor] = []
-
-        # isolating main line color and getting distance between centre of vision and centre of line
-        frameWithoutBackground = line.RemoveBackground_HSV(frame, mainLineColor)
-        mainLineDistanceBiases = line.computeDistanceBiases(frameWithoutBackground, line.numSlices)
-
         isCircleInFrame = line.circle_detect(frame)
 
         if isCircleInFrame:
@@ -512,6 +505,10 @@ def followTillEnd():
             server.sendMotorCommand(0, 0)
             return
         else:
+            # isolating main line color and getting distance between centre of vision and centre of line
+            frameWithoutBackground = line.RemoveBackground_HSV(frame, mainLineColor)
+            mainLineDistanceBiases = line.computeDistanceBiases(frameWithoutBackground, line.numSlices)
+
             (new_left_motor_speed, new_right_motor_speed) = line.computeWheelSpeeds(mainLineDistanceBiases)
 
             if (new_left_motor_speed, new_right_motor_speed) != previousSpeeds:
