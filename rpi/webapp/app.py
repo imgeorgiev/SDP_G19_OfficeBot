@@ -72,10 +72,10 @@ def manual_refresh():
     global manual_control
 
     if (manual_control):
-        message = "Manual control is still on: please trigger the controller to disable it."
+        message = " Manual control is still on: please trigger the controller to disable it."
         error_msg = True
     else:
-        message = "Manual control has been set off."
+        message = " Manual control has been set off."
         error_msg = False
 
     # return either the normal or desk-filled index page

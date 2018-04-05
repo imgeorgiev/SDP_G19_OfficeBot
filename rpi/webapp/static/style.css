@@ -16,8 +16,9 @@ body {
 }
 
 a, .notification {
-  max-width: 400px;
+  max-width: 80%;
   margin: auto;
+  margin-bottom: 20px;
 }
 
 a {
@@ -46,6 +47,7 @@ a.manual_control {
   border-color: grey;
   background-color: transparent;
   margin-bottom: 20px;
+  margin-top: 20px;
 }
 
 h1 {
