@@ -20,7 +20,14 @@ desks = {
 }
 
 # x and y coordinates for desks
-desks_x_y = [[1, 1], [3, 2], [0, 3], [3, 3], [4, 5], [1, 6], [0, 7], [4, 8]]
+desks_x_y = [[1, 0],
+        [8, 0],
+        [8, 5],
+        [2, 2],
+        [0, 4],
+        [0, 9],
+        [8, 8],
+        [2, 10]]
 
 # matrix of distances between desks
 distances = []
