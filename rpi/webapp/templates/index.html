@@ -16,15 +16,13 @@
 		 </div>
 		 <h2>Where should OfficePal go?</h2>
 
-		 <!-- Manual control override -->
-		 {% if manual_control %}
-		 <a href="/manual_refresh" class="btn manual_control">
-			 <i class="fas fa-check-square"></i> Manual control is on. Click to refresh.
-		 </a>
+		 <!--Notifications-->
+		 {% if message and not error_msg %}
+			 <p class="notification fade distance"><i class="fas fa-check-square"></i>{{ message }}</p>
+		 {% elif message and error_msg %}
+			 <p class="notification fade distance error-color"><i class="fas fa-times"></i>{{ message }}</p>
 		 {% else %}
-		 <a href="/manual" class="btn manual_control">
-		   <i class="far fa-square"></i> Manual control is off
-		 </a>
+			 <p class="note notification distance">Notifications will appear here.</p>
 		 {% endif %}
 
 		 <!-- Main location selector -->
@@ -35,14 +33,17 @@
 		 {% endfor %}
 		 {% endif %}
 
-		 <!--Notifications-->
-		 {% if message and not error_msg %}
-			 <p class="notification fade distance"><i class="fas fa-check-square"></i>{{ message }}</p>
-		 {% elif message and error_msg %}
-			 <p class="notification fade distance error-color"><i class="fas fa-times"></i>{{ message }}</p>
+		 <!-- Manual control override -->
+		 {% if manual_control %}
+		 <a href="/manual_refresh" class="btn manual_control">
+			 <i class="fas fa-check-square"></i> Manual control is on. Click to refresh.
+		 </a>
 		 {% else %}
-			 <p class="note notification distance">Notifications will appear here.</p>
+		 <a href="/manual" class="btn manual_control">
+			 <i class="far fa-square"></i> Manual control is off
+		 </a>
 		 {% endif %}
+
 	 </div>
 </body>
 </html>
