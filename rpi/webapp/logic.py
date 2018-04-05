@@ -82,8 +82,8 @@ class line_detect():
         blueLower = self.transfer([0.505, 0.240, 0.3])
         blueUpper = self.transfer([0.730, 1.000, 1.000])
 
-        redLower = self.transfer([-0.067, 0.289, 0.3])
-        redUpper = self.transfer([0.100, 1.000, 1.000])
+        redLower = self.transfer([-0.114, 0.289, 0.3])
+        redUpper = self.transfer([0.400, 1.000, 1.000])
 
         self.colorToMask = {
             "black": (blackLower, blackUpper),
@@ -215,7 +215,7 @@ class line_detect():
         contours = self.getContours(image)
 
         # get contours larger than 5% of image area
-        contours = self.thresholdContourSize(contours, height, width, 10)
+        contours = self.thresholdContourSize(contours, height, width, 3)
         return len(contours) > 0
 
     # this function will detect whether there is a circle(destination) in the robot vision
@@ -264,7 +264,6 @@ def turn(direction):
 
         # wait while turning
         time.sleep(2)
-
 
 def resetDictionary(d):
     for key in d:
@@ -485,7 +484,7 @@ def followTillJunction(junction):
                 pass
             print("Something is no longer in the way")
 
-        print("sensor time: " + str(time.time()-startTime))
+#        print("sensor time: " + str(time.time()-startTime))
 
 def followTillEnd():
 
