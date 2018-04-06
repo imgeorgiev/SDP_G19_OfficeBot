@@ -346,6 +346,7 @@ def main():
 
             elif destination == MANUAL_OVERRIDE_START:
                 handleManualOverride()
+                position = 1
 
             else:
                 if destination not in desks.keys():
