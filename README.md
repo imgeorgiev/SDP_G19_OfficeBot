@@ -16,7 +16,7 @@ OfficePal was designed by team RetroSpark (group 19) comprising of team members:
 - Vaida Plankyte
 - Yijie Chen
 
-![team](retrospark_team.jpg)
+![team](Docs/retrospark_team.jpg)
 
 ## Resources
 All course-related documentation, reports and project plans are within the folder `Docs`.
